@@ -28,6 +28,7 @@ import org.apache.aries.cdi.container.internal.container.Op.Type;
 import org.apache.aries.cdi.container.internal.model.ExtendedExtensionDTO;
 import org.apache.aries.cdi.container.internal.model.ExtendedExtensionTemplateDTO;
 import org.apache.aries.cdi.container.internal.util.Conversions;
+import org.apache.aries.cdi.container.internal.util.Perms;
 import org.apache.aries.cdi.container.internal.util.SRs;
 import org.apache.aries.cdi.container.internal.util.Syncro;
 import org.apache.aries.cdi.container.internal.util.Throw;
@@ -159,6 +160,10 @@ public class ExtensionPhase extends Phase {
 
 		@Override
 		public ExtendedExtensionDTO addingService(ServiceReference<Extension> reference) {
+			if (!Perms.hasExtensionServicePermission(containerState.bundleContext())) {
+				return null;
+			}
+
 			ExtendedExtensionTemplateDTO template = extensionTemplates().stream().map(
 				t -> (ExtendedExtensionTemplateDTO)t
 			).filter(

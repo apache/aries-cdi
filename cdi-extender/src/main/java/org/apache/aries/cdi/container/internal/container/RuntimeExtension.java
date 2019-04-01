@@ -16,12 +16,14 @@ package org.apache.aries.cdi.container.internal.container;
 
 import static javax.interceptor.Interceptor.Priority.PLATFORM_AFTER;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
@@ -66,6 +68,7 @@ import org.apache.aries.cdi.container.internal.model.OSGiBean;
 import org.apache.aries.cdi.container.internal.model.ReferenceModel;
 import org.apache.aries.cdi.container.internal.model.SingleComponent;
 import org.apache.aries.cdi.container.internal.util.Annotates;
+import org.apache.aries.cdi.container.internal.util.Perms;
 import org.apache.aries.cdi.container.internal.util.SRs;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
@@ -227,18 +230,19 @@ public class RuntimeExtension implements Extension {
 		).then(
 			s -> initComponents()
 		).then(s -> {
-				Dictionary<String, Object> properties = new Hashtable<>();
-				properties.put(CDIConstants.CDI_CONTAINER_ID, _containerState.id());
-				properties.put(Constants.SERVICE_DESCRIPTION, "Aries CDI - BeanManager for " + _containerState.bundle());
-				properties.put(Constants.SERVICE_VENDOR, "Apache Software Foundation");
+			Dictionary<String, Object> properties = new Hashtable<>();
+			properties.put(CDIConstants.CDI_CONTAINER_ID, _containerState.id());
+			properties.put(Constants.SERVICE_DESCRIPTION, "Aries CDI - BeanManager for " + _containerState.bundle());
+			properties.put(Constants.SERVICE_VENDOR, "Apache Software Foundation");
 
-				registerService(
-					new String[] {BeanManager.class.getName()}, bm,
-					properties);
+			List<String> serviceTypes = new ArrayList<>();
 
-				return s;
-			}
-		);
+			serviceTypes.add(BeanManager.class.getName());
+
+			registerService(serviceTypes, bm, properties);
+
+			return s;
+		});
 	}
 
 	void beforeShutdown(@Observes BeforeShutdown bs) {
@@ -522,19 +526,29 @@ public class RuntimeExtension implements Extension {
 			componentInstance.componentProperties(activationTemplate.properties));
 
 		ServiceRegistration<?> serviceRegistration = registerService(
-			activationTemplate.serviceClasses.toArray(new String[0]),
+			activationTemplate.serviceClasses,
 			serviceObject, properties);
 
-		ExtendedActivationDTO activationDTO = new ExtendedActivationDTO();
-		activationDTO.errors = new CopyOnWriteArrayList<>();
-		activationDTO.service = SRs.from(serviceRegistration.getReference());
-		activationDTO.template = activationTemplate;
-		componentInstance.activations.add(activationDTO);
+		if (serviceRegistration != null) {
+			ExtendedActivationDTO activationDTO = new ExtendedActivationDTO();
+			activationDTO.errors = new CopyOnWriteArrayList<>();
+			activationDTO.service = SRs.from(serviceRegistration.getReference());
+			activationDTO.template = activationTemplate;
+			componentInstance.activations.add(activationDTO);
+		}
 	}
 
-	private ServiceRegistration<?> registerService(String[] serviceTypes, Object serviceObject, Dictionary<String, Object> properties) {
+	private ServiceRegistration<?> registerService(List<String> serviceTypes, Object serviceObject, Dictionary<String, Object> properties) {
+		List<String> list = serviceTypes.stream().filter(serviceType ->
+			Perms.hasRegisterServicePermission(serviceType, _containerState.bundleContext())
+		).collect(Collectors.toList());
+
+		if (list.isEmpty()) {
+			return null;
+		}
+
 		ServiceRegistration<?> serviceRegistration = _containerState.bundleContext().registerService(
-			serviceTypes, serviceObject, properties);
+			serviceTypes.toArray(new String[0]), serviceObject, properties);
 
 		_registrations.add(serviceRegistration);
 

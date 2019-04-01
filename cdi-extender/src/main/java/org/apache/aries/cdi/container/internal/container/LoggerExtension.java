@@ -33,6 +33,10 @@ public class LoggerExtension implements Extension {
 	void afterBeanDiscovery(@Observes AfterBeanDiscovery abd) {
 		final LoggerFactory lf = _containerState.containerLogs().getLoggerFactory();
 
+		if (lf == null) {
+			return;
+		}
+
 		BeanConfigurator<FormatterLogger> formatterLoggerBean = abd.addBean();
 		formatterLoggerBean.addType(FormatterLogger.class);
 		formatterLoggerBean.produceWith(

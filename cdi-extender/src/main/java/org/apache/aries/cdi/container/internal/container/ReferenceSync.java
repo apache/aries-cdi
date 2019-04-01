@@ -23,6 +23,7 @@ import org.apache.aries.cdi.container.internal.model.ExtendedReferenceTemplateDT
 import org.apache.aries.cdi.container.internal.model.InstanceActivator;
 import org.apache.aries.cdi.container.internal.util.Conversions;
 import org.apache.aries.cdi.container.internal.util.Maps;
+import org.apache.aries.cdi.container.internal.util.Perms;
 import org.apache.aries.cdi.container.internal.util.SRs;
 import org.apache.aries.cdi.container.internal.util.Syncro;
 import org.osgi.framework.ServiceReference;
@@ -50,6 +51,10 @@ public class ReferenceSync implements ServiceTrackerCustomizer<Object, Object> {
 
 	@Override
 	public Object addingService(final ServiceReference<Object> reference) {
+		if (!Perms.hasGetServicePermission(_templateDTO.serviceType, _containerState.bundleContext())) {
+			return null;
+		}
+
 		boolean active = _componentInstanceDTO.active;
 		boolean resolved = (_referenceDTO.matches.size() >= _templateDTO.minimumCardinality);
 		boolean dynamic = (_templateDTO.policy == ReferencePolicy.DYNAMIC);

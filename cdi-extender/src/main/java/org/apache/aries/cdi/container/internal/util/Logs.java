@@ -39,7 +39,7 @@ public class Logs {
 	private Logs(BundleContext bundleContext) {
 		LoggerFactory loggerFactory = null;
 
-		if (bundleContext != null) {
+		if ((bundleContext != null) && Perms.hasLoggerFactoryServicePermission(bundleContext)) {
 			ServiceTracker<LoggerFactory, LoggerFactory> tracker = new ServiceTracker<>(bundleContext, LoggerFactory.class, null);
 
 			tracker.open();
