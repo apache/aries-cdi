@@ -29,7 +29,7 @@
 	<groupId>org.apache.aries.cdi</groupId>
 	<artifactId>org.apache.aries.cdi</artifactId>
 	<name>Apache Aries CDI - OSGi CDI Integration Project</name>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
