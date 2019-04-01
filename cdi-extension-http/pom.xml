@@ -41,9 +41,10 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:svn:https://svn.apache.org/repos/asf/aries/trunk/cdi/cdi-extension-http</connection>
-		<developerConnection>scm:svn:https://svn.apache.org/repos/asf/aries/trunk/cdi/cdi-extension-http</developerConnection>
-		<url>https://svn.apache.org/viewvc/aries/trunk/cdi/cdi-extension-http</url>
+		<connection>scm:git:git@github.com:apache/aries-cdi.git</connection>
+		<developerConnection>scm:git:git@github.com:apache/aries-cdi.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/apache/aries-cdi</url>
 	</scm>
 
 	<build>

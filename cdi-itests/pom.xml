@@ -38,9 +38,10 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:svn:https://svn.apache.org/repos/asf/aries/trunk/cdi/cdi-itests</connection>
-		<developerConnection>scm:svn:https://svn.apache.org/repos/asf/aries/trunk/cdi/cdi-itests</developerConnection>
-		<url>https://svn.apache.org/viewvc/aries/trunk/cdi/cdi-itests</url>
+		<connection>scm:git:git@github.com:apache/aries-cdi.git</connection>
+		<developerConnection>scm:git:git@github.com:apache/aries-cdi.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/apache/aries-cdi</url>
 	</scm>
 
 	<properties>
