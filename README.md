@@ -48,6 +48,8 @@ OSGi CDI support in bnd comes with any tool that uses bnd versions `4.1.0+`:
 * [bndtools workspace 4.1.0+](https://bndtools.org/)
 * [bnd-maven-plugin 4.1.0+](https://github.com/bndtools/bnd/tree/master/maven/bnd-maven-plugin)
 
+***Note*** *there are several improvements for CDI handling in later versions of **bnd**, so please use the latest version for best experience.*
+
 ### Setting up
 
 Bean discovery in bnd is handled by the __`-cdiannotations`__ instruction. The default value for this is __`*`__ (which is functionally equivalent to `*;discover=annotated_by_bean` described below.)
