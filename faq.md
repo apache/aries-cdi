@@ -1,4 +1,4 @@
-# OSGi CDI Examples as an FAQ
+# OSGi CDI FAQ
 
 ## Registering Services
 

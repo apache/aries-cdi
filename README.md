@@ -89,9 +89,9 @@ and be presented with a gogo shell prompt ready for you to install a CDI bundle.
 
 The goal of OSGi CDI was to remain as true to both technologies as possible. This proved possible due to the extensive feature set provided by each technology.
 
-### Who cares! Examples please
+### I just have a few questions!
 
-[Examples](examples.md)
+[FAQ](faq.md)
 
 ### Actors
 
