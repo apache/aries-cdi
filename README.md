@@ -39,7 +39,39 @@ However all the required dependencies are available using the __Aries CDI BOM__:
 
 ## Tooling
 
-TODO
+In order to make the best use of OSGi CDI you should use tooling that supports it. [Bnd](https://bnd.bndtools.org) provides OOTB support for OSGi CDI annotations and enables a painless configuration model.
+
+OSGi CDI support in bnd comes with any tool that uses bnd versions `4.1.0+`:
+
+* [maven-bundle-plugin 4.1.0+](http://felix.apache.org/documentation/subprojects/apache-felix-maven-bundle-plugin-bnd.html)
+* [bnd gradle plugin (for non-workspace) 4.1.0+](https://github.com/bndtools/bnd/tree/master/biz.aQute.bnd.gradle#gradle-plugin-for-non-bnd-workspace-builds)
+* [bndtools workspace 4.1.0+](https://bndtools.org/)
+* [bnd-maven-plugin 4.1.0+](https://github.com/bndtools/bnd/tree/master/maven/bnd-maven-plugin)
+
+### Setting up
+
+Bean discovery in bnd is handled by the __`-cdiannotations`__ instruction. The default value for this is __`*`__ (which is functionally equivalent to `*;discover=annotated_by_bean` described below.)
+
+Discovery is controlled by applying the attribute `discover` to glob pattern used for matching classes in the bundle by their fully qualified names (_the default glob `*` matches all classes._)
+
+Available `discover` options are:
+
+* __`none`__ - disable bean discovery
+* __`annotated`__ - uses the CDI definition of [annotated discovery mode](http://docs.jboss.org/cdi/spec/2.0/cdi-spec.html#default_bean_discovery)
+* __`all`__ - discover all classes which could be beans
+* __`annotated_by_bean`__ - defined by bnd, this is __the effective default__ which means to look for classes annotated with `org.osgi.service.cdi.annotations.Bean` or packages annotated with `org.osgi.service.cdi.annotations.Beans`)
+
+In combination the glob and modes give the developer very concise control over discovery.
+
+If you want to emulate the CDI default use:
+
+```properties
+-cdiannotations: *;discover=annotated
+```
+
+#### beans.xml
+
+In bnd `4.3.0+` you can rely purely on the discovery mode calculated from existing `beans.xml` files in your project. This grants even less configuration friction for existing projects migrating to OSGi CDI.
 
 ## Pre-built runtime
 

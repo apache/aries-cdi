@@ -19,32 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import javax.enterprise.context.spi.Context;
 
 import org.apache.aries.cdi.test.interfaces.BeanService;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.util.tracker.ServiceTracker;
 
-public class Test152_3 extends AbstractTestCase {
-
-	@BeforeClass
-	public static void beforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void afterClass() throws Exception {
-	}
-
-	@Override
-	public void setUp() throws Exception {
-	}
-
-	@After
-	@Override
-	public void tearDown() throws Exception {
-	}
+public class Test152_3 extends SlimTestCase {
 
 	@Test
 	public void componentScopeContext() throws Exception {

@@ -47,9 +47,9 @@
 	javax.ejb-api;version='[3.2.0,3.2.1)',\
 	javax.transaction-api;version='[1.2.0,1.2.1)',\
 	jboss-classfilewriter;version='[1.2.3,1.2.4)',\
-	org.apache.aries.cdi.extender;version='[1.0.2,1.0.3)',\
-	org.apache.aries.cdi.extension.http;version='[1.0.2,1.0.3)',\
-	org.apache.aries.cdi.extra;version='[1.0.2,1.0.3)',\
+	org.apache.aries.cdi.extender;version='[1.0.3,1.0.4)',\
+	org.apache.aries.cdi.extension.http;version='[1.0.3,1.0.4)',\
+	org.apache.aries.cdi.extra;version='[1.0.3,1.0.4)',\
 	org.apache.aries.spifly.dynamic.framework.extension;version='[1.2.0,1.2.1)',\
 	org.apache.felix.configadmin;version='[1.9.10,1.9.11)',\
 	org.apache.felix.gogo.command;version='[1.1.0,1.1.1)',\
@@ -66,4 +66,4 @@
 	org.jboss.weld.osgi-bundle;version='[3.0.5,3.0.6)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
-	org.osgi.util.promise;version='[1.1.0,1.1.1)'
+	org.osgi.util.promise;version='[1.1.0,1.1.1)',\

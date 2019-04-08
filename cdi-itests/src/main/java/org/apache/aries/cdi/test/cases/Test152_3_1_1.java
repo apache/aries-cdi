@@ -24,8 +24,6 @@ import java.util.function.Consumer;
 
 import org.apache.aries.cdi.test.interfaces.Pojo;
 import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
@@ -38,15 +36,7 @@ import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Success;
 import org.osgi.util.tracker.ServiceTracker;
 
-public class Test152_3_1_1 extends AbstractTestCase {
-
-	@BeforeClass
-	public static void beforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void afterClass() throws Exception {
-	}
+public class Test152_3_1_1 extends SlimTestCase {
 
 	@Override
 	public void setUp() throws Exception {
