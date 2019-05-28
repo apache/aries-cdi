@@ -1,5 +1,8 @@
 # Aries CDI Integration
 
+[![Build Status](https://builds.apache.org/buildStatus/icon?job=Aries-component-dsl-master)](https://builds.apache.org/job/Aries-cdi-master)
+[![Maven Central](https://img.shields.io/maven-central/v/org.apache.aries.cdi/org.apache.aries.cdi.extender.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.apache.aries.cdi%22%20AND%20a:%22org.apache.aries.cdi.extender%22)
+
 This is an implementation of [OSGi CDI Integration Specification ](https://osgi.org/specification/osgi.enterprise/7.0.0/service.cdi.html) (hereafter referred to simply as _OSGi CDI_).
 
 ## License
@@ -120,11 +123,11 @@ When a CDI bundle is identified by CCR several steps are taken before any bean i
 1. Any _portable extensions_ identified by the bundle must be discovered and their associated `javax.enterprise.inject.spi.Extension` services must be located. The bundle's CDI container will remain inactive until all portable extension services are located. Conversely, for a bundle with an active CDI container, if an identified extension goes away the CDI container is torn down.
 2. The beans of the bundle are analysed and categorised into 3 classifications:
    1. __Container component__:
-      - All beans you would traditionally find in a CDI application; `ApplicationScoped`, `Dependent`, `RequestScoped`, `SessionScoped`, `ConversationScoped`, any custom scopes, etc.; all of these make up the _container component_. 
+      - All beans you would traditionally find in a CDI application; `ApplicationScoped`, `Dependent`, `RequestScoped`, `SessionScoped`, `ConversationScoped`, any custom scopes, etc.; all of these make up the _container component_.
       - In fact, all beans that are not specifically `org.osgi.service.cdi.annotations.ComponentScoped` are part of the _container component_.
-      - __Every__ CDI bundle has exactly __1__ _container component_. 
+      - __Every__ CDI bundle has exactly __1__ _container component_.
       - It is perfectly valid for the set of _container component_ beans to be __empty__.
-   2. __Single component__: 
+   2. __Single component__:
       - All beans using the _stereotype_ `@SingleComponent` are roots of _a single component_.
       - Any referred beans (via injection points) that are explicitly scoped `@ComponentScoped` are also part of this _single component_.
       - Each _single component_ in a bundle has an __independent__ OSGi lifecycle, with one restriction; the _container component_ __must__ be active.
@@ -153,7 +156,7 @@ When a CDI bundle is identified by CCR several steps are taken before any bean i
          - if the component __provides a bundle scoped service__, the component is published into the registry (wrapped in a `ServiceFactory`). Service instances are created whenever the `getService` method of the factory is called, and destroyed when the `ungetService` is called. __Note:__ The service registry is the one tracking if a bundle has already _gotten_ factory service instances.
          - if the component __provides a prototype scoped service__, the component is published into the registry (wrapped in a `PrototypeServiceFactory`). Service instances are created whenever the `getService` method of the factory is called, and destroyed when the `ungetService` is called.
       2. if any required dependency of the component goes away, any service registration is removed from the registry and all instances are destroy.
-      3. Note that CDI context events whose payload is the component instance are fired at the appropriate moment for each of: 
+      3. Note that CDI context events whose payload is the component instance are fired at the appropriate moment for each of:
          - `@Initialized(ComponentScoped.class)`
          - `@BeforeDestroy(ComponentScoped.class)`
          - `@Destroyed(ComponentScoped.class)`
@@ -164,9 +167,9 @@ When a CDI bundle is identified by CCR several steps are taken before any bean i
          - if the component __provides a bundle scoped service__, the component is published into the registry (wrapped in a `ServiceFactory`). Service instances are created whenever the `getService` method of the factory is called, and destroyed when the `ungetService` is called. __Note:__ The service registry is the one tracking if a bundle has already _gotten_ factory service instances.
          - if the component __provides a prototype scoped service__, the component is published into the registry (wrapped in a `PrototypeServiceFactory`). Service instances are created whenever the `getService` method of the factory is called, and destroyed when the `ungetService` is called.
       2. if any required dependency of the component goes away, any service registration is removed from the registry and all instances are destroy.
-      3. Note that CDI context events whose payload is the component instance are fired at the appropriate moment for each of: 
+      3. Note that CDI context events whose payload is the component instance are fired at the appropriate moment for each of:
          - `@Initialized(ComponentScoped.class)`
          - `@BeforeDestroy(ComponentScoped.class)`
          - `@Destroyed(ComponentScoped.class)`
 
-Time to move onto [the examples](examples.md).
+Check out the many questions and answers in the [FAQ](faq.md).
