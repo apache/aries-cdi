@@ -346,6 +346,15 @@
 					</executions>
 				</plugin>
 				<plugin>
+					<groupId>biz.aQute.bnd</groupId>
+					<artifactId>bnd-run-maven-plugin</artifactId>
+					<version>${bnd.version}</version>
+					<configuration>
+						<failOnChanges>false</failOnChanges>
+						<includeDependencyManagement>true</includeDependencyManagement>
+					</configuration>
+				</plugin>
+				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.1</version>
@@ -397,6 +406,12 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>biz.aQute.bnd</groupId>
+				<artifactId>bnd-run-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
 	</build>
 
 	<reporting>

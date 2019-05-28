@@ -94,6 +94,21 @@
 					<includeDependencyManagement>true</includeDependencyManagement>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>biz.aQute.bnd</groupId>
+				<artifactId>bnd-run-maven-plugin</artifactId>
+				<configuration>
+					<bndrun>executable.bndrun</bndrun>
+				</configuration>
+				<executions>
+					<execution>
+						<id>executable</id>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
