@@ -44,7 +44,7 @@
 	sun.misc
 
 -runbundles: \
-	biz.aQute.junit;version='[4.3.0,4.3.1)',\
+	biz.aQute.junit;version='[4.3.1,4.3.2)',\
 	javax.ejb-api;version='[3.2.0,3.2.1)',\
 	javax.transaction-api;version='[1.2.0,1.2.1)',\
 	jboss-classfilewriter;version='[1.2.3,1.2.4)',\
