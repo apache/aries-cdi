@@ -44,7 +44,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -57,7 +57,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(ServiceReference.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -101,7 +101,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(ServiceReference.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -125,7 +125,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(ServiceReference.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -149,7 +149,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(ServiceReference.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -170,7 +170,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -184,7 +184,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -197,7 +197,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -214,7 +214,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -241,7 +241,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -266,7 +266,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -291,7 +291,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -312,7 +312,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -326,7 +326,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -339,7 +339,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -356,7 +356,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -383,7 +383,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -408,7 +408,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -433,7 +433,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -454,7 +454,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	// parameters
@@ -469,7 +469,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", ServiceReference.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -481,7 +481,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", ServiceReference.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -497,7 +497,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", ServiceReference.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(ServiceReference.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -523,7 +523,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", ServiceReference.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(ServiceReference.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -546,7 +546,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", ServiceReference.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(ServiceReference.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -569,7 +569,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", ServiceReference.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(ServiceReference.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -589,7 +589,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", ServiceReference.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -602,7 +602,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", Collection.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -614,7 +614,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", Collection.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -630,7 +630,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", Collection.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -656,7 +656,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", Collection.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -680,7 +680,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", Collection.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -704,7 +704,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", Collection.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -724,7 +724,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", Collection.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -737,7 +737,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", List.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -749,7 +749,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", List.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -765,7 +765,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", List.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -791,7 +791,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", List.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -815,7 +815,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", List.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -839,7 +839,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", List.class).getParameters()[0]);
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -859,7 +859,7 @@ public class ReferenceModel_ServiceReferenceTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getMethod("set", List.class).getParameters()[0]);
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 }

@@ -148,7 +148,7 @@ public class TemplatesTests extends BaseCDIBundleTest {
 				assertEquals(Arrays.asList("org.apache.aries.cdi.container.test.beans.Bar"), at.serviceClasses);
 			}
 
-			assertEquals(1, ct.beans.size());
+			assertEquals(2, ct.beans.size());
 			assertEquals(1, ct.configurations.size());
 			assertEquals("barService", ct.name);
 			assertEquals(Maps.of(), ct.properties);
@@ -233,7 +233,7 @@ public class TemplatesTests extends BaseCDIBundleTest {
 				assertEquals(Arrays.asList("org.apache.aries.cdi.container.test.beans.Bar"), at.serviceClasses);
 			}
 
-			assertEquals(1, ct.beans.size());
+			assertEquals(2, ct.beans.size());
 			assertEquals("org.apache.aries.cdi.container.test.beans.BarService", ct.beans.get(0));
 			assertEquals(1, ct.configurations.size());
 			assertEquals("barService", ct.name);

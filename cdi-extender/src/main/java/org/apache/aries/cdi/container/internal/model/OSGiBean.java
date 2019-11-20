@@ -14,8 +14,9 @@
 
 package org.apache.aries.cdi.container.internal.model;
 
+import static java.util.Objects.*;
+
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -33,9 +34,8 @@ public class OSGiBean implements Comparable<OSGiBean> {
 	public static class Builder {
 
 		public Builder(Logs logs, Class<?> beanClass) {
-			Objects.requireNonNull(beanClass);
 			_logs = logs;
-			_beanClass = beanClass;
+			_beanClass = requireNonNull(beanClass);
 		}
 
 		public OSGiBean build() {

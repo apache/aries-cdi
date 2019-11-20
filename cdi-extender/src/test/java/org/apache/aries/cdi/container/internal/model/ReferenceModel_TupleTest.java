@@ -45,7 +45,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -58,7 +58,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -71,7 +71,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -88,7 +88,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Map.Entry.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -113,7 +113,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Map.Entry.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -134,7 +134,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -147,7 +147,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -161,7 +161,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -174,7 +174,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -187,7 +187,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -200,7 +200,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -214,7 +214,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -231,7 +231,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Map.Entry.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -256,7 +256,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Map.Entry.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -281,7 +281,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Map.Entry.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -306,7 +306,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Map.Entry.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -327,7 +327,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -340,7 +340,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -354,7 +354,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -367,7 +367,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -380,7 +380,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -393,7 +393,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -406,7 +406,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -423,7 +423,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Map.Entry.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -445,7 +445,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -462,7 +462,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Foo.class, referenceModel.getServiceType());
@@ -487,7 +487,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(Collection.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -508,7 +508,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -522,7 +522,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test
@@ -539,7 +539,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Foo.class, referenceModel.getServiceType());
@@ -564,7 +564,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		ReferenceModel referenceModel = new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 
 		assertEquals(List.class, referenceModel.getBeanClass());
 		assertEquals(Integer.class, referenceModel.getServiceType());
@@ -585,7 +585,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -598,7 +598,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -611,7 +611,7 @@ public class ReferenceModel_TupleTest extends AbstractTestBase {
 
 		InjectionPoint injectionPoint = new MockInjectionPoint(C.class.getField("m"));
 
-		new ReferenceModel.Builder().injectionPoint(injectionPoint).build();
+		new ReferenceModel.Builder(injectionPoint.getAnnotated()).type(injectionPoint.getType()).build();
 	}
 
 }

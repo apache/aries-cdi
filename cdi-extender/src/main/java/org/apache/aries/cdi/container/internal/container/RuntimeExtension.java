@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
-import static javax.interceptor.Interceptor.Priority.PLATFORM_AFTER;
+import static javax.interceptor.Interceptor.Priority.*;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -37,7 +37,6 @@ import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.AnnotatedField;
 import javax.enterprise.inject.spi.AnnotatedMember;
 import javax.enterprise.inject.spi.AnnotatedMethod;
-import javax.enterprise.inject.spi.AnnotatedParameter;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeBeanDiscovery;
@@ -182,7 +181,12 @@ public class RuntimeExtension implements Extension {
 
 				for (ActivationTemplateDTO at : _containerTemplate.activations) {
 					ExtendedActivationTemplateDTO extended = (ExtendedActivationTemplateDTO)at;
-					if (extended.declaringClass.equals(declaringClass) && Objects.equals(extended.producer, producer)) {
+					if (extended.declaringClass.equals(declaringClass) &&
+						(((extended.producer == null) && (producer == null)) ||
+						(extended.producer != null) &&
+						(producer != null) &&
+						Objects.equals(extended.producer.getJavaMember(), producer.getJavaMember()))) {
+
 						activationTemplate = extended;
 						break;
 					}
@@ -371,8 +375,8 @@ public class RuntimeExtension implements Extension {
 
 		ConfigurationTemplateDTO current = new ComponentPropertiesModel.Builder(injectionPoint.getType()).declaringClass(
 			declaringClass
-		).injectionPoint(
-			injectionPoint
+		).qualifiers(
+			injectionPoint.getQualifiers()
 		).build().toDTO();
 
 		return osgiBean.getComponent().configurations.stream().map(
@@ -398,19 +402,9 @@ public class RuntimeExtension implements Extension {
 
 		Annotated annotated = injectionPoint.getAnnotated();
 
-		ReferenceModel.Builder builder = null;
+		ReferenceModel.Builder builder = new ReferenceModel.Builder(annotated);
 
-		if (annotated instanceof AnnotatedField) {
-			builder = new ReferenceModel.Builder((AnnotatedField<?>)annotated);
-		}
-		else if (annotated instanceof AnnotatedMethod) {
-			builder = new ReferenceModel.Builder((AnnotatedMethod<?>)annotated);
-		}
-		else {
-			builder = new ReferenceModel.Builder((AnnotatedParameter<?>)annotated);
-		}
-
-		ReferenceModel referenceModel = builder.injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = builder.type(injectionPoint.getType()).build();
 
 		ExtendedReferenceTemplateDTO current = referenceModel.toDTO();
 
