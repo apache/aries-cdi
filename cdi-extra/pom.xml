@@ -51,6 +51,13 @@
 			<plugin>
 				<groupId>biz.aQute.bnd</groupId>
 				<artifactId>bnd-maven-plugin</artifactId>
+				<configuration>
+					<bnd><![CDATA[
+						Import-Package: javax.servlet;resolution:=optional, *
+						-cdiannotations:
+						-contract: JavaServlet;resolution:=optional
+					]]></bnd>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
