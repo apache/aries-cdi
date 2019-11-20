@@ -41,8 +41,6 @@ import org.apache.aries.cdi.container.internal.model.BeansModel;
 import org.apache.aries.cdi.container.internal.util.Filters;
 import org.apache.aries.cdi.container.internal.util.Logs;
 import org.apache.aries.cdi.container.internal.util.Sfl4jLogger;
-import org.jboss.weld.resources.spi.ResourceLoader;
-import org.jboss.weld.serialization.spi.ProxyServices;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -71,7 +69,7 @@ import org.osgi.util.tracker.ServiceTracker;
 public class TestUtil {
 
 	public static <T extends Comparable<T>> List<T> sort(Collection<T> set) {
-		return sort(set, (c1, c2) -> c1.getClass().getName().compareTo(c2.getClass().getName()));
+		return sort(set, Comparator.comparing(c -> c.getClass().getName()));
 	}
 
 	public static <T> List<T> sort(Collection<T> set, Comparator<T> comparator) {
@@ -126,12 +124,6 @@ public class TestUtil {
 			public BeansModel beansModel() {
 				return beansModel;
 			}
-
-			@Override
-			public <T extends ResourceLoader & ProxyServices> T loader() {
-				return null;
-			}
-
 		};
 	}
 

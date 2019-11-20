@@ -38,15 +38,14 @@
 	slf4j.api
 
 -runsystempackages: \
-	org.slf4j;version=1.7.25,\
-	org.slf4j.helpers;version=1.7.25,\
-	org.slf4j.spi;version=1.7.25,\
+	org.slf4j;version=1.7.28,\
+	org.slf4j.helpers;version=1.7.28,\
+	org.slf4j.spi;version=1.7.28,\
 	sun.misc
 
 -runbundles: \
 	javax.ejb-api;version='[3.2.0,3.2.1)',\
 	javax.transaction-api;version='[1.2.0,1.2.1)',\
-	jboss-classfilewriter;version='[1.2.3,1.2.4)',\
 	org.apache.aries.cdi.extender;version='[1.0.3,1.0.4)',\
 	org.apache.aries.cdi.extension.http;version='[1.0.3,1.0.4)',\
 	org.apache.aries.cdi.extra;version='[1.0.3,1.0.4)',\
@@ -62,8 +61,13 @@
 	org.apache.geronimo.specs.geronimo-el_2.2_spec;version='[1.1.0,1.1.1)',\
 	org.apache.geronimo.specs.geronimo-interceptor_1.2_spec;version='[1.1.0,1.1.1)',\
 	org.apache.geronimo.specs.geronimo-jcdi_2.0_spec;version='[1.1.0,1.1.1)',\
-	org.jboss.logging.jboss-logging;version='[3.3.2,3.3.3)',\
-	org.jboss.weld.osgi-bundle;version='[3.0.5,3.0.6)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
 	org.osgi.util.promise;version='[1.1.0,1.1.1)',\
+	javax.servlet.jsp-api;version='[2.3.3,2.3.4)',\
+	openwebbeans-impl;version='[2.0.13,2.0.14)',\
+	openwebbeans-spi;version='[2.0.13,2.0.14)',\
+	openwebbeans-web;version='[2.0.13,2.0.14)',\
+	org.apache.xbean.asm7-shaded;version='[4.13.0,4.13.1)',\
+	org.apache.xbean.bundleutils;version='[4.15.0,4.15.1)',\
+	org.apache.xbean.finder-shaded;version='[4.13.0,4.13.1)'

@@ -26,7 +26,6 @@ import java.util.Set;
 import org.osgi.service.cdi.ConfigurationPolicy;
 import org.osgi.service.cdi.MaximumCardinality;
 import org.osgi.service.cdi.annotations.PID;
-import org.osgi.service.cdi.runtime.dto.template.ConfigurationTemplateDTO;
 
 public class ComponentPropertiesModel {
 
@@ -98,7 +97,7 @@ public class ComponentPropertiesModel {
 		return _injectionPointType;
 	}
 
-	public ConfigurationTemplateDTO toDTO() {
+	public ExtendedConfigurationTemplateDTO toDTO() {
 		ExtendedConfigurationTemplateDTO dto = new ExtendedConfigurationTemplateDTO();
 
 		dto.beanClass = _beanClass;

@@ -30,21 +30,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.enterprise.inject.Any;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.util.AnnotationLiteral;
 
 import org.apache.aries.cdi.container.internal.ChangeCount;
 import org.apache.aries.cdi.container.internal.loader.BundleClassLoader;
-import org.apache.aries.cdi.container.internal.loader.BundleResourcesLoader;
 import org.apache.aries.cdi.container.internal.model.BeansModel;
 import org.apache.aries.cdi.container.internal.model.BeansModelBuilder;
 import org.apache.aries.cdi.container.internal.model.ExtendedConfigurationTemplateDTO;
 import org.apache.aries.cdi.container.internal.model.ExtendedExtensionTemplateDTO;
 import org.apache.aries.cdi.container.internal.util.Logs;
 import org.apache.aries.cdi.container.internal.util.Throw;
-import org.jboss.weld.resources.spi.ResourceLoader;
-import org.jboss.weld.serialization.spi.ProxyServices;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -70,10 +65,6 @@ import org.osgi.util.promise.PromiseFactory;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ContainerState {
-
-	public static final AnnotationLiteral<Any> ANY = new AnnotationLiteral<Any>() {
-		private static final long serialVersionUID = 1L;
-	};
 
 	public ContainerState(
 		Bundle bundle,
@@ -328,11 +319,6 @@ public class ContainerState {
 		_changeCount.incrementAndGet();
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T extends ResourceLoader & ProxyServices> T loader() {
-		return (T)new BundleResourcesLoader.Builder(_bundle, _extenderBundle).build();
-	}
-
 	public PromiseFactory promiseFactory() {
 		return _promiseFactory;
 	}
@@ -392,7 +378,7 @@ public class ContainerState {
 			BundleCapability capability = bundleWire.getCapability();
 			Map<String, Object> attributes = capability.getAttributes();
 			String packageName = (String)attributes.get(PackageNamespace.PACKAGE_NAMESPACE);
-			if (!packageName.startsWith("org.jboss.weld.")) {
+			if (!packageName.startsWith("org.apache.openwebbeans.")) {
 				continue;
 			}
 

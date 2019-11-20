@@ -18,9 +18,6 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
-import org.jboss.weld.bootstrap.spi.BeansXml;
-import org.jboss.weld.xml.BeansXmlParser;
-
 public class BeansModel {
 
 	public BeansModel(
@@ -28,22 +25,14 @@ public class BeansModel {
 		Collection<URL> beanDescriptorURLs) {
 
 		_beans = beans;
-
-		BeansXml beansXml = BeansXml.EMPTY_BEANS_XML;
-
-		if (!beanDescriptorURLs.isEmpty()) {
-			BeansXmlParser beansXmlParser = new BeansXmlParser();
-			beansXml = beansXmlParser.parse(beanDescriptorURLs);
-		}
-
-		_beansXml = beansXml;
+		_beansXml = beanDescriptorURLs;
 	}
 
 	public Collection<String> getBeanClassNames() {
 		return _beans.keySet();
 	}
 
-	public BeansXml getBeansXml() {
+	public Collection<URL> getBeansXml() {
 		return _beansXml;
 	}
 
@@ -60,6 +49,6 @@ public class BeansModel {
 	}
 
 	private final Map<String, OSGiBean> _beans;
-	private final BeansXml _beansXml;
+	private final Collection<URL> _beansXml;
 
 }

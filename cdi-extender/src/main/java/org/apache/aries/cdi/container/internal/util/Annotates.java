@@ -14,6 +14,8 @@
 
 package org.apache.aries.cdi.container.internal.util;
 
+import static org.apache.aries.cdi.container.internal.util.Reflection.*;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
@@ -46,7 +48,6 @@ import javax.inject.Named;
 import javax.inject.Qualifier;
 import javax.inject.Scope;
 
-import org.jboss.weld.util.Types;
 import org.osgi.service.cdi.ServiceScope;
 import org.osgi.service.cdi.annotations.Service;
 import org.osgi.service.cdi.annotations.ServiceInstance;
@@ -94,8 +95,7 @@ public class Annotates {
 		}
 		else if (instance instanceof Annotated) {
 			Annotated annotated = (Annotated)instance;
-
-			declaringClass = Types.getRawTypes(new Type[] {annotated.getBaseType()})[0];
+			declaringClass = getRawType(annotated.getBaseType());
 		}
 		else if (instance instanceof ProcessManagedBean) {
 			ProcessManagedBean<?> bean = (ProcessManagedBean<?>)instance;
@@ -256,9 +256,7 @@ public class Annotates {
 	}
 
 	public static List<String> serviceClassNames(Annotated annotated) {
-		return serviceClasses(annotated).stream().map(
-			st -> st.getName()
-		).sorted().collect(Collectors.toList());
+		return serviceClasses(annotated).stream().map(Class::getName).sorted().collect(Collectors.toList());
 	}
 
 	public static ServiceScope serviceScope(Annotated annotated) {

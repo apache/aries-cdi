@@ -14,23 +14,34 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
+import static java.util.stream.Collectors.*;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.enterprise.inject.spi.Extension;
 
 import org.apache.aries.cdi.container.internal.container.Op.Mode;
 import org.apache.aries.cdi.container.internal.container.Op.Type;
-import org.apache.aries.cdi.container.internal.loader.BundleResourcesLoader;
 import org.apache.aries.cdi.container.internal.model.ExtendedExtensionDTO;
 import org.apache.aries.cdi.container.internal.model.FactoryComponent;
+import org.apache.aries.cdi.container.internal.model.OSGiBean;
 import org.apache.aries.cdi.container.internal.model.SingleComponent;
 import org.apache.aries.cdi.container.internal.util.Syncro;
-import org.jboss.weld.bootstrap.WeldBootstrap;
-import org.jboss.weld.bootstrap.spi.BeanDeploymentArchive;
-import org.jboss.weld.bootstrap.spi.Deployment;
-import org.jboss.weld.bootstrap.spi.Metadata;
-import org.jboss.weld.util.ServiceLoader;
+import org.apache.webbeans.config.WebBeansContext;
+import org.apache.webbeans.config.WebBeansFinder;
+import org.apache.webbeans.corespi.DefaultSingletonService;
+import org.apache.webbeans.corespi.se.DefaultApplicationBoundaryService;
+import org.apache.webbeans.portable.events.ExtensionLoader;
+import org.apache.webbeans.service.ClassLoaderProxyService;
+import org.apache.webbeans.spi.ApplicationBoundaryService;
+import org.apache.webbeans.spi.ContainerLifecycle;
+import org.apache.webbeans.spi.DefiningClassService;
+import org.apache.webbeans.spi.ScannerService;
 import org.osgi.service.log.Logger;
 
 public class ContainerBootstrap extends Phase {
@@ -54,7 +65,15 @@ public class ContainerBootstrap extends Phase {
 		try (Syncro syncro = _lock.open()) {
 			if (_bootstrap != null) {
 				_log.debug(l -> l.debug("CCR container bootstrap shutdown on {}", _bootstrap));
-				_bootstrap.shutdown();
+				Thread currentThread = Thread.currentThread();
+				ClassLoader current = currentThread.getContextClassLoader();
+				try {
+					currentThread.setContextClassLoader(containerState.classLoader());
+					_bootstrap.getService(ContainerLifecycle.class).stopApplication(bundle().getBundleContext());
+				}
+				finally {
+					currentThread.setContextClassLoader(current);
+				}
 				_bootstrap = null;
 			}
 
@@ -88,58 +107,41 @@ public class ContainerBootstrap extends Phase {
 				return false;
 			}
 
-			List<Metadata<Extension>> extensions = new CopyOnWriteArrayList<>();
-
-			// Add the internal extensions
-			extensions.add(
-				new ExtensionMetadata(
-					new BundleContextExtension(containerState.bundleContext()),
-					containerState.id()));
-			extensions.add(
-				new ExtensionMetadata(
-					new RuntimeExtension(containerState, _configurationBuilder, _singleBuilder, _factoryBuilder),
-					containerState.id()));
-			extensions.add(
-				new ExtensionMetadata(
-					new LoggerExtension(containerState),
-					containerState.id()));
-
 			Thread currentThread = Thread.currentThread();
 			ClassLoader current = currentThread.getContextClassLoader();
-			BundleResourcesLoader.Builder builder = new BundleResourcesLoader.Builder(containerState.bundle(), containerState.extenderBundle());
-
 			try {
 				currentThread.setContextClassLoader(containerState.classLoader());
 
-				// Add extensions found from the bundle's class loader, such as those in the Bundle-ClassPath
-				ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extensions::add);
+				List<Extension> extensions = getExtensions();
 
 				// Add external extensions
 				containerState.containerDTO().extensions.stream().map(
 					ExtendedExtensionDTO.class::cast
 				).map(
-					e -> {
-						builder.add(e.serviceReference.getBundle());
-						return new ExtensionMetadata(e.extension.getService(), e.template.serviceFilter);
-					}
+					e -> e.extension.getService()
 				).forEach(extensions::add);
 
-				_bootstrap = new WeldBootstrap();
+				final Properties properties = getConfiguration();
+				final Map<Class<?>, Object> services = getServices(current);
+				_bootstrap = new WebBeansContext(services, properties) {
+					private final ExtensionLoader overridenExtensionLoader = new ExtensionLoader(this) {
+						@Override
+						public void loadExtensionServices() {
+							extensions.forEach(this::addExtension);
+						}
+					};
 
-				BeanDeploymentArchive beanDeploymentArchive = new ContainerDeploymentArchive(
-					builder.build(),
-					containerState.id(),
-					containerState.beansModel().getBeanClassNames(),
-					containerState.beansModel().getBeansXml());
+					@Override
+					public ExtensionLoader getExtensionLoader() {
+						return overridenExtensionLoader;
+					}
+				};
 
-				Deployment deployment = new ContainerDeployment(extensions, beanDeploymentArchive);
+				DefaultSingletonService.class.cast(WebBeansFinder.getSingletonService())
+						.register(currentThread.getContextClassLoader(), _bootstrap);
 
-				_bootstrap.startExtensions(extensions);
-				_bootstrap.startContainer(containerState.id(), new ContainerEnvironment(), deployment);
-				_bootstrap.startInitialization();
-				_bootstrap.deployBeans();
-				_bootstrap.validateBeans();
-				_bootstrap.endInitialization();
+				final ContainerLifecycle lifecycle = _bootstrap.getService(ContainerLifecycle.class);
+				lifecycle.startApplication(bundle().getBundleContext());
 			}
 			finally {
 				currentThread.setContextClassLoader(current);
@@ -149,13 +151,50 @@ public class ContainerBootstrap extends Phase {
 		}
 	}
 
+	protected Properties getConfiguration() {
+		final Properties properties = new Properties();
+		properties.setProperty(DefiningClassService.class.getName(), ClassLoaderProxyService.class.getName());
+		// todo: use bundle properties?
+		return properties;
+	}
+
+	protected Map<Class<?>, Object> getServices(final ClassLoader bundleNativeLoader) {
+		final Map<Class<?>, Object> services = new HashMap<>();
+		services.put(ApplicationBoundaryService.class, new DefaultApplicationBoundaryService() {
+			@Override
+			public ClassLoader getApplicationClassLoader() {
+				return containerState.classLoader();
+			}
+		});
+		services.put(ScannerService.class, new CdiScannerService(
+				containerState.beansModel().getBeanClassNames().stream()
+						.map(containerState.beansModel()::getOSGiBean)
+						.map(OSGiBean::getBeanClass)
+						.collect(toSet()),
+				containerState.beansModel().getBeansXml()));
+		return services;
+	}
+
 	@Override
 	public Op openOp() {
 		return Op.of(Mode.OPEN, Type.CONTAINER_BOOTSTRAP, containerState.id());
 	}
 
+	protected List<Extension> getExtensions() {
+		List<Extension> extensions = new CopyOnWriteArrayList<>();
 
-	private volatile WeldBootstrap _bootstrap;
+		// Add the internal extensions
+		extensions.add(new BundleContextExtension(containerState.bundleContext()));
+		extensions.add(new RuntimeExtension(containerState, _configurationBuilder, _singleBuilder, _factoryBuilder));
+		extensions.add(new LoggerExtension(containerState));
+
+		// Add extensions found from the bundle's class loader, such as those in the Bundle-ClassPath
+		ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extensions::add);
+
+		return extensions;
+	}
+
+	private volatile WebBeansContext _bootstrap;
 	private final ConfigurationListener.Builder _configurationBuilder;
 	private final FactoryComponent.Builder _factoryBuilder;
 	private final SingleComponent.Builder _singleBuilder;

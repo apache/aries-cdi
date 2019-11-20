@@ -41,7 +41,6 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.jsp.JspApplicationContext;
 import javax.servlet.jsp.JspFactory;
 
-import org.jboss.weld.module.web.el.WeldELContextListener;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.wiring.BundleCapability;
@@ -78,14 +77,6 @@ public class ELJSPExtension implements Extension {
 
 					// Register the ELResolver with JSP
 					jspApplicationContext.addELResolver(beanManager.getELResolver());
-
-					// Register ELContextListener with JSP
-					try {
-						jspApplicationContext.addELContextListener(new WeldELContextListener());
-					}
-					catch (Exception e) {
-						servletContext.log("Failure registering ELContextListener", e);
-					}
 				}
 
 				@Override

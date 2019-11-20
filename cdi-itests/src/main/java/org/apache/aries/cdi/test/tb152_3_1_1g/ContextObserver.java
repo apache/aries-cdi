@@ -33,6 +33,9 @@ import org.osgi.service.cdi.propertytypes.ServiceDescription;
 @ApplicationScoped
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ContextObserver {
+	protected ContextObserver() {
+		this(null, null, null);
+	}
 
 	@Inject
 	public ContextObserver(

@@ -76,7 +76,7 @@ import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletName;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletPattern;
 import org.apache.aries.cdi.extra.propertytypes.ServiceDescription;
 import org.apache.aries.cdi.extra.propertytypes.ServiceRanking;
-import org.jboss.weld.module.web.servlet.WeldInitialListener;
+import org.apache.webbeans.servlet.WebBeansConfigurationListener;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.wiring.BundleCapability;
@@ -247,11 +247,11 @@ public class HttpExtension implements Extension {
 		properties.put(HTTP_WHITEBOARD_LISTENER, Boolean.TRUE.toString());
 		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
 
-		AnnotatedType<WeldInitialListener> annotatedType = beanManager.createAnnotatedType(WeldInitialListener.class);
-		InjectionTargetFactory<WeldInitialListener> injectionTargetFactory = beanManager.getInjectionTargetFactory(annotatedType);
-		Bean<WeldInitialListener> bean = beanManager.createBean(beanManager.createBeanAttributes(annotatedType), WeldInitialListener.class, injectionTargetFactory);
+		AnnotatedType<WebBeansConfigurationListener> annotatedType = beanManager.createAnnotatedType(WebBeansConfigurationListener.class);
+		InjectionTargetFactory<WebBeansConfigurationListener> injectionTargetFactory = beanManager.getInjectionTargetFactory(annotatedType);
+		Bean<WebBeansConfigurationListener> bean = beanManager.createBean(beanManager.createBeanAttributes(annotatedType), WebBeansConfigurationListener.class, injectionTargetFactory);
 
-		WeldInitialListener initialListener = bean.create(beanManager.createCreationalContext(bean));
+		WebBeansConfigurationListener initialListener = bean.create(beanManager.createCreationalContext(bean));
 
 		_listenerRegistration = _bundle.getBundleContext().registerService(
 			LISTENER_CLASSES, new ListenerWrapper<>(initialListener), properties);

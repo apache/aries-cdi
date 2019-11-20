@@ -43,7 +43,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			BeanService.class.getName(),
-			"ConstructorInjectedService");) {
+			"ConstructorInjectedService")) {
 
 			BeanService beanService = tracker.waitForService(timeout);
 
@@ -57,7 +57,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<FieldInjectedReference, FieldInjectedReference> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			FieldInjectedReference.class.getName(),
-			"FieldInjectedBundleScopedImpl");) {
+			"FieldInjectedBundleScopedImpl")) {
 
 			FieldInjectedReference fieldInjectedReference = tracker.waitForService(timeout);
 
@@ -77,7 +77,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<FieldInjectedReference, FieldInjectedReference> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			FieldInjectedReference.class.getName(),
-			"FieldInjectedPrototypeScopedImpl");) {
+			"FieldInjectedPrototypeScopedImpl")) {
 
 			FieldInjectedReference fieldInjectedReference = tracker.waitForService(timeout);
 
@@ -97,7 +97,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			BeanService.class.getName(),
-			"FieldInjectedService");) {
+			"FieldInjectedService")) {
 
 			BeanService beanService = tracker.waitForService(timeout);
 
@@ -111,7 +111,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			BeanService.class.getName(),
-			"MethodInjectedService");) {
+			"MethodInjectedService")) {
 
 			BeanService beanService = tracker.waitForService(timeout);
 
@@ -140,7 +140,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			BeanService.class.getName(),
-			"ServiceWithProperties");) {
+			"ServiceWithProperties")) {
 
 			BeanService beanService = tracker.waitForService(timeout);
 
@@ -217,7 +217,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			BeanService.class.getName(),
-			"Instance_ServiceProperties");) {
+			"Instance_ServiceProperties")) {
 
 			BeanService beanService = tracker.waitForService(timeout);
 
@@ -235,7 +235,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			BeanService.class.getName(),
-			"Instance_ServiceReference");) {
+			"Instance_ServiceReference")) {
 
 			BeanService beanService = tracker.waitForService(timeout);
 
@@ -252,7 +252,7 @@ public class CdiBeanTests extends AbstractTestCase {
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
 			BeanService.class.getName(),
-			"Instance_Optional");) {
+			"Instance_Optional")) {
 
 			BeanService beanService = tracker.waitForService(timeout);
 

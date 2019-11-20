@@ -112,15 +112,21 @@
 				<scope>runtime</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.jboss.logging</groupId>
-				<artifactId>jboss-logging</artifactId>
-				<version>3.3.2.Final</version>
+				<groupId>org.apache.openwebbeans</groupId>
+				<artifactId>openwebbeans-impl</artifactId>
+				<version>${owb.version}</version>
 				<scope>runtime</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.jboss.weld</groupId>
-				<artifactId>weld-osgi-bundle</artifactId>
-				<version>${weld.version}</version>
+				<groupId>org.apache.openwebbeans</groupId>
+				<artifactId>openwebbeans-web</artifactId>
+				<version>${owb.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xbean</groupId>
+				<artifactId>xbean-bundleutils</artifactId>
+				<version>4.15</version>
 				<scope>runtime</scope>
 			</dependency>
 			<dependency>
