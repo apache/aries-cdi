@@ -57,6 +57,7 @@
 
 	<modules>
 		<module>cdi-extra</module>
+		<module>cdi-spi</module>
 		<module>cdi-extender</module>
 		<module>cdi-extension-el-jsp</module>
 		<module>cdi-extension-http</module>
