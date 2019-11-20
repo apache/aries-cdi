@@ -60,6 +60,7 @@
 	}
 )
 @Capability(
+	attribute = "register:=javax.enterprise.inject.se.SeContainerInitializer",
 	namespace = "osgi.serviceloader",
 	name = "javax.enterprise.inject.se.SeContainerInitializer",
 	uses = {
@@ -68,6 +69,7 @@
 	}
 )
 @Capability(
+	attribute = "register:=javax.enterprise.inject.spi.CDIProvider",
 	namespace = "osgi.serviceloader",
 	name = "javax.enterprise.inject.spi.CDIProvider",
 	uses = {
