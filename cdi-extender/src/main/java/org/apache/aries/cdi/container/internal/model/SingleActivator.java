@@ -131,7 +131,7 @@ public class SingleActivator extends InstanceActivator {
 			ExtendedComponentTemplateDTO extended = (ExtendedComponentTemplateDTO)_instance.template;
 
 			Set<Bean<?>> beans = beanManager.getBeans(
-				extended.bean.getBeanClass(), extended.bean.getQualifiers().toArray(new Annotation[0]));
+				extended.beanClass, extended.qualifiers.toArray(new Annotation[0]));
 			Bean<? extends Object> bean = beanManager.resolve(beans);
 
 			if (activationTemplate.serviceClasses.isEmpty() /* immediate */) {

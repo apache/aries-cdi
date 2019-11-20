@@ -112,6 +112,8 @@ public class ConfigurationTests extends AbstractTestCase {
 			p2.put("ports", new int[] {80});
 			configurationB.update(p2);
 
+			Thread.sleep(200); // give it a few cycles to make sure the configuration update has gone through
+
 			stA = new ServiceTracker<BeanService, BeanService>(
 				bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=A))"), null);

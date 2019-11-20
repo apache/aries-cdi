@@ -36,7 +36,6 @@ import javax.enterprise.inject.spi.AnnotatedConstructor;
 import javax.enterprise.inject.spi.AnnotatedField;
 import javax.enterprise.inject.spi.AnnotatedMethod;
 import javax.enterprise.inject.spi.AnnotatedParameter;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Qualifier;
@@ -62,21 +61,21 @@ public class ReferenceModel {
 
 	public static class Builder {
 
-		public Builder() {}
-
-		public Builder(AnnotatedField<?> annotated) {
+		public Builder(Annotated annotated) {
 			_annotated = annotated;
-			_declaringClass = annotated.getDeclaringType().getJavaClass();
-		}
 
-		public Builder(AnnotatedMethod<?> annotated) {
-			_annotated = annotated;
-			_declaringClass = annotated.getDeclaringType().getJavaClass();
-		}
+			if (_annotated instanceof AnnotatedParameter) {
+				AnnotatedParameter<?> parameter = (AnnotatedParameter<?>)_annotated;
 
-		public Builder(AnnotatedParameter<?> annotated) {
-			_annotated = annotated;
-			_declaringClass = annotated.getDeclaringCallable().getDeclaringType().getJavaClass();
+				_declaringClass = parameter.getDeclaringCallable().getDeclaringType().getJavaClass();
+			}
+			else if ((_annotated instanceof AnnotatedField) ||
+					(_annotated instanceof AnnotatedMethod)) {
+
+				AnnotatedField<?> field = (AnnotatedField<?>)_annotated;
+
+				_declaringClass = field.getDeclaringType().getJavaClass();
+			}
 		}
 
 		public ReferenceModel build() {
@@ -84,24 +83,6 @@ public class ReferenceModel {
 			Objects.requireNonNull(_declaringClass);
 			Objects.requireNonNull(_type);
 			return new ReferenceModel(_type, _declaringClass, _annotated);
-		}
-
-		public Builder injectionPoint(InjectionPoint injectionPoint) {
-			_annotated = injectionPoint.getAnnotated();
-			_type = injectionPoint.getType();
-
-			if (_annotated instanceof AnnotatedParameter) {
-				AnnotatedParameter<?> parameter = (AnnotatedParameter<?>)_annotated;
-
-				_declaringClass = parameter.getDeclaringCallable().getDeclaringType().getJavaClass();
-			}
-			else if (_annotated instanceof AnnotatedField) {
-				AnnotatedField<?> field = (AnnotatedField<?>)_annotated;
-
-				_declaringClass = field.getDeclaringType().getJavaClass();
-			}
-
-			return this;
 		}
 
 		public Builder type(Type type) {

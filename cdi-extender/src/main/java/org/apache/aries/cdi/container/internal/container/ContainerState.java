@@ -14,11 +14,9 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
-import static org.apache.aries.cdi.container.internal.util.Filters.asFilter;
-import static org.osgi.namespace.extender.ExtenderNamespace.EXTENDER_NAMESPACE;
-import static org.osgi.service.cdi.CDIConstants.CDI_CAPABILITY_NAME;
-import static org.osgi.service.cdi.CDIConstants.CDI_CONTAINER_ID;
-import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
+import static org.apache.aries.cdi.container.internal.util.Filters.*;
+import static org.osgi.namespace.extender.ExtenderNamespace.*;
+import static org.osgi.service.cdi.CDIConstants.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -200,7 +198,7 @@ public class ContainerState {
 		_bundleClassLoader = bundleWiring.getClassLoader();
 
 		try {
-			new ContainerDiscovery(this);
+			new Discovery(this).discover();
 		}
 		catch (Exception e) {
 			_log.error(l -> l.error("CCR Discovery resulted in errors on {}", bundle, e));
