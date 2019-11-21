@@ -14,14 +14,11 @@
 
 package org.apache.aries.cdi.extension.http;
 
-import static javax.interceptor.Interceptor.Priority.LIBRARY_AFTER;
-import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
-import static org.osgi.framework.Constants.SERVICE_RANKING;
-import static org.osgi.framework.Constants.SERVICE_VENDOR;
-import static org.osgi.namespace.extender.ExtenderNamespace.EXTENDER_NAMESPACE;
-import static org.osgi.service.cdi.CDIConstants.CDI_CAPABILITY_NAME;
-import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT;
-import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_LISTENER;
+import static javax.interceptor.Interceptor.Priority.*;
+import static org.osgi.framework.Constants.*;
+import static org.osgi.namespace.extender.ExtenderNamespace.*;
+import static org.osgi.service.cdi.CDIConstants.*;
+import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -259,7 +256,12 @@ public class HttpExtension implements Extension {
 
 	void beforeShutdown(@Observes BeforeShutdown bs) {
 		if (_listenerRegistration != null && !destroyed.get()) {
-			_listenerRegistration.unregister();
+			try {
+				_listenerRegistration.unregister();
+			}
+			catch (IllegalStateException ise) {
+				// the service was already unregistered.
+			}
 		}
 	}
 
