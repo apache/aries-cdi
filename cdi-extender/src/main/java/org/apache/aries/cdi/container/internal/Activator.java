@@ -27,7 +27,7 @@ import java.util.Observer;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.cdi.container.internal.command.CDICommand;
 import org.apache.aries.cdi.container.internal.container.CDIBundle;
@@ -48,7 +48,6 @@ import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.wiring.BundleRequirement;
@@ -69,35 +68,31 @@ import org.osgi.util.tracker.ServiceTracker;
 @RequireConfigurationAdmin
 public class Activator extends AbstractExtender {
 
-	private static final Logs _logs = new Logs.Builder(FrameworkUtil.getBundle(Activator.class).getBundleContext()).build();
-	private static final Logger _log = _logs.getLogger(Activator.class);
-	private static final ThreadGroup _threadGroup = new ThreadGroup("Apache Aries CCR - CDI");
-	private static final ExecutorService _executorService = Executors.newFixedThreadPool(
-		1,
-		new ThreadFactory() {
+	private Logs _logs;
+	private Logger _log;
 
-			@Override
-			public Thread newThread(Runnable r) {
-				Thread t = new Thread(_threadGroup, r, "Aries CCR Thread");
-				t.setDaemon(true);
-				return t;
-			}
-
-		}
-	);
-	private static final PromiseFactory _promiseFactory = new PromiseFactory(_executorService);
-	public static final CCR ccr = new CCR(_promiseFactory, _logs);
+	private final ExecutorService _promiseThread = Executors.newSingleThreadExecutor(worker -> {
+		Thread t = new Thread(new ThreadGroup("Apache Aries CCR - CDI"), worker, "Aries CCR Thread (" + hashCode() + ")");
+		t.setDaemon(false);
+		return t;
+	});
+	private final PromiseFactory _promiseFactory = new PromiseFactory(_promiseThread);
+	public CCR ccr;
 
 	public Activator() {
+		System.setProperty("openwebbeans.web.sci.active", "false"); // we handle it ourself, disable this jetty feature
 		setSynchronous(true);
 	}
 
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
+		_logs = new Logs.Builder(bundleContext).build();
+		_log = _logs.getLogger(Activator.class);
 		if (_log.isDebugEnabled()) {
 			_log.debug("CCR starting {}", bundleContext.getBundle());
 		}
 
+		ccr = new CCR(_promiseFactory, _logs);
 		_command = new CDICommand(ccr);
 
 		_bundleContext = bundleContext;
@@ -150,6 +145,8 @@ public class Activator extends AbstractExtender {
 		if (_log.isDebugEnabled()) {
 			_log.debug("CCR stoped {}", bundleContext.getBundle());
 		}
+		_promiseThread.shutdownNow();
+		_promiseThread.awaitTermination(2, TimeUnit.SECONDS); // not important but just to avoid to quit too fast
 	}
 
 	@Override

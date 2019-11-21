@@ -14,12 +14,16 @@
 
 package org.apache.aries.cdi.test.cases;
 
+import static java.lang.Thread.sleep;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.Assert.*;
 
+import java.lang.reflect.Array;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import org.apache.aries.cdi.test.interfaces.BeanService;
@@ -27,6 +31,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cdi.ConfigurationPolicy;
 import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ComponentDTO;
@@ -34,6 +40,9 @@ import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 import org.osgi.service.cdi.runtime.dto.template.ConfigurationTemplateDTO;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ConfigurationEvent;
+import org.osgi.service.cm.ConfigurationListener;
+import org.osgi.service.cm.SynchronousConfigurationListener;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ConfigurationTests extends AbstractTestCase {
@@ -112,10 +121,8 @@ public class ConfigurationTests extends AbstractTestCase {
 			p2.put("ports", new int[] {80});
 			configurationB.update(p2);
 
-			Thread.sleep(200); // give it a few cycles to make sure the configuration update has gone through
-
-			stA = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
+			stA = new ServiceTracker<>(
+					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=A))"), null);
 			stA.open(true);
 
@@ -125,16 +132,28 @@ public class ConfigurationTests extends AbstractTestCase {
 			assertEquals("blue", beanService.doSomething());
 			assertArrayEquals(new int[] {12, 4567}, beanService.get().call());
 
-			stB = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
+			stB = new ServiceTracker<>(
+					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=B))"), null);
 			stB.open(true);
 
 			beanService = stB.waitForService(timeout);
-
 			assertNotNull(beanService);
-			assertEquals("green", beanService.doSomething());
-			assertArrayEquals(new int[] {80}, beanService.get().call());
+
+			int retries = 50;
+			for (int i = 0; i < retries; i++) { // can take some time to let configuration listener get the event and update the bean
+				try {
+					assertEquals("green", beanService.doSomething());
+					assertArrayEquals(new int[]{80}, beanService.get().call());
+					break;
+				} catch (final AssertionError ae) {
+					retries--;
+					if (retries == 0) {
+						throw ae;
+					}
+					sleep(200);
+				}
+			}
 		}
 		finally {
 			if (configurationA != null) {

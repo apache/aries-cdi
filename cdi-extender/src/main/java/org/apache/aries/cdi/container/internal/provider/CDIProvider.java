@@ -14,19 +14,22 @@
 
 package org.apache.aries.cdi.container.internal.provider;
 
+import static java.util.Optional.ofNullable;
+
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Optional;
+import java.util.Map;
 
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.TypeLiteral;
 
-import org.apache.aries.cdi.container.internal.Activator;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleReference;
+import org.apache.webbeans.config.WebBeansContext;
+import org.apache.webbeans.config.WebBeansFinder;
+import org.apache.webbeans.corespi.DefaultSingletonService;
 
 public class CDIProvider implements javax.enterprise.inject.spi.CDIProvider {
 
@@ -44,22 +47,11 @@ public class CDIProvider implements javax.enterprise.inject.spi.CDIProvider {
 
 		@Override
 		public BeanManager getBeanManager() {
-			ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-
-			if (contextClassLoader instanceof BundleReference) {
-				BundleReference br = (BundleReference)contextClassLoader;
-
-				Bundle bundle = br.getBundle();
-
-				return Optional.ofNullable(
-					Activator.ccr.getContainerState(bundle)
-				).map(
-					cs -> cs.beanManager()
-				).orElse(null);
-			}
-
-			throw new IllegalStateException(
-				"This method can only be used when the Thread context class loader has been set to a Bundle's classloader.");
+			final Map<ClassLoader, WebBeansContext> contexts = getContextMap();
+			final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+			return ofNullable(contexts.get(contextClassLoader))
+					.map(WebBeansContext::getBeanManagerImpl)
+					.orElseThrow(() -> new IllegalStateException("No WebBeansContext for classloader: " + contextClassLoader));
 		}
 
 		@Override
@@ -92,6 +84,25 @@ public class CDIProvider implements javax.enterprise.inject.spi.CDIProvider {
 			return getBeanManager().createInstance().select(subtype, qualifiers);
 		}
 
+	}
+
+	private static Map<ClassLoader, WebBeansContext> getContextMap() {
+		// ensure expected type
+		DefaultSingletonService.class.cast(WebBeansFinder.getSingletonService());
+		final Field singletonMap;
+		try {
+			singletonMap = DefaultSingletonService.class.getDeclaredField("singletonMap");
+		} catch (NoSuchFieldException e) {
+			throw new IllegalStateException("Unexpected openwebbeans version", e);
+		}
+		if (!singletonMap.isAccessible()) {
+			singletonMap.setAccessible(true);
+		}
+		try {
+			return (Map<ClassLoader, WebBeansContext>) Map.class.cast(singletonMap.get(singletonMap));
+		} catch (final IllegalAccessException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	private static final CDI<Object> _cdi = new CdiExtenderCDI();

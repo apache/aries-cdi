@@ -14,14 +14,18 @@
 
 package org.apache.aries.cdi.extension.http;
 
-import static javax.interceptor.Interceptor.Priority.*;
-import static org.osgi.framework.Constants.*;
-import static org.osgi.namespace.extender.ExtenderNamespace.*;
-import static org.osgi.service.cdi.CDIConstants.*;
-import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.*;
+import static java.util.Collections.list;
+import static javax.interceptor.Interceptor.Priority.LIBRARY_AFTER;
+import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
+import static org.osgi.framework.Constants.SERVICE_RANKING;
+import static org.osgi.framework.Constants.SERVICE_VENDOR;
+import static org.osgi.namespace.extender.ExtenderNamespace.EXTENDER_NAMESPACE;
+import static org.osgi.service.cdi.CDIConstants.CDI_CAPABILITY_NAME;
+import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT;
+import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_LISTENER;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -34,30 +38,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
-import javax.enterprise.event.ObservesAsync;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
-import javax.enterprise.inject.spi.AnnotatedConstructor;
-import javax.enterprise.inject.spi.AnnotatedField;
-import javax.enterprise.inject.spi.AnnotatedMethod;
 import javax.enterprise.inject.spi.AnnotatedType;
-import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.InjectionTargetFactory;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardContextSelect;
@@ -73,7 +70,9 @@ import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletName;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletPattern;
 import org.apache.aries.cdi.extra.propertytypes.ServiceDescription;
 import org.apache.aries.cdi.extra.propertytypes.ServiceRanking;
+import org.apache.webbeans.config.WebBeansContext;
 import org.apache.webbeans.servlet.WebBeansConfigurationListener;
+import org.apache.webbeans.spi.ContainerLifecycle;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.wiring.BundleCapability;
@@ -93,42 +92,44 @@ public class HttpExtension implements Extension {
 
 		WebFilter webFilter = annotatedType.getAnnotation(WebFilter.class);
 
-		final Set<Annotation> annotations = new HashSet<>(annotatedType.getAnnotations());
+		final Set<Annotation> annotationsToAdd = new HashSet<>();
 
 		if (!annotatedType.isAnnotationPresent(Service.class)) {
-			annotations.add(Service.Literal.of(new Class[] {Filter.class}));
+			annotationsToAdd.add(Service.Literal.of(new Class[] {Filter.class}));
 		}
 
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotations.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
+			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
 		}
 
 		if (!webFilter.description().isEmpty()) {
-			annotations.add(ServiceDescription.Literal.of(webFilter.description()));
+			annotationsToAdd.add(ServiceDescription.Literal.of(webFilter.description()));
 		}
 
 		if (!webFilter.filterName().isEmpty()) {
-			annotations.add(HttpWhiteboardFilterName.Literal.of(webFilter.filterName()));
+			annotationsToAdd.add(HttpWhiteboardFilterName.Literal.of(webFilter.filterName()));
 		}
 
 		if (webFilter.servletNames().length > 0) {
-			annotations.add(HttpWhiteboardFilterServlet.Literal.of(webFilter.servletNames()));
+			annotationsToAdd.add(HttpWhiteboardFilterServlet.Literal.of(webFilter.servletNames()));
 		}
 
 		if (webFilter.value().length > 0) {
-			annotations.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.value()));
+			annotationsToAdd.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.value()));
 		}
 		else if (webFilter.urlPatterns().length > 0) {
-			annotations.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.urlPatterns()));
+			annotationsToAdd.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.urlPatterns()));
 		}
 
 		if (webFilter.dispatcherTypes().length > 0) {
-			annotations.add(HttpWhiteboardFilterDispatcher.Literal.of(webFilter.dispatcherTypes()));
+			annotationsToAdd.add(HttpWhiteboardFilterDispatcher.Literal.of(webFilter.dispatcherTypes()));
 		}
 
-		annotations.add(HttpWhiteboardFilterAsyncSupported.Literal.of(webFilter.asyncSupported()));
+		annotationsToAdd.add(HttpWhiteboardFilterAsyncSupported.Literal.of(webFilter.asyncSupported()));
 
-		pat.setAnnotatedType(new WebAnnotated<>(annotatedType, annotations));
+		if (!annotationsToAdd.isEmpty()) {
+			annotationsToAdd.forEach(pat.configureAnnotatedType()::add);
+		}
 	}
 
 	<X> void processWebListener(@Observes @WithAnnotations(WebListener.class) ProcessAnnotatedType<X> pat) {
@@ -136,7 +137,7 @@ public class HttpExtension implements Extension {
 
 		WebListener webListener = annotatedType.getAnnotation(WebListener.class);
 
-		final Set<Annotation> annotations = new HashSet<>(annotatedType.getAnnotations());
+		final Set<Annotation> annotationsToAdd = new HashSet<>();
 
 		if (!annotatedType.isAnnotationPresent(Service.class)) {
 			List<Class<?>> listenerTypes = new ArrayList<>();
@@ -165,20 +166,22 @@ public class HttpExtension implements Extension {
 				listenerTypes.add(javax.servlet.http.HttpSessionIdListener.class);
 			}
 
-			annotations.add(Service.Literal.of(listenerTypes.toArray(new Class<?>[0])));
+			annotationsToAdd.add(Service.Literal.of(listenerTypes.toArray(new Class<?>[0])));
 		}
 
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotations.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
+			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
 		}
 
-		annotations.add(HttpWhiteboardListener.Literal.INSTANCE);
+		annotationsToAdd.add(HttpWhiteboardListener.Literal.INSTANCE);
 
 		if (!webListener.value().isEmpty()) {
-			annotations.add(ServiceDescription.Literal.of(webListener.value()));
+			annotationsToAdd.add(ServiceDescription.Literal.of(webListener.value()));
 		}
 
-		pat.setAnnotatedType(new WebAnnotated<>(annotatedType, annotations));
+		if (!annotationsToAdd.isEmpty()) {
+			annotationsToAdd.forEach(pat.configureAnnotatedType()::add);
+		}
 	}
 
 	<X> void processWebServlet(@Observes @WithAnnotations(WebServlet.class) ProcessAnnotatedType<X> pat) {
@@ -186,72 +189,63 @@ public class HttpExtension implements Extension {
 
 		WebServlet webServlet = annotatedType.getAnnotation(WebServlet.class);
 
-		final Set<Annotation> annotations = new HashSet<>(annotatedType.getAnnotations());
+		final Set<Annotation> annotationsToAdd = new HashSet<>();
 
 		if (!annotatedType.isAnnotationPresent(Service.class)) {
-			annotations.add(Service.Literal.of(new Class[] {Servlet.class}));
+			annotationsToAdd.add(Service.Literal.of(new Class[] {Servlet.class}));
 		}
 
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotations.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
+			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
 		}
 
 		if (!webServlet.name().isEmpty()) {
-			annotations.add(HttpWhiteboardServletName.Literal.of(webServlet.name()));
+			annotationsToAdd.add(HttpWhiteboardServletName.Literal.of(webServlet.name()));
 		}
 
 		if (webServlet.value().length > 0) {
-			annotations.add(HttpWhiteboardServletPattern.Literal.of(webServlet.value()));
+			annotationsToAdd.add(HttpWhiteboardServletPattern.Literal.of(webServlet.value()));
 		}
 		else if (webServlet.urlPatterns().length > 0) {
-			annotations.add(HttpWhiteboardServletPattern.Literal.of(webServlet.urlPatterns()));
+			annotationsToAdd.add(HttpWhiteboardServletPattern.Literal.of(webServlet.urlPatterns()));
 		}
 
-		annotations.add(ServiceRanking.Literal.of(webServlet.loadOnStartup()));
+		annotationsToAdd.add(ServiceRanking.Literal.of(webServlet.loadOnStartup()));
 
 		// TODO Howto: INIT PARAMS ???
 
-		annotations.add(HttpWhiteboardServletAsyncSupported.Literal.of(webServlet.asyncSupported()));
+		annotationsToAdd.add(HttpWhiteboardServletAsyncSupported.Literal.of(webServlet.asyncSupported()));
 
 		if (!webServlet.description().isEmpty()) {
-			annotations.add(ServiceDescription.Literal.of(webServlet.description()));
+			annotationsToAdd.add(ServiceDescription.Literal.of(webServlet.description()));
 		}
 
 		MultipartConfig multipartConfig = annotatedType.getAnnotation(MultipartConfig.class);
 
 		if (multipartConfig != null) {
-			annotations.add(HttpWhiteboardServletMultipart.Literal.of(true, multipartConfig.fileSizeThreshold(), multipartConfig.location(), multipartConfig.maxFileSize(), multipartConfig.maxRequestSize()));
+			annotationsToAdd.add(HttpWhiteboardServletMultipart.Literal.of(true, multipartConfig.fileSizeThreshold(), multipartConfig.location(), multipartConfig.maxFileSize(), multipartConfig.maxRequestSize()));
 		}
 
 		// TODO HowTo: ServletSecurity ???
 
-		pat.setAnnotatedType(new WebAnnotated<>(annotatedType, annotations));
+		if (!annotationsToAdd.isEmpty()) {
+			annotationsToAdd.forEach(pat.configureAnnotatedType()::add);
+		}
 	}
 
 	void afterDeploymentValidation(
 		@Observes @Priority(LIBRARY_AFTER + 800)
 		AfterDeploymentValidation adv, BeanManager beanManager) {
 
-		beanManager.getEvent().fireAsync(new Ready());
-	}
-
-	void ready(@ObservesAsync Ready ready, BeanManager beanManager) {
 		Dictionary<String, Object> properties = new Hashtable<>();
-
 		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
 		properties.put(HTTP_WHITEBOARD_CONTEXT_SELECT, getSelectedContext());
 		properties.put(HTTP_WHITEBOARD_LISTENER, Boolean.TRUE.toString());
 		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
 
-		AnnotatedType<WebBeansConfigurationListener> annotatedType = beanManager.createAnnotatedType(WebBeansConfigurationListener.class);
-		InjectionTargetFactory<WebBeansConfigurationListener> injectionTargetFactory = beanManager.getInjectionTargetFactory(annotatedType);
-		Bean<WebBeansConfigurationListener> bean = beanManager.createBean(beanManager.createBeanAttributes(annotatedType), WebBeansConfigurationListener.class, injectionTargetFactory);
-
-		WebBeansConfigurationListener initialListener = bean.create(beanManager.createCreationalContext(bean));
-
 		_listenerRegistration = _bundle.getBundleContext().registerService(
-			LISTENER_CLASSES, new ListenerWrapper<>(initialListener), properties);
+			LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
 	}
 
 	void beforeShutdown(@Observes BeforeShutdown bs) {
@@ -325,114 +319,50 @@ public class HttpExtension implements Extension {
 	private volatile ServiceRegistration<?> _listenerRegistration;
 	private final AtomicBoolean destroyed = new AtomicBoolean(false);
 
-	public static class Ready {}
+	private class CdiListener extends WebBeansConfigurationListener {
+		private final WebBeansContext webBeansContext;
 
-	private class ListenerWrapper<T extends HttpSessionListener & ServletContextListener & ServletRequestListener>
-		implements HttpSessionListener, ServletContextListener, ServletRequestListener {
+		private CdiListener(final WebBeansContext webBeansContext) {
+			this.webBeansContext = webBeansContext;
+		}
 
-		private final T delegate;
+		@Override
+		public void contextInitialized(ServletContextEvent event) {
+			// update the sce to have the real one in CDI
+			try {
+				final Class<?> usc = event.getServletContext().getClassLoader()
+						.loadClass("org.apache.aries.cdi.container.internal.servlet.UpdatableServletContext");
+				final Object uscInstance = webBeansContext.getService(usc);
+				usc.getMethod("setDelegate", ServletContext.class)
+						.invoke(uscInstance, event.getServletContext());
 
-		public ListenerWrapper(T delegate) {
-			this.delegate = delegate;
+				// propagate attributes from the temporary sc
+				final ServletContext original = ServletContext.class.cast(usc.getMethod("getOriginal").invoke(uscInstance));
+				list(original.getAttributeNames())
+					.forEach(attr -> event.getServletContext().setAttribute(attr, original.getAttribute(attr)));
+			}
+			catch (final ClassNotFoundException | NoSuchMethodException | IllegalAccessException cnfe) {
+				// no-op, weirdly using another extender impl
+			}
+			catch (final InvocationTargetException ite) {
+				throw new IllegalStateException(ite.getTargetException());
+			}
+
+			// already started in the activator so let's skip it, just ensure it is skipped if re-called
+			event.getServletContext().setAttribute(getClass().getName(), true);
+			if (lifeCycle == null) {
+				lifeCycle = webBeansContext.getService(ContainerLifecycle.class);
+			}
 		}
 
 		@Override
 		public void contextDestroyed(ServletContextEvent sce) {
 			try {
-				delegate.contextDestroyed(sce);
+				super.contextDestroyed(sce);
 			}
 			finally {
 				destroyed.set(true);
 			}
 		}
-
-		@Override
-		public void contextInitialized(ServletContextEvent sce) {
-			delegate.contextInitialized(sce);
-		}
-
-		@Override
-		public void requestDestroyed(ServletRequestEvent sre) {
-			delegate.requestDestroyed(sre);
-		}
-
-		@Override
-		public void requestInitialized(ServletRequestEvent sre) {
-			delegate.requestInitialized(sre);
-		}
-
-		@Override
-		public void sessionCreated(HttpSessionEvent se) {
-			delegate.sessionCreated(se);
-		}
-
-		@Override
-		public void sessionDestroyed(HttpSessionEvent se) {
-			delegate.sessionDestroyed(se);
-		}
-
 	}
-
-	private class WebAnnotated<X> implements AnnotatedType<X> {
-
-		private final AnnotatedType<X> annotatedType;
-		private final Set<Annotation> annotations;
-
-		public WebAnnotated(AnnotatedType<X> annotatedType, Set<Annotation> annotations) {
-			this.annotatedType = annotatedType;
-			this.annotations = annotations;
-		}
-
-		@Override
-		public Type getBaseType() {
-			return annotatedType.getBaseType();
-		}
-
-		@Override
-		public Set<Type> getTypeClosure() {
-			return annotatedType.getTypeClosure();
-		}
-
-		@Override
-		public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-			return annotations.stream().filter(
-				ann -> annotationType.isAssignableFrom(ann.annotationType())
-			).map(
-				ann -> annotationType.cast(ann)
-			).findFirst().orElse(null);
-		}
-
-		@Override
-		public Set<Annotation> getAnnotations() {
-			return annotations;
-		}
-
-		@Override
-		public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-			return annotations.stream().anyMatch(
-				ann -> annotationType.isAssignableFrom(ann.annotationType())
-			);
-		}
-
-		@Override
-		public Class<X> getJavaClass() {
-			return annotatedType.getJavaClass();
-		}
-
-		@Override
-		public Set<AnnotatedConstructor<X>> getConstructors() {
-			return annotatedType.getConstructors();
-		}
-
-		@Override
-		public Set<AnnotatedMethod<? super X>> getMethods() {
-			return annotatedType.getMethods();
-		}
-
-		@Override
-		public Set<AnnotatedField<? super X>> getFields() {
-			return annotatedType.getFields();
-		}
-	}
-
 }

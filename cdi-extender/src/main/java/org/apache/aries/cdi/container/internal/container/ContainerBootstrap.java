@@ -14,8 +14,10 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
-import static java.util.stream.Collectors.*;
+import static java.util.Collections.list;
+import static java.util.stream.Collectors.toSet;
 
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.enterprise.inject.spi.Extension;
+import javax.servlet.ServletContext;
 
 import org.apache.aries.cdi.container.internal.container.Op.Mode;
 import org.apache.aries.cdi.container.internal.container.Op.Type;
@@ -31,6 +34,7 @@ import org.apache.aries.cdi.container.internal.model.ExtendedExtensionDTO;
 import org.apache.aries.cdi.container.internal.model.FactoryComponent;
 import org.apache.aries.cdi.container.internal.model.OSGiBean;
 import org.apache.aries.cdi.container.internal.model.SingleComponent;
+import org.apache.aries.cdi.container.internal.servlet.UpdatableServletContext;
 import org.apache.aries.cdi.container.internal.util.Syncro;
 import org.apache.webbeans.config.WebBeansContext;
 import org.apache.webbeans.config.WebBeansFinder;
@@ -40,8 +44,12 @@ import org.apache.webbeans.portable.events.ExtensionLoader;
 import org.apache.webbeans.service.ClassLoaderProxyService;
 import org.apache.webbeans.spi.ApplicationBoundaryService;
 import org.apache.webbeans.spi.ContainerLifecycle;
+import org.apache.webbeans.spi.ContextsService;
 import org.apache.webbeans.spi.DefiningClassService;
 import org.apache.webbeans.spi.ScannerService;
+import org.apache.webbeans.web.context.WebContextsService;
+import org.apache.webbeans.web.lifecycle.WebContainerLifecycle;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.log.Logger;
 
 public class ContainerBootstrap extends Phase {
@@ -58,6 +66,7 @@ public class ContainerBootstrap extends Phase {
 		_singleBuilder = singleBuilder;
 		_factoryBuilder = factoryBuilder;
 		_log = containerState.containerLogs().getLogger(getClass());
+		_startObject = new UpdatableServletContext();
 	}
 
 	@Override
@@ -69,7 +78,7 @@ public class ContainerBootstrap extends Phase {
 				ClassLoader current = currentThread.getContextClassLoader();
 				try {
 					currentThread.setContextClassLoader(containerState.classLoader());
-					_bootstrap.getService(ContainerLifecycle.class).stopApplication(bundle().getBundleContext());
+					_bootstrap.getService(ContainerLifecycle.class).stopApplication(_startObject);
 				}
 				finally {
 					currentThread.setContextClassLoader(current);
@@ -122,7 +131,7 @@ public class ContainerBootstrap extends Phase {
 				).forEach(extensions::add);
 
 				final Properties properties = getConfiguration();
-				final Map<Class<?>, Object> services = getServices(current);
+				final Map<Class<?>, Object> services = getServices();
 				_bootstrap = new WebBeansContext(services, properties) {
 					private final ExtensionLoader overridenExtensionLoader = new ExtensionLoader(this) {
 						@Override
@@ -137,11 +146,15 @@ public class ContainerBootstrap extends Phase {
 					}
 				};
 
-				DefaultSingletonService.class.cast(WebBeansFinder.getSingletonService())
-						.register(currentThread.getContextClassLoader(), _bootstrap);
+				final DefaultSingletonService singletonService = getSingletonService();
+				singletonService.register(currentThread.getContextClassLoader(), _bootstrap);
 
 				final ContainerLifecycle lifecycle = _bootstrap.getService(ContainerLifecycle.class);
-				lifecycle.startApplication(bundle().getBundleContext());
+				final ServletContext servletContext = _startObject.getServletContext();
+				servletContext.setAttribute(BundleContext.class.getName(), bundle().getBundleContext());
+				servletContext.setAttribute(WebBeansContext.class.getName(), _bootstrap);
+				// todo: use actual SE
+				lifecycle.startApplication(_startObject);
 			}
 			finally {
 				currentThread.setContextClassLoader(current);
@@ -151,14 +164,29 @@ public class ContainerBootstrap extends Phase {
 		}
 	}
 
+	private DefaultSingletonService getSingletonService() {
+		return DefaultSingletonService.class.cast(WebBeansFinder.getSingletonService());
+	}
+
 	protected Properties getConfiguration() {
 		final Properties properties = new Properties();
+		// OSGi
 		properties.setProperty(DefiningClassService.class.getName(), ClassLoaderProxyService.class.getName());
-		// todo: use bundle properties?
+		// Web mode - minimal set, see META-INF/openwebbeans/openwebbeans.properties in openwebbeans-web for details
+		// todo: enable to not use web?
+		properties.setProperty(ContainerLifecycle.class.getName(), WebContainerLifecycle.class.getName());
+		properties.setProperty(ContextsService.class.getName(), WebContextsService.class.getName());
+		// user/bundle overrides
+		final Dictionary<String, String> headers = bundle().getHeaders();
+		if (headers != null) {
+			list(headers.elements()).stream()
+					.filter(it -> it.startsWith("org.apache.openwebbeans."))
+					.forEach(key -> properties.setProperty(key, headers.get(key)));
+		}
 		return properties;
 	}
 
-	protected Map<Class<?>, Object> getServices(final ClassLoader bundleNativeLoader) {
+	protected Map<Class<?>, Object> getServices() {
 		final Map<Class<?>, Object> services = new HashMap<>();
 		services.put(ApplicationBoundaryService.class, new DefaultApplicationBoundaryService() {
 			@Override
@@ -172,6 +200,10 @@ public class ContainerBootstrap extends Phase {
 						.map(OSGiBean::getBeanClass)
 						.collect(toSet()),
 				containerState.beansModel().getBeansXml()));
+
+		// just to be able to get it contextually if needed
+		services.put(BundleContext.class, bundle().getBundleContext());
+		services.put(UpdatableServletContext.class, _startObject);
 		return services;
 	}
 
@@ -200,5 +232,5 @@ public class ContainerBootstrap extends Phase {
 	private final SingleComponent.Builder _singleBuilder;
 	private final Syncro _lock = new Syncro(true);
 	private final Logger _log;
-
+	private final UpdatableServletContext _startObject;
 }
