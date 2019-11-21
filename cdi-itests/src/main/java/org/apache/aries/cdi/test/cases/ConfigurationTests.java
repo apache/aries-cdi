@@ -15,15 +15,12 @@
 package org.apache.aries.cdi.test.cases;
 
 import static java.lang.Thread.sleep;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.Assert.*;
 
-import java.lang.reflect.Array;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import org.apache.aries.cdi.test.interfaces.BeanService;
@@ -31,8 +28,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cdi.ConfigurationPolicy;
 import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ComponentDTO;
@@ -40,9 +35,6 @@ import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 import org.osgi.service.cdi.runtime.dto.template.ConfigurationTemplateDTO;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.service.cm.ConfigurationEvent;
-import org.osgi.service.cm.ConfigurationListener;
-import org.osgi.service.cm.SynchronousConfigurationListener;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ConfigurationTests extends AbstractTestCase {
@@ -129,31 +121,32 @@ public class ConfigurationTests extends AbstractTestCase {
 			BeanService<Callable<int[]>> beanService = stA.waitForService(timeout);
 
 			assertNotNull(beanService);
-			assertEquals("blue", beanService.doSomething());
-			assertArrayEquals(new int[] {12, 4567}, beanService.get().call());
+
+			assertWithRetries(() -> {
+				assertEquals("blue", beanService.doSomething());
+				try {
+					assertArrayEquals(new int[]{12, 4567}, beanService.get().call());
+				} catch (final Exception e) {
+					fail(e.getMessage());
+				}
+			});
 
 			stB = new ServiceTracker<>(
 					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=B))"), null);
 			stB.open(true);
 
-			beanService = stB.waitForService(timeout);
-			assertNotNull(beanService);
+			final BeanService<Callable<int[]>> beanServiceB = stB.waitForService(timeout);
+			assertNotNull(beanServiceB);
 
-			int retries = 50;
-			for (int i = 0; i < retries; i++) { // can take some time to let configuration listener get the event and update the bean
+			assertWithRetries(() -> {
+				assertEquals("green", beanServiceB.doSomething());
 				try {
-					assertEquals("green", beanService.doSomething());
-					assertArrayEquals(new int[]{80}, beanService.get().call());
-					break;
-				} catch (final AssertionError ae) {
-					retries--;
-					if (retries == 0) {
-						throw ae;
-					}
-					sleep(200);
+					assertArrayEquals(new int[]{80}, beanServiceB.get().call());
+				} catch (final Exception e) {
+					fail(e.getMessage());
 				}
-			}
+			});
 		}
 		finally {
 			if (configurationA != null) {
@@ -179,6 +172,22 @@ public class ConfigurationTests extends AbstractTestCase {
 				stB.close();
 			}
 			tb3Bundle.uninstall();
+		}
+	}
+
+	private void assertWithRetries(final Runnable runnable) throws Exception {
+		int retries = 50;
+		for (int i = 0; i < retries; i++) { // can take some time to let configuration listener get the event and update the bean
+			try {
+				runnable.run();
+				break;
+			} catch (final AssertionError ae) {
+				retries--;
+				if (retries == 0) {
+					throw ae;
+				}
+				sleep(200);
+			}
 		}
 	}
 
@@ -211,29 +220,41 @@ public class ConfigurationTests extends AbstractTestCase {
 			configurationC.update(properties);
 
 			stC.close();
-			stC = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
+			stC = new ServiceTracker<>(
+					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C)(ports=12))"), null);
 			stC.open(true);
 
-			beanService = stC.waitForService(timeout);
+			final BeanService<Callable<int[]>> beanServiceC = stC.waitForService(timeout);
 
-			assertNotNull(beanService);
-			assertEquals("blue", beanService.doSomething());
-			assertArrayEquals(new int[] {12, 4567}, beanService.get().call());
+			assertNotNull(beanServiceC);
+			assertWithRetries(() -> {
+				assertEquals("blue", beanServiceC.doSomething());
+				try {
+					assertArrayEquals(new int[]{12, 4567}, beanServiceC.get().call());
+				} catch (final Exception e) {
+					fail(e.getMessage());
+				}
+			});
 
 			configurationC.delete();
 
 			stC.close();
-			stC = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
+			stC = new ServiceTracker<>(
+					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C)(!(ports=*)))"), null);
 			stC.open(true);
-			beanService = stC.waitForService(timeout);
+			final BeanService<Callable<int[]>> beanServiceC2 = stC.waitForService(timeout);
 
 			assertNotNull(beanService);
-			assertEquals("blue", beanService.doSomething());
-			assertArrayEquals(new int[] {35777}, beanService.get().call());
+			assertWithRetries(() -> {
+				assertEquals("blue", beanServiceC2.doSomething());
+				try {
+					assertArrayEquals(new int[] {35777}, beanServiceC2.get().call());
+				} catch (final Exception e) {
+					fail(e.getMessage());
+				}
+			});
 		}
 		finally {
 			if (configurationC != null) {

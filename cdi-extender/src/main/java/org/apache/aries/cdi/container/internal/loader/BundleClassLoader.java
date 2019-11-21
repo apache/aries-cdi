@@ -16,6 +16,7 @@ package org.apache.aries.cdi.container.internal.loader;
 
 import java.io.IOException;
 import java.net.URL;
+import java.security.ProtectionDomain;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
@@ -132,7 +133,56 @@ public class BundleClassLoader extends ClassLoader {
 		}
 	}
 
+	public Class<?> getOrRegister(final String proxyClassName, final byte[] proxyBytes,
+								   final Package pck, final ProtectionDomain protectionDomain) {
+		final String key = proxyClassName.replace('/', '.');
+		Class<?> existing = _cache.get(key);
+		if (existing == null) {
+			Object classLoadingLock = getClassLoadingLock(key);
+			synchronized (classLoadingLock) {
+				existing = _cache.get(key);
+				if (existing == null) {
+					definePackageFor(pck, protectionDomain);
+					existing = super.defineClass(proxyClassName, proxyBytes, 0, proxyBytes.length);
+					resolveClass(existing);
+					_cache.put(key, existing);
+				}
+			}
+		}
+		return existing;
+	}
+
+	private void definePackageFor(final Package model, final ProtectionDomain protectionDomain) {
+		if (model == null) {
+			return;
+		}
+		if (getPackage(model.getName()) == null) {
+			if (model.isSealed() && protectionDomain != null &&
+					protectionDomain.getCodeSource() != null &&
+					protectionDomain.getCodeSource().getLocation() != null) {
+				definePackage(
+						model.getName(),
+						model.getSpecificationTitle(),
+						model.getSpecificationVersion(),
+						model.getSpecificationVendor(),
+						model.getImplementationTitle(),
+						model.getImplementationVersion(),
+						model.getImplementationVendor(),
+						protectionDomain.getCodeSource().getLocation());
+			} else {
+				definePackage(
+						model.getName(),
+						model.getSpecificationTitle(),
+						model.getSpecificationVersion(),
+						model.getSpecificationVendor(),
+						model.getImplementationTitle(),
+						model.getImplementationVersion(),
+						model.getImplementationVendor(),
+						null);
+			}
+		}
+	}
+
 	private final Bundle[] _bundles;
 	private final ConcurrentMap<String, Class<?>> _cache = new ConcurrentHashMap<>();
-
 }

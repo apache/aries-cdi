@@ -39,9 +39,7 @@ import org.apache.aries.cdi.container.internal.util.Syncro;
 import org.apache.webbeans.config.WebBeansContext;
 import org.apache.webbeans.config.WebBeansFinder;
 import org.apache.webbeans.corespi.DefaultSingletonService;
-import org.apache.webbeans.corespi.se.DefaultApplicationBoundaryService;
 import org.apache.webbeans.portable.events.ExtensionLoader;
-import org.apache.webbeans.service.ClassLoaderProxyService;
 import org.apache.webbeans.spi.ApplicationBoundaryService;
 import org.apache.webbeans.spi.ContainerLifecycle;
 import org.apache.webbeans.spi.ContextsService;
@@ -131,7 +129,7 @@ public class ContainerBootstrap extends Phase {
 				).forEach(extensions::add);
 
 				final Properties properties = getConfiguration();
-				final Map<Class<?>, Object> services = getServices();
+				final Map<Class<?>, Object> services = getServices(current);
 				_bootstrap = new WebBeansContext(services, properties) {
 					private final ExtensionLoader overridenExtensionLoader = new ExtensionLoader(this) {
 						@Override
@@ -171,7 +169,7 @@ public class ContainerBootstrap extends Phase {
 	protected Properties getConfiguration() {
 		final Properties properties = new Properties();
 		// OSGi
-		properties.setProperty(DefiningClassService.class.getName(), ClassLoaderProxyService.class.getName());
+		properties.setProperty(DefiningClassService.class.getName(), OSGiDefiningClassService.class.getName());
 		// Web mode - minimal set, see META-INF/openwebbeans/openwebbeans.properties in openwebbeans-web for details
 		// todo: enable to not use web?
 		properties.setProperty(ContainerLifecycle.class.getName(), WebContainerLifecycle.class.getName());
@@ -186,14 +184,11 @@ public class ContainerBootstrap extends Phase {
 		return properties;
 	}
 
-	protected Map<Class<?>, Object> getServices() {
+	protected Map<Class<?>, Object> getServices(final ClassLoader bundleLoader) {
 		final Map<Class<?>, Object> services = new HashMap<>();
-		services.put(ApplicationBoundaryService.class, new DefaultApplicationBoundaryService() {
-			@Override
-			public ClassLoader getApplicationClassLoader() {
-				return containerState.classLoader();
-			}
-		});
+		services.put(OSGiDefiningClassService.ClassLoaders.class, new OSGiDefiningClassService.ClassLoaders(
+				bundleLoader, containerState.classLoader()));
+		services.put(ApplicationBoundaryService.class, new OsgiApplicationBoundaryService(bundleLoader, containerState.classLoader()));
 		services.put(ScannerService.class, new CdiScannerService(
 				containerState.beansModel().getBeanClassNames().stream()
 						.map(containerState.beansModel()::getOSGiBean)

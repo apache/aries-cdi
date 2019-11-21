@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.test.tb3;
 
-@interface Config {
+public @interface Config {
 
 	String color() default "blue";
 

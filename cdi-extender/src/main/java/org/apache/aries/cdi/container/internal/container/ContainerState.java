@@ -245,7 +245,7 @@ public class ContainerState {
 		return _ccrLogs;
 	}
 
-	public ClassLoader classLoader() {
+	public BundleClassLoader classLoader() {
 		return _aggregateClassLoader;
 	}
 
@@ -391,7 +391,7 @@ public class ContainerState {
 		return bundles.toArray(new Bundle[0]);
 	}
 
-	private final ClassLoader _aggregateClassLoader;
+	private final BundleClassLoader _aggregateClassLoader;
 	private volatile Deferred<BeanManager> _beanManagerDeferred;
 	private final BeansModel _beansModel;
 	private final Bundle _bundle;
