@@ -27,6 +27,7 @@ import javax.enterprise.inject.spi.Extension;
 
 import org.apache.aries.cdi.container.internal.container.Op.Mode;
 import org.apache.aries.cdi.container.internal.container.Op.Type;
+import org.apache.aries.cdi.container.internal.loader.BundleClassLoader;
 import org.apache.aries.cdi.container.internal.model.ExtendedExtensionDTO;
 import org.apache.aries.cdi.container.internal.model.FactoryComponent;
 import org.apache.aries.cdi.container.internal.model.OSGiBean;
@@ -105,7 +106,8 @@ public class ContainerBootstrap extends Phase {
 			_log.debug(log -> log.debug("CCR container startup for {}", bundle()));
 
 			_seContainer = _seContainerInitializerInstance
-				.setClassLoader(containerState.classLoader())
+				// always use a new class loader
+				.setClassLoader(new BundleClassLoader(containerState.bundle(), containerState.extenderBundle()))
 				.addBeanClasses(containerState.beansModel().getOSGiBeans().stream().map(OSGiBean::getBeanClass).toArray(Class<?>[]::new))
 				.setProperties(containerState.containerComponentTemplateDTO().properties)
 				.addProperty(BEANS_XML_PROPERTY, containerState.beansModel().getBeansXml())

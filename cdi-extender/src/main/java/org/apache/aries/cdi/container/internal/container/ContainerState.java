@@ -183,7 +183,7 @@ public class ContainerState {
 
 		_containerDTO.template.components.add(_containerComponentTemplateDTO);
 
-		_aggregateClassLoader = new BundleClassLoader(getBundles(_bundle, _extenderBundle));
+		_aggregateClassLoader = new BundleClassLoader(_bundle, _extenderBundle);
 
 		_beansModel = new BeansModelBuilder(this, _aggregateClassLoader, bundleWiring, cdiAttributes).build();
 
@@ -357,15 +357,6 @@ public class ContainerState {
 		}
 
 		return promise;
-	}
-
-	private static List<Bundle> getBundles(Bundle bundle, Bundle extenderBundle) {
-		List<Bundle> bundles = new ArrayList<>();
-
-		bundles.add(bundle);
-		bundles.add(extenderBundle);
-
-		return bundles;
 	}
 
 	private final BundleClassLoader _aggregateClassLoader;

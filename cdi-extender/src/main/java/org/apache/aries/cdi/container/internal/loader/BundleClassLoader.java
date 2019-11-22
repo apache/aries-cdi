@@ -24,26 +24,26 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.apache.aries.cdi.spi.loader.SpiLoader;
 import org.osgi.framework.Bundle;
 
-public class BundleClassLoader extends SpiLoader {
+public final class BundleClassLoader extends SpiLoader {
 
-	public BundleClassLoader(List<Bundle> bundles) {
-		if (bundles.isEmpty()) {
-			throw new IllegalArgumentException(
-				"At least one bundle is required");
-		}
-
-		_bundles = bundles;
+	public BundleClassLoader(Bundle cdiBundle, Bundle extenderBundle) {
+		_bundles.add(requireNonNull(cdiBundle));
+		_bundles.add(requireNonNull(extenderBundle));
 	}
 
 	@Override
 	public URL findResource(String name) {
 		for (Bundle bundle : _bundles) {
+			if ((bundle.getState() & Bundle.UNINSTALLED) == Bundle.UNINSTALLED) {
+				continue;
+			}
 			URL url = bundle.getResource(name);
 
 			if (url != null) {
@@ -212,7 +212,7 @@ public class BundleClassLoader extends SpiLoader {
 		}
 	}
 
-	private final List<Bundle> _bundles;
+	private final List<Bundle> _bundles = new CopyOnWriteArrayList<>();
 	private final ConcurrentMap<String, Class<?>> _cache = new ConcurrentHashMap<>();
 	private volatile Predicate<String> classPredicate;
 	private volatile Function<String, Class<?>> classFunction;
