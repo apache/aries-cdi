@@ -324,14 +324,6 @@
 						<failOnChanges>false</failOnChanges>
 						<resolve>false</resolve>
 					</configuration>
-					<executions>
-						<execution>
-							<id>testing</id>
-							<goals>
-								<goal>testing</goal>
-							</goals>
-						</execution>
-					</executions>
 				</plugin>
 				<plugin>
 					<groupId>biz.aQute.bnd</groupId>
