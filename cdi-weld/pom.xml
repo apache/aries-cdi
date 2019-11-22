@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.apache.aries.cdi</groupId>
+		<artifactId>org.apache.aries.cdi</artifactId>
+		<version>1.0.3-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<artifactId>org.apache.aries.cdi.weld</artifactId>
+	<name>Apache Aries CDI - Container using JBoss Weld</name>
+	<description>Apache Aries CDI - Container using JBoss Weld</description>
+
+	<licenses>
+		<license>
+			<name>ASL 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git@github.com:apache/aries-cdi.git</connection>
+		<developerConnection>scm:git:git@github.com:apache/aries-cdi.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/apache/aries-cdi</url>
+	</scm>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>biz.aQute.bnd</groupId>
+				<artifactId>bnd-maven-plugin</artifactId>
+				<configuration>
+					<bnd><![CDATA[
+						-cdiannotations:
+						-noclassforname: true
+					]]></bnd>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.aries.cdi</groupId>
+			<artifactId>org.apache.aries.cdi.extra</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.aries.cdi</groupId>
+			<artifactId>org.apache.aries.cdi.spi</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-annotation_1.3_spec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-atinject_1.0_spec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-interceptor_1.2_spec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.weld</groupId>
+			<artifactId>weld-osgi-bundle</artifactId>
+			<version>${weld.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.annotation</groupId>
+					<artifactId>javax.annotation-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.enterprise</groupId>
+					<artifactId>cdi-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.inject</groupId>
+					<artifactId>javax.inject</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.annotation</groupId>
+					<artifactId>jboss-annotations-api_1.3_spec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.ejb</groupId>
+					<artifactId>jboss-ejb-api_3.2_spec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.el</groupId>
+					<artifactId>jboss-el-api_3.0_spec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.interceptor</groupId>
+					<artifactId>jboss-interceptors-api_1.2_spec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.spec.javax.transaction</groupId>
+					<artifactId>jboss-transaction-api_1.2_spec</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.http.servlet-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.namespace.extender</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.namespace.implementation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.namespace.service</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.service.cdi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.service.http.whiteboard</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>osgi.annotation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>osgi.core</artifactId>
+		</dependency>
+	</dependencies>
+
+</project>
