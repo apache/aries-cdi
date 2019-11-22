@@ -32,9 +32,13 @@ import org.osgi.util.promise.Promise;
 
 public class JndiContext implements Context {
 
-	public JndiContext(Logger log, Promise<BeanManager> beanManager) {
+	public JndiContext(Logger log) {
 		_log = log;
+	}
+
+	public JndiContext setBeanManager(Promise<BeanManager> beanManager) {
 		_beanManager = beanManager;
+		return this;
 	}
 
 	@Override
@@ -45,7 +49,7 @@ public class JndiContext implements Context {
 	@Override
 	public Object lookup(String name) throws NamingException {
 		if (name.length() == 0) {
-			return new JndiContext(_log, _beanManager);
+			return new JndiContext(_log).setBeanManager(_beanManager);
 		}
 		if (name.equals("java:comp/BeanManager")) {
 			try {
@@ -194,6 +198,6 @@ public class JndiContext implements Context {
 	}
 
 	private final Logger _log;
-	private final Promise<BeanManager> _beanManager;
+	private volatile Promise<BeanManager> _beanManager;
 
 }
