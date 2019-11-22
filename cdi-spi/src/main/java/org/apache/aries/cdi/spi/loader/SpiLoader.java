@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 
 import org.osgi.framework.Bundle;
 
-public abstract class BundleClassLoader extends ClassLoader {
+public abstract class SpiLoader extends ClassLoader {
 
 	public abstract List<Bundle> getBundles();
 
@@ -31,11 +31,11 @@ public abstract class BundleClassLoader extends ClassLoader {
 		final String proxyClassName, final byte[] proxyBytes,
 		final Package pck, final ProtectionDomain protectionDomain);
 
-	public abstract BundleClassLoader handleResources(
+	public abstract SpiLoader handleResources(
 		final Predicate<String> predicate,
 		final Function<String, Enumeration<URL>> function);
 
-	public abstract BundleClassLoader findClass(
+	public abstract SpiLoader findClass(
 		final Predicate<String> predicate,
 		final Function<String, Class<?>> function);
 
