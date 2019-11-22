@@ -76,6 +76,12 @@
 				<scope>compile</scope>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.aries.cdi</groupId>
+				<artifactId>org.apache.aries.cdi.spi</artifactId>
+				<version>${project.version}</version>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.apache.aries.spifly</groupId>
 				<artifactId>org.apache.aries.spifly.dynamic.framework.extension</artifactId>
 				<version>1.2</version>
