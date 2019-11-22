@@ -149,26 +149,7 @@ public class ReferenceBean implements Bean<Object> {
 
 //		TODO do we want to support decorators/interceptors on in-bound services one day???
 //		==================================================================================
-
-//		if (s == null) return null;
-//
-//		List<javax.enterprise.inject.spi.Decorator<?>> decorators = _bm.resolveDecorators(
-//			Collections.singleton(_template.serviceClass),
-//			new Annotation[0]);
-//
-//		if (decorators.isEmpty()) {
-//			return s;
-//		}
-//
-//		org.jboss.weld.manager.BeanManagerImpl bmi =
-//			((org.jboss.weld.bean.builtin.BeanManagerProxy)_bm).delegate();
-//		org.jboss.weld.injection.CurrentInjectionPoint cip = bmi.getServices().get(
-//			org.jboss.weld.injection.CurrentInjectionPoint.class);
-//		InjectionPoint ip = cip.peek();
-//		return org.jboss.weld.util.Decorators.getOuterDelegate(
-//			(Bean<S>)this, s, c, (Class<S>)_template.serviceClass,
-//			(org.jboss.weld.injection.EmptyInjectionPoint.INSTANCE.equals(ip) ? null : ip),
-//			bmi, decorators);
+//  	If so, use InterceptionFactory instead of doing it manually
 	}
 
 	@Override

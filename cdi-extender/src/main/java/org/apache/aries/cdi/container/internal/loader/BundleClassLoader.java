@@ -14,22 +14,26 @@
 
 package org.apache.aries.cdi.container.internal.loader;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLClassLoader;
+import java.security.ProtectionDomain;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
+import org.apache.aries.cdi.spi.loader.SpiLoader;
 import org.osgi.framework.Bundle;
 
-public class BundleClassLoader extends URLClassLoader {
+public class BundleClassLoader extends SpiLoader {
 
-	public BundleClassLoader(Bundle[] bundles) {
-		super(new URL[0]);
-
-		if (bundles.length == 0) {
+	public BundleClassLoader(List<Bundle> bundles) {
+		if (bundles.isEmpty()) {
 			throw new IllegalArgumentException(
 				"At least one bundle is required");
 		}
@@ -53,6 +57,9 @@ public class BundleClassLoader extends URLClassLoader {
 	@Override
 	public Enumeration<URL> findResources(String name) {
 		for (Bundle bundle : _bundles) {
+			if ((bundle.getState() & Bundle.UNINSTALLED) == Bundle.UNINSTALLED) {
+				continue;
+			}
 			try {
 				Enumeration<URL> enumeration = bundle.getResources(name);
 
@@ -62,12 +69,17 @@ public class BundleClassLoader extends URLClassLoader {
 			}
 			catch (IOException ioe) {
 			}
+
+			if (resourcePredicate != null && resourcePredicate.test(name)) {
+				return resourceFunction.apply(name);
+			}
 		}
 
 		return Collections.emptyEnumeration();
 	}
 
-	public Bundle[] getBundles() {
+	@Override
+	public List<Bundle> getBundles() {
 		return _bundles;
 	}
 
@@ -82,17 +94,44 @@ public class BundleClassLoader extends URLClassLoader {
 	}
 
 	@Override
+	public BundleClassLoader handleResources(
+		Predicate<String> predicate, Function<String, Enumeration<URL>> function) {
+
+		resourcePredicate = requireNonNull(predicate);
+		resourceFunction = requireNonNull(function);
+
+		return this;
+	}
+
+	@Override
+	public BundleClassLoader findClass(
+		Predicate<String> predicate, Function<String, Class<?>> function) {
+
+		classPredicate = requireNonNull(predicate);
+		classFunction = requireNonNull(function);
+
+		return this;
+	}
+
+	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		Object classLoadingLock = getClassLoadingLock(name);
 
 		synchronized (classLoadingLock) {
 			for (Bundle bundle : _bundles) {
+				if ((bundle.getState() & Bundle.UNINSTALLED) == Bundle.UNINSTALLED) {
+					continue;
+				}
 				try {
 					return bundle.loadClass(name);
 				}
 				catch (ClassNotFoundException cnfe) {
 					continue;
 				}
+			}
+
+			if (classPredicate != null && classPredicate.test(name)) {
+				return classFunction.apply(name);
 			}
 
 			throw new ClassNotFoundException(name);
@@ -122,7 +161,62 @@ public class BundleClassLoader extends URLClassLoader {
 		}
 	}
 
-	private final Bundle[] _bundles;
+	@Override
+	public Class<?> getOrRegister(final String proxyClassName, final byte[] proxyBytes,
+								final Package pck, final ProtectionDomain protectionDomain) {
+		final String key = proxyClassName.replace('/', '.');
+		Class<?> existing = _cache.get(key);
+		if (existing == null) {
+			Object classLoadingLock = getClassLoadingLock(key);
+			synchronized (classLoadingLock) {
+				existing = _cache.get(key);
+				if (existing == null) {
+					definePackageFor(pck, protectionDomain);
+					existing = super.defineClass(proxyClassName, proxyBytes, 0, proxyBytes.length);
+					resolveClass(existing);
+					_cache.put(key, existing);
+				}
+			}
+		}
+		return existing;
+	}
+
+	private void definePackageFor(final Package model, final ProtectionDomain protectionDomain) {
+		if (model == null) {
+			return;
+		}
+		if (getPackage(model.getName()) == null) {
+			if (model.isSealed() && protectionDomain != null &&
+					protectionDomain.getCodeSource() != null &&
+					protectionDomain.getCodeSource().getLocation() != null) {
+				definePackage(
+						model.getName(),
+						model.getSpecificationTitle(),
+						model.getSpecificationVersion(),
+						model.getSpecificationVendor(),
+						model.getImplementationTitle(),
+						model.getImplementationVersion(),
+						model.getImplementationVendor(),
+						protectionDomain.getCodeSource().getLocation());
+			} else {
+				definePackage(
+						model.getName(),
+						model.getSpecificationTitle(),
+						model.getSpecificationVersion(),
+						model.getSpecificationVendor(),
+						model.getImplementationTitle(),
+						model.getImplementationVersion(),
+						model.getImplementationVendor(),
+						null);
+			}
+		}
+	}
+
+	private final List<Bundle> _bundles;
 	private final ConcurrentMap<String, Class<?>> _cache = new ConcurrentHashMap<>();
+	private volatile Predicate<String> classPredicate;
+	private volatile Function<String, Class<?>> classFunction;
+	private volatile Function<String, Enumeration<URL>> resourceFunction;
+	private volatile Predicate<String> resourcePredicate;
 
 }

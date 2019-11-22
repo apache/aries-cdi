@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.spi.Bean;
@@ -98,7 +98,7 @@ public class ComponentPropertiesBean implements Bean<Object> {
 		ExtendedActivationDTO current = ComponentContext.With.current();
 
 		if (current == null) {
-			return ApplicationScoped.class;
+			return Dependent.class;
 		}
 
 		return ComponentScoped.class;

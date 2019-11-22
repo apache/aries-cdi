@@ -60,7 +60,7 @@
 	}
 )
 @Capability(
-	attribute = "register:=javax.enterprise.inject.se.SeContainerInitializer",
+	attribute = "register:=org.apache.aries.cdi.container.internal.provider.SeContainerInitializer",
 	namespace = "osgi.serviceloader",
 	name = "javax.enterprise.inject.se.SeContainerInitializer",
 	uses = {
@@ -69,7 +69,7 @@
 	}
 )
 @Capability(
-	attribute = "register:=javax.enterprise.inject.spi.CDIProvider",
+	attribute = "register:=org.apache.aries.cdi.container.internal.provider.CDIProvider",
 	namespace = "osgi.serviceloader",
 	name = "javax.enterprise.inject.spi.CDIProvider",
 	uses = {
@@ -81,6 +81,11 @@
 @Requirement(
 	namespace = ExtenderNamespace.EXTENDER_NAMESPACE,
 	name = "osgi.serviceloader.registrar"
+)
+@Requirement(
+	namespace = ServiceNamespace.SERVICE_NAMESPACE,
+	filter = "(&(objectClass=javax.enterprise.inject.se.SeContainerInitializer)(aries.cdi.spi=*))",
+	effective = "active"
 )
 package org.apache.aries.cdi.container;
 

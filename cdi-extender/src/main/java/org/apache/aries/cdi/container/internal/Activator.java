@@ -14,6 +14,7 @@
 
 package org.apache.aries.cdi.container.internal;
 
+import static org.apache.aries.cdi.container.internal.util.Filters.asFilter;
 import static org.osgi.namespace.extender.ExtenderNamespace.EXTENDER_NAMESPACE;
 import static org.osgi.service.cdi.CDIConstants.CDI_CAPABILITY_NAME;
 import static org.osgi.service.cdi.CDIConstants.REQUIREMENT_BEANS_ATTRIBUTE;
@@ -27,7 +28,9 @@ import java.util.Observer;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
+import javax.enterprise.inject.se.SeContainerInitializer;
 
 import org.apache.aries.cdi.container.internal.command.CDICommand;
 import org.apache.aries.cdi.container.internal.container.CDIBundle;
@@ -50,6 +53,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceObjects;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleWire;
@@ -61,6 +66,7 @@ import org.osgi.service.log.Logger;
 import org.osgi.service.log.LoggerFactory;
 import org.osgi.util.promise.PromiseFactory;
 import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 @Header(
 	name = Constants.BUNDLE_ACTIVATOR,
@@ -69,26 +75,48 @@ import org.osgi.util.tracker.ServiceTracker;
 @RequireConfigurationAdmin
 public class Activator extends AbstractExtender {
 
-	private static final Logs _logs = new Logs.Builder(FrameworkUtil.getBundle(Activator.class).getBundleContext()).build();
-	private static final Logger _log = _logs.getLogger(Activator.class);
-	private static final ThreadGroup _threadGroup = new ThreadGroup("Apache Aries CCR - CDI");
-	private static final ExecutorService _executorService = Executors.newFixedThreadPool(
-		1,
-		new ThreadFactory() {
-
-			@Override
-			public Thread newThread(Runnable r) {
-				Thread t = new Thread(_threadGroup, r, "Aries CCR Thread");
-				t.setDaemon(true);
-				return t;
-			}
-
-		}
-	);
-	private static final PromiseFactory _promiseFactory = new PromiseFactory(_executorService);
-	public static final CCR ccr = new CCR(_promiseFactory, _logs);
+	private final CCR _ccr;
+	private final ExecutorService _executorService;
+	private final Logger _log;
+	private final Logs _logs;
+	private final PromiseFactory _promiseFactory;
+	private final ServiceTracker<SeContainerInitializer, ServiceObjects<SeContainerInitializer>> _containerTracker;
 
 	public Activator() {
+		final BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
+		_logs = new Logs.Builder(bundleContext).build();
+		_log = _logs.getLogger(Activator.class);
+		_containerTracker = new ServiceTracker<>(
+			bundleContext,
+			asFilter("(&(objectClass=%s)(aries.cdi.spi=*))", SeContainerInitializer.class.getName()),
+			new ServiceTrackerCustomizer<SeContainerInitializer, ServiceObjects<SeContainerInitializer>>() {
+
+				@Override
+				public ServiceObjects<SeContainerInitializer> addingService(
+						ServiceReference<SeContainerInitializer> reference) {
+					return bundleContext.getServiceObjects(reference);
+				}
+
+				@Override
+				public void modifiedService(ServiceReference<SeContainerInitializer> reference,
+						ServiceObjects<SeContainerInitializer> service) {
+				}
+
+				@Override
+				public void removedService(ServiceReference<SeContainerInitializer> reference,
+						ServiceObjects<SeContainerInitializer> service) {
+				}
+			}
+		);
+		_containerTracker.open();
+		_executorService = Executors.newSingleThreadExecutor(worker -> {
+			Thread t = new Thread(new ThreadGroup("Apache Aries CCR - CDI"), worker, "Aries CCR Thread (" + hashCode() + ")");
+			t.setDaemon(false);
+			return t;
+		});
+		_promiseFactory = new PromiseFactory(_executorService);
+		_ccr = new CCR(_promiseFactory, _logs);
+		_command = new CDICommand(_ccr);
 		setSynchronous(true);
 	}
 
@@ -97,8 +125,6 @@ public class Activator extends AbstractExtender {
 		if (_log.isDebugEnabled()) {
 			_log.debug("CCR starting {}", bundleContext.getBundle());
 		}
-
-		_command = new CDICommand(ccr);
 
 		_bundleContext = bundleContext;
 
@@ -150,6 +176,8 @@ public class Activator extends AbstractExtender {
 		if (_log.isDebugEnabled()) {
 			_log.debug("CCR stoped {}", bundleContext.getBundle());
 		}
+		_executorService.shutdownNow();
+		_executorService.awaitTermination(2, TimeUnit.SECONDS); // not important but just to avoid to quit too fast
 	}
 
 	@Override
@@ -172,7 +200,7 @@ public class Activator extends AbstractExtender {
 			bundle, _bundleContext.getBundle(), _ccrChangeCount, _promiseFactory, caTracker, _logs);
 
 		// the CDI bundle
-		return new CDIBundle(ccr, containerState,
+		return new CDIBundle(_ccr, containerState,
 			// handle extensions
 			new ExtensionPhase(containerState,
 				// listen for configurations of the container component
@@ -183,7 +211,7 @@ public class Activator extends AbstractExtender {
 						new ContainerActivator.Builder(containerState,
 							// when the active container bootstraps CDI
 							new ContainerBootstrap(
-								containerState,
+								containerState, _containerTracker,
 								// when CDI is bootstrapping is complete and is up and running
 								// activate the configuration listeners for single and factory components
 								new ConfigurationListener.Builder(containerState),
@@ -264,7 +292,7 @@ public class Activator extends AbstractExtender {
 
 			_registrations.add(registration);
 
-			return ccr;
+			return _ccr;
 		}
 
 		@Override

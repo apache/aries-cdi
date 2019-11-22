@@ -14,29 +14,33 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import static org.apache.aries.cdi.spi.Keys.BEANS_XML_PROPERTY;
+import static org.apache.aries.cdi.spi.Keys.BUNDLECONTEXT_PROPERTY;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ServiceLoader;
+
+import javax.enterprise.inject.se.SeContainer;
+import javax.enterprise.inject.se.SeContainerInitializer;
 import javax.enterprise.inject.spi.Extension;
 
 import org.apache.aries.cdi.container.internal.container.Op.Mode;
 import org.apache.aries.cdi.container.internal.container.Op.Type;
-import org.apache.aries.cdi.container.internal.loader.BundleResourcesLoader;
 import org.apache.aries.cdi.container.internal.model.ExtendedExtensionDTO;
 import org.apache.aries.cdi.container.internal.model.FactoryComponent;
+import org.apache.aries.cdi.container.internal.model.OSGiBean;
 import org.apache.aries.cdi.container.internal.model.SingleComponent;
 import org.apache.aries.cdi.container.internal.util.Syncro;
-import org.jboss.weld.bootstrap.WeldBootstrap;
-import org.jboss.weld.bootstrap.spi.BeanDeploymentArchive;
-import org.jboss.weld.bootstrap.spi.Deployment;
-import org.jboss.weld.bootstrap.spi.Metadata;
-import org.jboss.weld.util.ServiceLoader;
+import org.osgi.framework.ServiceObjects;
 import org.osgi.service.log.Logger;
+import org.osgi.util.tracker.ServiceTracker;
 
 public class ContainerBootstrap extends Phase {
 
 	public ContainerBootstrap(
 		ContainerState containerState,
+		ServiceTracker<SeContainerInitializer, ServiceObjects<SeContainerInitializer>> containerTracker,
 		ConfigurationListener.Builder configurationBuilder,
 		SingleComponent.Builder singleBuilder,
 		FactoryComponent.Builder factoryBuilder) {
@@ -44,24 +48,34 @@ public class ContainerBootstrap extends Phase {
 		super(containerState, null);
 
 		_configurationBuilder = configurationBuilder;
+		_containerTracker = containerTracker;
 		_singleBuilder = singleBuilder;
 		_factoryBuilder = factoryBuilder;
 		_log = containerState.containerLogs().getLogger(getClass());
+
+		_serviceObjects = _containerTracker.getService();
+		_seContainerInitializerInstance = _serviceObjects.getService();
 	}
 
 	@Override
 	public boolean close() {
 		try (Syncro syncro = _lock.open()) {
-			if (_bootstrap != null) {
-				_log.debug(l -> l.debug("CCR container bootstrap shutdown on {}", _bootstrap));
-				_bootstrap.shutdown();
-				_bootstrap = null;
+			if (_seContainer != null) {
+				_log.debug(l -> l.debug("CCR container shutdown for {}", bundle()));
+				_seContainer.close();
+				try {
+					_serviceObjects.ungetService(_seContainerInitializerInstance);
+				}
+				catch (Throwable t) {
+					_log.trace(l -> l.trace("CCR Failure in returning initializer instance on {}", bundle(), t));
+				}
+				_seContainer = null;
 			}
 
 			return true;
 		}
 		catch (Throwable t) {
-			_log.error(l -> l.error("CCR Failure in container bootstrap shutdown on {}", _bootstrap, t));
+			_log.error(l -> l.error("CCR Failure in container bootstrap shutdown on {}", bundle(), t));
 
 			return false;
 		}
@@ -80,7 +94,7 @@ public class ContainerBootstrap extends Phase {
 				return false;
 			}
 
-			if (_bootstrap != null) {
+			if (_seContainer != null) {
 				return true;
 			}
 
@@ -88,62 +102,16 @@ public class ContainerBootstrap extends Phase {
 				return false;
 			}
 
-			List<Metadata<Extension>> extensions = new CopyOnWriteArrayList<>();
+			_log.debug(log -> log.debug("CCR container startup for {}", bundle()));
 
-			// Add the internal extensions
-			extensions.add(
-				new ExtensionMetadata(
-					new BundleContextExtension(containerState.bundleContext()),
-					containerState.id()));
-			extensions.add(
-				new ExtensionMetadata(
-					new RuntimeExtension(containerState, _configurationBuilder, _singleBuilder, _factoryBuilder),
-					containerState.id()));
-			extensions.add(
-				new ExtensionMetadata(
-					new LoggerExtension(containerState),
-					containerState.id()));
-
-			Thread currentThread = Thread.currentThread();
-			ClassLoader current = currentThread.getContextClassLoader();
-			BundleResourcesLoader.Builder builder = new BundleResourcesLoader.Builder(containerState.bundle(), containerState.extenderBundle());
-
-			try {
-				currentThread.setContextClassLoader(containerState.classLoader());
-
-				// Add extensions found from the bundle's class loader, such as those in the Bundle-ClassPath
-				ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extensions::add);
-
-				// Add external extensions
-				containerState.containerDTO().extensions.stream().map(
-					ExtendedExtensionDTO.class::cast
-				).map(
-					e -> {
-						builder.add(e.serviceReference.getBundle());
-						return new ExtensionMetadata(e.extension.getService(), e.template.serviceFilter);
-					}
-				).forEach(extensions::add);
-
-				_bootstrap = new WeldBootstrap();
-
-				BeanDeploymentArchive beanDeploymentArchive = new ContainerDeploymentArchive(
-					builder.build(),
-					containerState.id(),
-					containerState.beansModel().getBeanClassNames(),
-					containerState.beansModel().getBeansXml());
-
-				Deployment deployment = new ContainerDeployment(extensions, beanDeploymentArchive);
-
-				_bootstrap.startExtensions(extensions);
-				_bootstrap.startContainer(containerState.id(), new ContainerEnvironment(), deployment);
-				_bootstrap.startInitialization();
-				_bootstrap.deployBeans();
-				_bootstrap.validateBeans();
-				_bootstrap.endInitialization();
-			}
-			finally {
-				currentThread.setContextClassLoader(current);
-			}
+			_seContainer = _seContainerInitializerInstance
+				.setClassLoader(containerState.classLoader())
+				.addBeanClasses(containerState.beansModel().getOSGiBeans().stream().map(OSGiBean::getBeanClass).toArray(Class<?>[]::new))
+				.setProperties(containerState.containerComponentTemplateDTO().properties)
+				.addProperty(BEANS_XML_PROPERTY, containerState.beansModel().getBeansXml())
+				.addProperty(BUNDLECONTEXT_PROPERTY, bundle().getBundleContext())
+				.addExtensions(getExtensions().toArray(new Extension[0]))
+				.initialize();
 
 			return true;
 		}
@@ -154,10 +122,33 @@ public class ContainerBootstrap extends Phase {
 		return Op.of(Mode.OPEN, Type.CONTAINER_BOOTSTRAP, containerState.id());
 	}
 
+	protected List<Extension> getExtensions() {
+		List<Extension> extensions = new ArrayList<>();
 
-	private volatile WeldBootstrap _bootstrap;
+		// Add the internal extensions
+		extensions.add(new BundleContextExtension(containerState.bundleContext()));
+		extensions.add(new RuntimeExtension(containerState, _configurationBuilder, _singleBuilder, _factoryBuilder));
+		extensions.add(new LoggerExtension(containerState));
+
+		// Add extensions found from the bundle's class loader, such as those in the Bundle-ClassPath
+		ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extensions::add);
+
+		// Add external extensions
+		containerState.containerDTO().extensions.stream().map(
+			ExtendedExtensionDTO.class::cast
+		).map(
+			e -> e.extension.getService()
+		).forEach(extensions::add);
+
+		return extensions;
+	}
+
+	private volatile SeContainer _seContainer;
+	private final ServiceTracker<SeContainerInitializer, ServiceObjects<SeContainerInitializer>> _containerTracker;
 	private final ConfigurationListener.Builder _configurationBuilder;
 	private final FactoryComponent.Builder _factoryBuilder;
+	private final SeContainerInitializer _seContainerInitializerInstance;
+	private final ServiceObjects<SeContainerInitializer> _serviceObjects;
 	private final SingleComponent.Builder _singleBuilder;
 	private final Syncro _lock = new Syncro(true);
 	private final Logger _log;
