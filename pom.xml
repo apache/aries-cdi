@@ -284,14 +284,6 @@
 						<failOnChanges>false</failOnChanges>
 						<resolve>false</resolve>
 					</configuration>
-					<executions>
-						<execution>
-							<id>export</id>
-							<goals>
-								<goal>export</goal>
-							</goals>
-						</execution>
-					</executions>
 				</plugin>
 				<plugin>
 					<groupId>biz.aQute.bnd</groupId>
