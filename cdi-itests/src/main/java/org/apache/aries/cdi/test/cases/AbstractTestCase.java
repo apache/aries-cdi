@@ -91,7 +91,7 @@ public abstract class AbstractTestCase {
 		runtimeTracker = new ServiceTracker<>(
 				bundleContext, CDIComponentRuntime.class, null);
 		runtimeTracker.open();
-		servicesBundle = installBundle("services-one.jar");
+		servicesBundle = installBundle("services-one.jar", false);
 		servicesBundle.start();
 	}
 
@@ -104,7 +104,7 @@ public abstract class AbstractTestCase {
 	@Before
 	public void setUp() throws Exception {
 		cdiRuntime = runtimeTracker.waitForService(timeout);
-		cdiBundle = installBundle("basic-beans.jar");
+		cdiBundle = installBundle("basic-beans.jar", false);
 		cdiBundle.start();
 	}
 

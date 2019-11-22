@@ -14,6 +14,7 @@
 
 package org.apache.aries.cdi.test.cases;
 
+import static java.lang.Thread.sleep;
 import static org.junit.Assert.*;
 
 import java.util.Dictionary;
@@ -112,29 +113,40 @@ public class ConfigurationTests extends AbstractTestCase {
 			p2.put("ports", new int[] {80});
 			configurationB.update(p2);
 
-			Thread.sleep(200); // give it a few cycles to make sure the configuration update has gone through
-
-			stA = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
+			stA = new ServiceTracker<>(
+					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=A))"), null);
 			stA.open(true);
 
 			BeanService<Callable<int[]>> beanService = stA.waitForService(timeout);
 
 			assertNotNull(beanService);
-			assertEquals("blue", beanService.doSomething());
-			assertArrayEquals(new int[] {12, 4567}, beanService.get().call());
 
-			stB = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
+			assertWithRetries(() -> {
+				assertEquals("blue", beanService.doSomething());
+				try {
+					assertArrayEquals(new int[]{12, 4567}, beanService.get().call());
+				} catch (final Exception e) {
+					fail(e.getMessage());
+				}
+			});
+
+			stB = new ServiceTracker<>(
+					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=B))"), null);
 			stB.open(true);
 
-			beanService = stB.waitForService(timeout);
+			final BeanService<Callable<int[]>> beanServiceB = stB.waitForService(timeout);
+			assertNotNull(beanServiceB);
 
-			assertNotNull(beanService);
-			assertEquals("green", beanService.doSomething());
-			assertArrayEquals(new int[] {80}, beanService.get().call());
+			assertWithRetries(() -> {
+				assertEquals("green", beanServiceB.doSomething());
+				try {
+					assertArrayEquals(new int[]{80}, beanServiceB.get().call());
+				} catch (final Exception e) {
+					fail(e.getMessage());
+				}
+			});
 		}
 		finally {
 			if (configurationA != null) {
@@ -160,6 +172,22 @@ public class ConfigurationTests extends AbstractTestCase {
 				stB.close();
 			}
 			tb3Bundle.uninstall();
+		}
+	}
+
+	private void assertWithRetries(final Runnable runnable) throws Exception {
+		int retries = 50;
+		for (int i = 0; i < retries; i++) { // can take some time to let configuration listener get the event and update the bean
+			try {
+				runnable.run();
+				break;
+			} catch (final AssertionError ae) {
+				retries--;
+				if (retries == 0) {
+					throw ae;
+				}
+				sleep(200);
+			}
 		}
 	}
 
@@ -192,29 +220,41 @@ public class ConfigurationTests extends AbstractTestCase {
 			configurationC.update(properties);
 
 			stC.close();
-			stC = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
+			stC = new ServiceTracker<>(
+					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C)(ports=12))"), null);
 			stC.open(true);
 
-			beanService = stC.waitForService(timeout);
+			final BeanService<Callable<int[]>> beanServiceC = stC.waitForService(timeout);
 
-			assertNotNull(beanService);
-			assertEquals("blue", beanService.doSomething());
-			assertArrayEquals(new int[] {12, 4567}, beanService.get().call());
+			assertNotNull(beanServiceC);
+			assertWithRetries(() -> {
+				assertEquals("blue", beanServiceC.doSomething());
+				try {
+					assertArrayEquals(new int[]{12, 4567}, beanServiceC.get().call());
+				} catch (final Exception e) {
+					fail(e.getMessage());
+				}
+			});
 
 			configurationC.delete();
 
 			stC.close();
-			stC = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
+			stC = new ServiceTracker<>(
+					bundleContext, bundleContext.createFilter(
 					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C)(!(ports=*)))"), null);
 			stC.open(true);
-			beanService = stC.waitForService(timeout);
+			final BeanService<Callable<int[]>> beanServiceC2 = stC.waitForService(timeout);
 
 			assertNotNull(beanService);
-			assertEquals("blue", beanService.doSomething());
-			assertArrayEquals(new int[] {35777}, beanService.get().call());
+			assertWithRetries(() -> {
+				assertEquals("blue", beanServiceC2.doSomething());
+				try {
+					assertArrayEquals(new int[] {35777}, beanServiceC2.get().call());
+				} catch (final Exception e) {
+					fail(e.getMessage());
+				}
+			});
 		}
 		finally {
 			if (configurationC != null) {

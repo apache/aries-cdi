@@ -14,7 +14,8 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Set;
 
