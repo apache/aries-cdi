@@ -23,6 +23,10 @@ import org.apache.aries.cdi.test.interfaces.Pojo;
 @ApplicationScoped
 public class PojoImpl implements Pojo {
 
+	protected PojoImpl() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	@Override
 	public String foo(String fooInput) {
 		_counter.incrementAndGet();

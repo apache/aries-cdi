@@ -31,6 +31,10 @@ import org.osgi.service.log.Logger;
 @Service
 public class ContainerReferenceEventHandler implements Pojo {
 
+	protected ContainerReferenceEventHandler() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	@Inject
 	void integers(BindServiceReference<Integer> binder, Logger logger) {
 		binder.adding(

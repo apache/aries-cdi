@@ -25,6 +25,10 @@ import org.osgi.service.cdi.annotations.Service;
 @Service({Pojo.class, ContainerBean.class})
 public class ContainerBean implements Pojo {
 
+	protected ContainerBean() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	@Override
 	public String foo(String fooInput) {
 		return getCount() + fooInput + getCount();

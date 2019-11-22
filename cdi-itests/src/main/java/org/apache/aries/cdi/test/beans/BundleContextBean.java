@@ -25,6 +25,10 @@ import org.osgi.framework.BundleContext;
 @BundleContextBeanQualifier
 public class BundleContextBean implements BeanService<BundleContext> {
 
+	protected BundleContextBean() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	@Override
 	public String doSomething() {
 		return toString();

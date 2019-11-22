@@ -35,6 +35,10 @@ import org.osgi.service.cdi.propertytypes.ServiceDescription;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class One {
 
+	protected One() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	@Inject
 	@Reference
 	@ServiceDescription("onInitialized")

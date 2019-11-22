@@ -28,6 +28,10 @@ import org.apache.aries.cdi.test.interfaces.CdiEventObserverQualifier;
 @ApplicationScoped
 public class CdiEventObserver implements BeanService<List<Object>> {
 
+	protected CdiEventObserver() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	@Override
 	public String doSomething() {
 		return this.toString();

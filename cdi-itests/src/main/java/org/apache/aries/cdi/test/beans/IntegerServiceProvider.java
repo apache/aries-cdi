@@ -23,6 +23,10 @@ import org.osgi.service.cdi.propertytypes.ServiceRanking;
 @ApplicationScoped
 public class IntegerServiceProvider {
 
+	protected IntegerServiceProvider() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	@Produces
 	@Service(Integer.class)
 	@ServiceRanking(5000)
