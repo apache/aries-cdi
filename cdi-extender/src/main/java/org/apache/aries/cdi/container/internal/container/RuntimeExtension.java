@@ -460,7 +460,6 @@ public class RuntimeExtension implements Extension {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void registerServiceHandleFailure(
 		ExtendedComponentInstanceDTO componentInstance,
 		ExtendedActivationTemplateDTO activationTemplate,

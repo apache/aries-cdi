@@ -1,33 +1,29 @@
 package org.apache.aries.cdi.owb;
 
-import static java.util.Collections.list;
 import static java.util.Objects.requireNonNull;
-import static org.apache.aries.cdi.spi.Keys.BEANS_XML_PROPERTY;
-import static org.apache.aries.cdi.spi.Keys.BUNDLECONTEXT_PROPERTY;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.se.SeContainer;
-import javax.enterprise.inject.se.SeContainerInitializer;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.util.TypeLiteral;
 
+import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.apache.aries.cdi.spi.loader.SpiLoader;
 import org.apache.webbeans.config.WebBeansContext;
 import org.apache.webbeans.config.WebBeansFinder;
@@ -46,115 +42,58 @@ import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 
-public class OWBSeContainerInitializer extends SeContainerInitializer {
+public class OWBCDIContainerInitializer extends CDIContainerInitializer {
 
-	public OWBSeContainerInitializer(BundleContext bundleContext) {
+	public OWBCDIContainerInitializer(BundleContext bundleContext) {
 		owbBundleContext = bundleContext;
 	}
 
 	@Override
-	public SeContainerInitializer addBeanClasses(Class<?>... classes) {
+	public CDIContainerInitializer addBeanClasses(Class<?>... classes) {
 		beanClasses.addAll(Arrays.asList(classes));
 		return this;
 	}
 
 	@Override
-	public SeContainerInitializer addPackages(Class<?>... packageClasses) {
-		// TODO Auto-generated method stub
+	public CDIContainerInitializer addBeanXmls(URL... beanXmls) {
+		beanDescriptorURLs.addAll(Arrays.asList(beanXmls));
 		return this;
 	}
 
 	@Override
-	public SeContainerInitializer addPackages(boolean scanRecursively, Class<?>... packageClasses) {
-		// TODO Auto-generated method stub
+	public CDIContainerInitializer addExtension(Extension extension, Map<String, Object> properties) {
+		this.extensions.put(extension, properties);
 		return this;
 	}
 
 	@Override
-	public SeContainerInitializer addPackages(Package... packages) {
-		// TODO Auto-generated method stub
-		return this;
-	}
-
-	@Override
-	public SeContainerInitializer addPackages(boolean scanRecursively, Package... packages) {
-		// TODO Auto-generated method stub
-		return this;
-	}
-
-	@Override
-	public SeContainerInitializer addExtensions(Extension... extensions) {
-		this.extensions.addAll(Arrays.asList(extensions));
-		return this;
-	}
-
-	@Override
-	public SeContainerInitializer addExtensions(Class<? extends Extension>... extensions) {
-		this.extensionClasses.addAll(Arrays.asList(extensions));
-		return this;
-	}
-
-	@Override
-	public SeContainerInitializer enableInterceptors(Class<?>... interceptorClasses) {
-		// TODO Auto-generated method stub
-		return this;
-	}
-
-	@Override
-	public SeContainerInitializer enableDecorators(Class<?>... decoratorClasses) {
-		// TODO Auto-generated method stub
-		return this;
-	}
-
-	@Override
-	public SeContainerInitializer selectAlternatives(Class<?>... alternativeClasses) {
-		// TODO Auto-generated method stub
-		return this;
-	}
-
-	@Override
-	public SeContainerInitializer selectAlternativeStereotypes(
-		Class<? extends Annotation>... alternativeStereotypeClasses) {
-
-		// TODO Auto-generated method stub
-		return this;
-	}
-
-	@Override
-	public SeContainerInitializer addProperty(String key, Object value) {
+	public CDIContainerInitializer addProperty(String key, Object value) {
 		properties.putIfAbsent(key, value);
 		return this;
 	}
 
 	@Override
-	public SeContainerInitializer setProperties(Map<String, Object> properties) {
-		properties.putAll(properties);
+	public CDIContainerInitializer setBundleContext(BundleContext bundleContext) {
+		clientBundleContext = bundleContext;
 		return this;
 	}
 
 	@Override
-	public SeContainerInitializer disableDiscovery() {
-		// TODO Auto-generated method stub
+	public CDIContainerInitializer setClassLoader(SpiLoader spiLoader) {
+		this.spiLoader = spiLoader;
 		return this;
 	}
 
 	@Override
-	public SeContainerInitializer setClassLoader(ClassLoader classLoader) {
-		this.classLoader = (SpiLoader)classLoader;
-		return this;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
 	public SeContainer initialize() {
-		requireNonNull(classLoader).handleResources(
+		requireNonNull(spiLoader).handleResources(
 			s -> (s != null) && s.startsWith("META-INF/openwebbeans/"),
 			this::getResources
 		).findClass(
 			s -> (s != null) && (s.startsWith("org.apache.webbeans.") || s.startsWith("sun.misc.")),
 			this::loadClass);
 
-		classLoader.getBundles().add(owbBundleContext.getBundle());
+		spiLoader.getBundles().add(owbBundleContext.getBundle());
 
 		BundleWiring bundleWiring = owbBundleContext.getBundle().adapt(BundleWiring.class);
 		List<BundleWire> requiredWires = bundleWiring.getRequiredWires(PackageNamespace.PACKAGE_NAMESPACE);
@@ -168,8 +107,8 @@ public class OWBSeContainerInitializer extends SeContainerInitializer {
 			}
 
 			Bundle wireBundle = bundleWire.getProvider().getBundle();
-			if (!classLoader.getBundles().contains(wireBundle)) {
-				classLoader.getBundles().add(wireBundle);
+			if (!spiLoader.getBundles().contains(wireBundle)) {
+				spiLoader.getBundles().add(wireBundle);
 			}
 		}
 
@@ -177,9 +116,8 @@ public class OWBSeContainerInitializer extends SeContainerInitializer {
 		ClassLoader current = currentThread.getContextClassLoader();
 
 		try {
-			currentThread.setContextClassLoader(classLoader);
-			clientBundleContext = requireNonNull(BundleContext.class.cast(properties.get(BUNDLECONTEXT_PROPERTY)));
-			startObject = clientBundleContext;
+			currentThread.setContextClassLoader(spiLoader);
+			startObject = requireNonNull(clientBundleContext);
 
 			final Map<Class<?>, Object> services = new HashMap<>();
 			properties.setProperty(
@@ -188,13 +126,13 @@ public class OWBSeContainerInitializer extends SeContainerInitializer {
 
 			services.put(
 				OSGiDefiningClassService.ClassLoaders.class,
-				new OSGiDefiningClassService.ClassLoaders(current, classLoader));
+				new OSGiDefiningClassService.ClassLoaders(current, spiLoader));
 			services.put(
 				ApplicationBoundaryService.class,
-				new OsgiApplicationBoundaryService(current, classLoader));
+				new OsgiApplicationBoundaryService(current, spiLoader));
 			services.put(
 				ScannerService.class,
-				new CdiScannerService(beanClasses, Collection.class.cast(properties.get(BEANS_XML_PROPERTY))));
+				new CdiScannerService(beanClasses, beanDescriptorURLs));
 			services.put(BundleContext.class, clientBundleContext);
 
 			if (Activator.webEnabled) {
@@ -214,18 +152,11 @@ public class OWBSeContainerInitializer extends SeContainerInitializer {
 				services.put(org.apache.aries.cdi.owb.web.UpdatableServletContext.class, startObject);
 			}
 
-			Optional.ofNullable(clientBundleContext.getBundle().getHeaders()).ifPresent(
-				headers -> list(headers.elements()).stream()
-					.filter(it -> it.startsWith("org.apache.openwebbeans."))
-					.forEach(key -> properties.setProperty(key, headers.get(key))
-				)
-			);
-
 			bootstrap = new WebBeansContext(services, properties) {
 				private final ExtensionLoader overridenExtensionLoader = new ExtensionLoader(this) {
 					@Override
 					public void loadExtensionServices() {
-						extensions.removeIf(ext -> {addExtension(ext); return true;});
+						extensions.forEach((k, v) -> addExtension(k));
 					}
 				};
 
@@ -236,7 +167,7 @@ public class OWBSeContainerInitializer extends SeContainerInitializer {
 			};
 
 			final DefaultSingletonService singletonService = getSingletonService();
-			singletonService.register(classLoader, bootstrap);
+			singletonService.register(spiLoader, bootstrap);
 			final ContainerLifecycle lifecycle = bootstrap.getService(ContainerLifecycle.class);
 			lifecycle.startApplication(startObject);
 
@@ -275,11 +206,11 @@ public class OWBSeContainerInitializer extends SeContainerInitializer {
 	}
 
 	private volatile WebBeansContext bootstrap;
+	private final List<URL> beanDescriptorURLs = new ArrayList<>();
 	private volatile BundleContext clientBundleContext;
-	private volatile SpiLoader classLoader;
+	private volatile SpiLoader spiLoader;
 	private final Set<Class<?>> beanClasses = new HashSet<>();
-	private final List<Extension> extensions = new ArrayList<>();
-	private final List<Class<? extends Extension>> extensionClasses = new ArrayList<>();
+	private final Map<Extension, Map<String, Object>> extensions = new IdentityHashMap<>();
 	private final BundleContext owbBundleContext;
 	private final Properties properties = new Properties();
 	private Object startObject;
@@ -294,7 +225,7 @@ public class OWBSeContainerInitializer extends SeContainerInitializer {
 			Thread currentThread = Thread.currentThread();
 			ClassLoader current = currentThread.getContextClassLoader();
 			try {
-				currentThread.setContextClassLoader(requireNonNull(classLoader));
+				currentThread.setContextClassLoader(requireNonNull(spiLoader));
 				bootstrap.getService(ContainerLifecycle.class).stopApplication(startObject);
 			}
 			finally {

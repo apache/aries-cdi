@@ -14,29 +14,31 @@
 
 package org.apache.aries.cdi.owb;
 
-import javax.enterprise.inject.se.SeContainerInitializer;
-
+import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.PrototypeServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-public class OWBSeContainerInitializerFactory implements PrototypeServiceFactory<SeContainerInitializer> {
+public class OWBCDIContainerInitializerFactory implements PrototypeServiceFactory<CDIContainerInitializer> {
 
-	public OWBSeContainerInitializerFactory(BundleContext bundleContext) {
+	public OWBCDIContainerInitializerFactory(BundleContext bundleContext) {
 		this.bundleContext = bundleContext;
 	}
 
 	@Override
-	public SeContainerInitializer getService(
-		Bundle bundle, ServiceRegistration<SeContainerInitializer> registration) {
+	public CDIContainerInitializer getService(
+		Bundle bundle,
+		ServiceRegistration<CDIContainerInitializer> registration) {
 
-		return new OWBSeContainerInitializer(bundleContext);
+		return new OWBCDIContainerInitializer(bundleContext);
 	}
 
 	@Override
 	public void ungetService(
-		Bundle bundle, ServiceRegistration<SeContainerInitializer> registration, SeContainerInitializer service) {
+		Bundle bundle,
+		ServiceRegistration<CDIContainerInitializer> registration,
+		CDIContainerInitializer service) {
 	}
 
 	private final BundleContext bundleContext;

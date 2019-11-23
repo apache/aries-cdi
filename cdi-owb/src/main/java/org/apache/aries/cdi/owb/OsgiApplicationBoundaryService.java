@@ -16,29 +16,29 @@ package org.apache.aries.cdi.owb;
 import org.apache.webbeans.spi.ApplicationBoundaryService;
 
 public class OsgiApplicationBoundaryService implements ApplicationBoundaryService {
-    private final ClassLoader bundleLoader;
-    private final ClassLoader loader;
+	private final ClassLoader bundleLoader;
+	private final ClassLoader loader;
 
-    public OsgiApplicationBoundaryService(final ClassLoader bundleLoader, final ClassLoader loader) {
-        this.bundleLoader = bundleLoader;
-        this.loader = loader;
-    }
+	public OsgiApplicationBoundaryService(final ClassLoader bundleLoader, final ClassLoader loader) {
+		this.bundleLoader = bundleLoader;
+		this.loader = loader;
+	}
 
-    @Override
-    public ClassLoader getApplicationClassLoader() {
-        return bundleLoader;
-    }
+	@Override
+	public ClassLoader getApplicationClassLoader() {
+		return bundleLoader;
+	}
 
-    @Override
-    public ClassLoader getBoundaryClassLoader(final Class aClass) {
-        final ClassLoader classToProxyCl = aClass.getClassLoader();
-        if (classToProxyCl == null || classToProxyCl == loader) {
-            return loader;
-        }
-        if (classToProxyCl == bundleLoader) {
-            return classToProxyCl;
-        }
-        // todo: refine if needed
-        return classToProxyCl;
-    }
+	@Override
+	public ClassLoader getBoundaryClassLoader(@SuppressWarnings("rawtypes") final Class aClass) {
+		final ClassLoader classToProxyCl = aClass.getClassLoader();
+		if (classToProxyCl == null || classToProxyCl == loader) {
+			return loader;
+		}
+		if (classToProxyCl == bundleLoader) {
+			return classToProxyCl;
+		}
+		// todo: refine if needed
+		return classToProxyCl;
+	}
 }

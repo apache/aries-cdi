@@ -22,9 +22,9 @@ import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import javax.enterprise.inject.se.SeContainerInitializer;
 import javax.enterprise.inject.spi.Extension;
 
+import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -42,12 +42,11 @@ public class Activator implements BundleActivator {
 	public void start(BundleContext bundleContext) throws Exception {
 		System.setProperty("openwebbeans.web.sci.active", "false"); // we handle it ourself, disable this jetty feature
 		Dictionary<String, Object> properties = new Hashtable<>();
-		properties.put(SERVICE_DESCRIPTION, "Aries CDI - OpenWebBeans SeContainerInitializer Factory");
+		properties.put(SERVICE_DESCRIPTION, "Aries CDI - OpenWebBeans CDIContainerInitializer Factory");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
-		properties.put("aries.cdi.spi", "OpenWebBeans");
 
-		_seContainerInitializer = bundleContext.registerService(
-			SeContainerInitializer.class, new OWBSeContainerInitializerFactory(bundleContext), properties);
+		_containerInitializer = bundleContext.registerService(
+			CDIContainerInitializer.class, new OWBCDIContainerInitializerFactory(bundleContext), properties);
 
 		if (webEnabled) {
 			properties = new Hashtable<>();
@@ -62,13 +61,13 @@ public class Activator implements BundleActivator {
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		_seContainerInitializer.unregister();
+		_containerInitializer.unregister();
 		if (_webExtension != null) {
 			_webExtension.unregister();
 		}
 	}
 
-	private ServiceRegistration<SeContainerInitializer> _seContainerInitializer;
+	private ServiceRegistration<CDIContainerInitializer> _containerInitializer;
 	private ServiceRegistration<Extension> _webExtension;
 
 }

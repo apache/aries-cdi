@@ -188,24 +188,7 @@ The requirements to satisfy this SPI are quite simple:
 
 - Aries CDI Extender requires:
 
-  -  a **prototype scoped** service that implements `javax.enterprise.inject.se.SeContainerInitializer`
-
-  - this service must have a service property `aries.cdi.spi`  whose value is not important but the recommendation is a human readable name of the implementation
-
-  - Aries CDI will pass two values via the properties methods of `javax.enterprise.inject.se.SeContainerInitializer` as defined by `org.apache.aries.cdi.spi.Keys`
-
-  - the  `SeContainerInitializer` will be called like this:
-
-    ```java
-    			_seContainer = _seContainerInitializerInstance
-    				.setClassLoader((org.apache.aries.cdi.spi.loader.SpiLoader)spiLoader)
-    				.addBeanClasses(classes)
-    				.setProperties(properties)
-    				.addProperty(BEANS_XML_PROPERTY, containerState.beansModel().getBeansXml())
-    				.addProperty(BUNDLECONTEXT_PROPERTY, bundle().getBundleContext())
-    				.addExtensions(extensions)
-    				.initialize();
-    ```
+  -  a **prototype scoped** service that implements `org.apache.aries.cdi.spi.CDIContainerInitializer`
 
   - The behaviour of this container should be to start the `@ApplicationScoped` context immediately. This allows for services from the container component to be published right away.
 

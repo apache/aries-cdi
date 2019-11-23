@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.container.internal.util;
 
-import static org.apache.aries.cdi.container.internal.util.Reflection.*;
+import static org.apache.aries.cdi.container.internal.util.Reflection.getRawType;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;

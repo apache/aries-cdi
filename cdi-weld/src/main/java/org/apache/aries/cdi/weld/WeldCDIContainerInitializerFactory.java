@@ -14,29 +14,32 @@
 
 package org.apache.aries.cdi.weld;
 
-import javax.enterprise.inject.se.SeContainerInitializer;
-
+import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.PrototypeServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-public class WeldSeContainerInitializerFactory implements PrototypeServiceFactory<SeContainerInitializer> {
+public class WeldCDIContainerInitializerFactory
+	implements PrototypeServiceFactory<CDIContainerInitializer> {
 
-	public WeldSeContainerInitializerFactory(BundleContext bundleContext) {
+	public WeldCDIContainerInitializerFactory(BundleContext bundleContext) {
 		this.bundleContext = bundleContext;
 	}
 
 	@Override
-	public SeContainerInitializer getService(
-		Bundle bundle, ServiceRegistration<SeContainerInitializer> registration) {
+	public CDIContainerInitializer getService(
+		Bundle bundle,
+		ServiceRegistration<CDIContainerInitializer> registration) {
 
-		return new WeldSeContainerInitializer(bundleContext);
+		return new WeldCDIContainerInitializer(bundleContext);
 	}
 
 	@Override
 	public void ungetService(
-		Bundle bundle, ServiceRegistration<SeContainerInitializer> registration, SeContainerInitializer service) {
+		Bundle bundle,
+		ServiceRegistration<CDIContainerInitializer> registration,
+		CDIContainerInitializer service) {
 	}
 
 	private final BundleContext bundleContext;

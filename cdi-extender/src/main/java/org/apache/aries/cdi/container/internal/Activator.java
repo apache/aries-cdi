@@ -14,7 +14,6 @@
 
 package org.apache.aries.cdi.container.internal;
 
-import static org.apache.aries.cdi.container.internal.util.Filters.asFilter;
 import static org.osgi.namespace.extender.ExtenderNamespace.EXTENDER_NAMESPACE;
 import static org.osgi.service.cdi.CDIConstants.CDI_CAPABILITY_NAME;
 import static org.osgi.service.cdi.CDIConstants.REQUIREMENT_BEANS_ATTRIBUTE;
@@ -30,8 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.enterprise.inject.se.SeContainerInitializer;
-
 import org.apache.aries.cdi.container.internal.command.CDICommand;
 import org.apache.aries.cdi.container.internal.container.CDIBundle;
 import org.apache.aries.cdi.container.internal.container.ConfigurationListener;
@@ -45,13 +42,13 @@ import org.apache.aries.cdi.container.internal.model.FactoryComponent;
 import org.apache.aries.cdi.container.internal.model.SingleActivator;
 import org.apache.aries.cdi.container.internal.model.SingleComponent;
 import org.apache.aries.cdi.container.internal.util.Logs;
+import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.apache.felix.utils.extender.AbstractExtender;
 import org.apache.felix.utils.extender.Extension;
 import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceObjects;
 import org.osgi.framework.ServiceReference;
@@ -75,36 +72,40 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 @RequireConfigurationAdmin
 public class Activator extends AbstractExtender {
 
-	private final CCR _ccr;
-	private final ExecutorService _executorService;
-	private final Logger _log;
-	private final Logs _logs;
-	private final PromiseFactory _promiseFactory;
-	private final ServiceTracker<SeContainerInitializer, ServiceObjects<SeContainerInitializer>> _containerTracker;
+	private volatile CCR _ccr;
+	private volatile ExecutorService _executorService;
+	private volatile Logger _log;
+	private volatile Logs _logs;
+	private volatile PromiseFactory _promiseFactory;
+	private volatile ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> _containerTracker;
 
 	public Activator() {
-		final BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
+		setSynchronous(true);
+	}
+
+	@Override
+	public void start(BundleContext bundleContext) throws Exception {
 		_logs = new Logs.Builder(bundleContext).build();
 		_log = _logs.getLogger(Activator.class);
 		_containerTracker = new ServiceTracker<>(
-			bundleContext,
-			asFilter("(&(objectClass=%s)(aries.cdi.spi=*))", SeContainerInitializer.class.getName()),
-			new ServiceTrackerCustomizer<SeContainerInitializer, ServiceObjects<SeContainerInitializer>>() {
+			bundleContext, CDIContainerInitializer.class,
+			new ServiceTrackerCustomizer<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>>() {
 
 				@Override
-				public ServiceObjects<SeContainerInitializer> addingService(
-						ServiceReference<SeContainerInitializer> reference) {
+				public ServiceObjects<CDIContainerInitializer> addingService(
+					ServiceReference<CDIContainerInitializer> reference) {
+
 					return bundleContext.getServiceObjects(reference);
 				}
 
 				@Override
-				public void modifiedService(ServiceReference<SeContainerInitializer> reference,
-						ServiceObjects<SeContainerInitializer> service) {
+				public void modifiedService(ServiceReference<CDIContainerInitializer> reference,
+					ServiceObjects<CDIContainerInitializer> service) {
 				}
 
 				@Override
-				public void removedService(ServiceReference<SeContainerInitializer> reference,
-						ServiceObjects<SeContainerInitializer> service) {
+				public void removedService(ServiceReference<CDIContainerInitializer> reference,
+					ServiceObjects<CDIContainerInitializer> service) {
 				}
 			}
 		);
@@ -117,11 +118,7 @@ public class Activator extends AbstractExtender {
 		_promiseFactory = new PromiseFactory(_executorService);
 		_ccr = new CCR(_promiseFactory, _logs);
 		_command = new CDICommand(_ccr);
-		setSynchronous(true);
-	}
 
-	@Override
-	public void start(BundleContext bundleContext) throws Exception {
 		if (_log.isDebugEnabled()) {
 			_log.debug("CCR starting {}", bundleContext.getBundle());
 		}

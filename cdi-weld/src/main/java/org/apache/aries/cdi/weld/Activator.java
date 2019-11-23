@@ -21,8 +21,7 @@ import static org.osgi.framework.Constants.SERVICE_VENDOR;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import javax.enterprise.inject.se.SeContainerInitializer;
-
+import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -37,19 +36,18 @@ public class Activator implements BundleActivator {
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		Dictionary<String, Object> properties = new Hashtable<>();
-		properties.put(SERVICE_DESCRIPTION, "Aries CDI - Weld SeContainerInitializer Factory");
+		properties.put(SERVICE_DESCRIPTION, "Aries CDI - Weld CDIContainerInitializer Factory");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
-		properties.put("aries.cdi.spi", "Weld");
 
-		_seContainerInitializer = bundleContext.registerService(
-			SeContainerInitializer.class, new WeldSeContainerInitializerFactory(bundleContext), properties);
+		_containerInitializer = bundleContext.registerService(
+			CDIContainerInitializer.class, new WeldCDIContainerInitializerFactory(bundleContext), properties);
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		_seContainerInitializer.unregister();
+		_containerInitializer.unregister();
 	}
 
-	private ServiceRegistration<SeContainerInitializer> _seContainerInitializer;
+	private ServiceRegistration<CDIContainerInitializer> _containerInitializer;
 
 }

@@ -45,6 +45,7 @@ public class OSGiDefiningClassService implements DefiningClassService {
 	 * @return the proxy class instance.
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> Class<T> defineAndLoad(final String name, final byte[] bytes, final Class<T> proxied) {
 		if (requiresUnsafe(proxied)) { // todo: today we don't really support that
 			final ClassLoader classLoader = proxied.getClassLoader();

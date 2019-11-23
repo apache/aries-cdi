@@ -25,8 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.enterprise.inject.se.SeContainerInitializer;
-
 import org.apache.aries.cdi.container.internal.container.CheckedCallback;
 import org.apache.aries.cdi.container.internal.container.ConfigurationListener;
 import org.apache.aries.cdi.container.internal.container.ContainerBootstrap;
@@ -40,6 +38,7 @@ import org.apache.aries.cdi.container.internal.util.Logs;
 import org.apache.aries.cdi.container.test.BaseCDIBundleTest;
 import org.apache.aries.cdi.container.test.TestUtil;
 import org.apache.aries.cdi.container.test.beans.FooService;
+import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.ServiceObjects;
@@ -82,7 +81,7 @@ public class ContainerBootstrapTest extends BaseCDIBundleTest {
 		componentDTO.template = containerState.containerDTO().template.components.get(0);
 
 		@SuppressWarnings("unchecked")
-		ServiceTracker<SeContainerInitializer, ServiceObjects<SeContainerInitializer>> serviceTracker = mock(ServiceTracker.class);
+		ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> serviceTracker = mock(ServiceTracker.class);
 
 		ContainerBootstrap containerBootstrap = new ContainerBootstrap(
 			containerState, serviceTracker,

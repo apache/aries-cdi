@@ -84,7 +84,7 @@
 )
 @Requirement(
 	namespace = ServiceNamespace.SERVICE_NAMESPACE,
-	filter = "(&(objectClass=javax.enterprise.inject.se.SeContainerInitializer)(aries.cdi.spi=*))",
+	filter = "(objectClass=org.apache.aries.cdi.spi.CDIContainerInitializer)",
 	effective = "active"
 )
 package org.apache.aries.cdi.container;

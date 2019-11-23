@@ -13,10 +13,7 @@
  */
 
 @org.osgi.annotation.bundle.Capability(
-	attribute = {
-		"objectClass:List<String>=javax.enterprise.inject.se.SeContainerInitializer",
-		"aries.cdi.spi=OpenWebBeans"
-	},
+	attribute = "objectClass:List<String>=org.apache.aries.cdi.spi.CDIContainerInitializer",
 	namespace = org.osgi.namespace.service.ServiceNamespace.SERVICE_NAMESPACE
 )
 @org.osgi.service.cdi.annotations.RequireCDIImplementation
