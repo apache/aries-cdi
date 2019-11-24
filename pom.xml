@@ -306,15 +306,6 @@
 						<failOnChanges>false</failOnChanges>
 						<reportOptional>false</reportOptional>
 					</configuration>
-					<executions>
-						<execution>
-							<id>resolve</id>
-							<goals>
-								<goal>resolve</goal>
-							</goals>
-							<phase>package</phase>
-						</execution>
-					</executions>
 				</plugin>
 				<plugin>
 					<groupId>biz.aQute.bnd</groupId>
