@@ -44,7 +44,7 @@
 
 -runblacklist: \
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)',\
-	osgi.identity;filter:='(osgi.identity=org.jboss.spec.javax.el.jboss-el-api_3.0_spec)'
+	osgi.identity;filter:='(osgi.identity=org.jboss.spec.*)'
 
 -runbundles: \
 	javax.servlet.jsp-api;version='[2.3.3,2.3.4)',\
