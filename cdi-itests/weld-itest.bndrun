@@ -10,18 +10,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+-include: base-itest.bndrun
 #-runjdb: 8000
-
--standalone: true
--runee: JavaSE-1.8
--runfw: org.eclipse.osgi
--runproperties: \
-	eclipse.log.enabled=false,\
-	logback.configurationFile=file:${.}/logback.xml,\
-	org.osgi.service.http.port=0,\
-	osgi.console=
-
--resolve.effective: resolve, active
 
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=javax.ejb-api)',\
@@ -34,12 +24,6 @@
 -runblacklist: \
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)',\
 	osgi.identity;filter:='(osgi.identity=org.jboss.spec.*)'
-
--runpath: \
-	ch.qos.logback.classic,\
-	ch.qos.logback.core,\
-	org.apache.felix.logback,\
-	slf4j.api
 
 -runsystempackages: \
 	org.slf4j;version=1.7.25,\
