@@ -63,6 +63,7 @@
 		<module>cdi-extension-el-jsp</module>
 		<module>cdi-extension-http</module>
 		<module>cdi-extension-jndi</module>
+		<module>cdi-extension-mp-config</module>
 		<module>cdi-owb</module>
 		<module>cdi-weld</module>
 		<module>cdi-bom</module>
@@ -369,6 +370,19 @@
 									<action>
 										<ignore>
 										</ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>net.bytebuddy</groupId>
+										<artifactId>byte-buddy-maven-plugin</artifactId>
+										<versionRange>[${byte.buddy.version},)</versionRange>
+										<goals>
+											<goal>transform</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute />
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
