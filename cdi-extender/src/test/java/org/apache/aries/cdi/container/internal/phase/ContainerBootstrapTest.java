@@ -103,7 +103,7 @@ public class ContainerBootstrapTest extends BaseCDIBundleTest {
 
 		Promise<Boolean> p0 = containerState.addCallback(
 			(CheckedCallback<Boolean, Boolean>) op -> {
-				return op.mode == Op.Mode.OPEN && op.type == Op.Type.CONTAINER_PUBLISH_SERVICES;
+				return op.mode == Op.Mode.OPEN && op.type == Op.Type.CONTAINER_INIT_COMPONENTS;
 			}
 		);
 

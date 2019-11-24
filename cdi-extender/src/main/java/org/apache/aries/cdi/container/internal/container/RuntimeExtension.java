@@ -226,11 +226,11 @@ public class RuntimeExtension implements Extension {
 
 		ComponentDTO componentDTO = _containerState.containerDTO().components.get(0);
 
+		registerServices(componentDTO, bm);
+
 		_containerState.submit(
-			Op.of(Mode.OPEN, Type.CONTAINER_PUBLISH_SERVICES, _containerState.id()),
-			() -> registerServices(componentDTO, bm)
-		).then(
-			s -> initComponents()
+			Op.of(Mode.OPEN, Type.CONTAINER_INIT_COMPONENTS, _containerState.id()),
+			this::initComponents
 		).then(s -> {
 			Dictionary<String, Object> properties = new Hashtable<>();
 			properties.put(CDIConstants.CDI_CONTAINER_ID, _containerState.id());
