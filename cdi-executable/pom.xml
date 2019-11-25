@@ -83,6 +83,7 @@
 				<executions>
 					<execution>
 						<id>owb-resolve</id>
+						<phase>package</phase>
 						<goals>
 							<goal>resolve</goal>
 						</goals>
@@ -94,6 +95,7 @@
 					</execution>
 					<execution>
 						<id>weld-resolve</id>
+						<phase>package</phase>
 						<goals>
 							<goal>resolve</goal>
 						</goals>

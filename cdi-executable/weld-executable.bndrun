@@ -49,8 +49,13 @@
 	osgi.identity;filter:='(osgi.identity=org.jboss.spec.*)'
 
 -runbundles: \
-	org.apache.aries.cdi.extender;version='[1.0.3,1.0.4)',\
-	org.apache.aries.cdi.spi;version='[1.0.3,1.0.4)',\
+	javax.ejb-api;version='[3.2.0,3.2.1)',\
+	javax.enterprise.cdi-api;version='[2.0.0,2.0.1)',\
+	javax.transaction-api;version='[1.2.0,1.2.1)',\
+	jboss-classfilewriter;version='[1.2.3,1.2.4)',\
+	org.apache.aries.cdi.extender;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.spi;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.weld;version='[1.1.0,1.1.1)',\
 	org.apache.aries.spifly.dynamic.framework.extension;version='[1.2.0,1.2.1)',\
 	org.apache.felix.configadmin;version='[1.9.10,1.9.11)',\
 	org.apache.felix.gogo.command;version='[1.1.0,1.1.1)',\
@@ -61,12 +66,8 @@
 	org.apache.geronimo.specs.geronimo-el_2.2_spec;version='[1.1.0,1.1.1)',\
 	org.apache.geronimo.specs.geronimo-interceptor_1.2_spec;version='[1.1.0,1.1.1)',\
 	org.apache.geronimo.specs.geronimo-jcdi_2.0_spec;version='[1.1.0,1.1.1)',\
+	org.jboss.logging.jboss-logging;version='[3.3.2,3.3.3)',\
+	org.jboss.weld.osgi-bundle;version='[3.0.5,3.0.6)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
-	org.osgi.util.promise;version='[1.1.0,1.1.1)',\
-	javax.ejb-api;version='[3.2.0,3.2.1)',\
-	javax.transaction-api;version='[1.2.0,1.2.1)',\
-	jboss-classfilewriter;version='[1.2.3,1.2.4)',\
-	org.apache.aries.cdi.weld;version='[1.0.3,1.0.4)',\
-	org.jboss.logging.jboss-logging;version='[3.3.2,3.3.3)',\
-	org.jboss.weld.osgi-bundle;version='[3.0.5,3.0.6)'
+	org.osgi.util.promise;version='[1.1.0,1.1.1)'
