@@ -29,7 +29,7 @@
 	<groupId>org.apache.aries.cdi</groupId>
 	<artifactId>org.apache.aries.cdi</artifactId>
 	<name>Apache Aries CDI - OSGi CDI Integration Project</name>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.3</version>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -51,7 +51,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:apache/aries-cdi.git</connection>
 		<developerConnection>scm:git:git@github.com:apache/aries-cdi.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>org.apache.aries.cdi-1.0.3</tag>
 		<url>https://github.com/apache/aries-cdi</url>
 	</scm>
 
