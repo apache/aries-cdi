@@ -14,16 +14,22 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
@@ -38,6 +44,13 @@ import javax.enterprise.inject.spi.AnnotatedParameter;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.aries.cdi.container.internal.annotated.AnnotatedTypeImpl;
 import org.apache.aries.cdi.container.internal.model.BeansModel;
@@ -64,15 +77,46 @@ import org.osgi.service.cdi.reference.BindBeanServiceObjects;
 import org.osgi.service.cdi.reference.BindService;
 import org.osgi.service.cdi.reference.BindServiceReference;
 import org.osgi.service.cdi.runtime.dto.template.ComponentTemplateDTO;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import aQute.lib.exceptions.Exceptions;
 
 public class Discovery {
 
 	private static final List<Type> BIND_TYPES = Arrays.asList(BindService.class, BindBeanServiceObjects.class, BindServiceReference.class);
 
+	static final DocumentBuilderFactory	dbf	= DocumentBuilderFactory.newInstance();
+	static final XPathFactory			xpf	= XPathFactory.newInstance();
+	static final XPathExpression		trimExpression;
+
+	static {
+		try {
+			dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			dbf.setXIncludeAware(false);
+			dbf.setExpandEntityReferences(false);
+			XPath xPath = xpf.newXPath();
+			trimExpression = xPath.compile("boolean(/beans/trim)");
+		} catch (Throwable t) {
+			throw Exceptions.duck(t);
+		}
+	}
+
 	public Discovery(ContainerState containerState) {
 		_containerState = containerState;
 		_beansModel = _containerState.beansModel();
 		_containerTemplate = _containerState.containerDTO().template.components.get(0);
+
+		AtomicBoolean trim = new AtomicBoolean();
+
+		_excludes = new ArrayList<>();
+
+		_beansModel.getBeansXml().stream().map(this::readXMLResource).forEach(doc -> {
+			if (!trim.get()) trim.set(checkTrim(doc));
+		});
+
+		_trim = trim.get();
 	}
 
 	public void discover() {
@@ -80,6 +124,10 @@ public class Discovery {
 			osgiBean.found(true);
 
 			AnnotatedType<?> annotatedType = new AnnotatedTypeImpl<>(osgiBean.getBeanClass());
+
+			if (trimIt(annotatedType)) {
+				return;
+			}
 
 			try {
 				String beanName = Annotates.beanName(annotatedType);
@@ -152,6 +200,18 @@ public class Discovery {
 		});
 
 		postProcessComponentScopedBeans();
+	}
+
+	boolean trimIt(AnnotatedType<?> annotatedType) {
+		// See https://docs.jboss.org/cdi/spec/2.0/cdi-spec.html#trimmed_bean_archive
+		if (!_trim) return false;
+
+		if (Annotates.hasBeanDefiningAnnotations(annotatedType)) return false;
+
+		// or any scope annotation
+		if (Annotates.beanScope(annotatedType, null) != null) return false;
+
+		return true;
 	}
 
 	<X> boolean isInject(AnnotatedMember<X> annotatedMember) {
@@ -389,9 +449,34 @@ public class Discovery {
 		}
 	}
 
+	boolean checkTrim(Document document) {
+		try {
+			return Boolean.class.cast(trimExpression.evaluate(document, XPathConstants.BOOLEAN));
+		} catch (XPathExpressionException e) {
+			throw Exceptions.duck(e);
+		}
+	}
+
+	Document readXMLResource(URL resource) {
+		try {
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			try (InputStream is = resource.openStream()) {
+				return db.parse(is);
+			} catch (Throwable t) {
+				return db.newDocument();
+			}
+		}
+		catch (Exception e) {
+			throw Exceptions.duck(e);
+		}
+	}
+
+	private static final String NS = "http://xmlns.jcp.org/xml/ns/javaee";
+
 	private final BeansModel _beansModel;
 	private final Set<OSGiBean> _componentScoped = new HashSet<>();
 	private final ComponentTemplateDTO _containerTemplate;
 	private final ContainerState _containerState;
+	private final boolean _trim;
 
 }
