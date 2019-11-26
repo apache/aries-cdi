@@ -77,6 +77,7 @@ import org.osgi.service.cdi.reference.BindBeanServiceObjects;
 import org.osgi.service.cdi.reference.BindService;
 import org.osgi.service.cdi.reference.BindServiceReference;
 import org.osgi.service.cdi.runtime.dto.template.ComponentTemplateDTO;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -90,6 +91,7 @@ public class Discovery {
 	static final DocumentBuilderFactory	dbf	= DocumentBuilderFactory.newInstance();
 	static final XPathFactory			xpf	= XPathFactory.newInstance();
 	static final XPathExpression		trimExpression;
+	static final XPathExpression		excludeExpression;
 
 	static {
 		try {
@@ -98,6 +100,7 @@ public class Discovery {
 			dbf.setExpandEntityReferences(false);
 			XPath xPath = xpf.newXPath();
 			trimExpression = xPath.compile("boolean(/beans/trim)");
+			excludeExpression = xPath.compile("/beans/scan/exclude");
 		} catch (Throwable t) {
 			throw Exceptions.duck(t);
 		}
@@ -114,6 +117,7 @@ public class Discovery {
 
 		_beansModel.getBeansXml().stream().map(this::readXMLResource).forEach(doc -> {
 			if (!trim.get()) trim.set(checkTrim(doc));
+			_excludes.addAll(getExcludes(doc));
 		});
 
 		_trim = trim.get();
@@ -125,7 +129,7 @@ public class Discovery {
 
 			AnnotatedType<?> annotatedType = new AnnotatedTypeImpl<>(osgiBean.getBeanClass());
 
-			if (trimIt(annotatedType)) {
+			if (trimIt(annotatedType) || exclude(annotatedType)) {
 				return;
 			}
 
@@ -200,6 +204,11 @@ public class Discovery {
 		});
 
 		postProcessComponentScopedBeans();
+	}
+
+	boolean exclude(AnnotatedType<?> annotatedType) {
+		// See https://docs.jboss.org/cdi/spec/2.0/cdi-spec.html#exclude_filters
+		return _excludes.stream().anyMatch(ex -> ex.exclude(annotatedType));
 	}
 
 	boolean trimIt(AnnotatedType<?> annotatedType) {
@@ -457,6 +466,25 @@ public class Discovery {
 		}
 	}
 
+	List<Exclude> getExcludes(Document document) {
+		try {
+			List<Exclude> excludes = new ArrayList<>();
+
+			NodeList excludeNodes = NodeList.class.cast(excludeExpression.evaluate(document, XPathConstants.NODESET));
+
+			for (int i = 0; i < excludeNodes.getLength(); i++) {
+				Element excludeElement = (Element)excludeNodes.item(i);
+
+				excludes.add(new Exclude(excludeElement));
+			}
+
+			return excludes;
+		}
+		catch (Exception e) {
+			throw Exceptions.duck(e);
+		}
+	}
+
 	Document readXMLResource(URL resource) {
 		try {
 			DocumentBuilder db = dbf.newDocumentBuilder();
@@ -471,12 +499,136 @@ public class Discovery {
 		}
 	}
 
-	private static final String NS = "http://xmlns.jcp.org/xml/ns/javaee";
-
 	private final BeansModel _beansModel;
 	private final Set<OSGiBean> _componentScoped = new HashSet<>();
 	private final ComponentTemplateDTO _containerTemplate;
 	private final ContainerState _containerState;
 	private final boolean _trim;
+	private final List<Exclude> _excludes;
+
+	enum Match {
+		CLASSNAME, PACKAGE_NAME, PACKAGE_PREFIX
+	}
+
+	class Exclude {
+
+		private final String name;
+		private final Match match;
+		private final List<String> ifClassAvailableS = new ArrayList<>();
+		private final List<String> ifClassesNotAvailableS = new ArrayList<>();
+		private final Map<String, String> ifSystemPropertyS = new HashMap<>();
+
+		public Exclude(Element excludeElement) {
+			String glob = excludeElement.getAttribute("name");
+
+			if (glob.endsWith(".**")) {
+				match = Match.PACKAGE_PREFIX;
+				name = glob.substring(0, glob.length() - 3);
+			}
+			else if (glob.endsWith(".*")) {
+				match = Match.PACKAGE_NAME;
+				name = glob.substring(0, glob.length() - 2);
+			}
+			else {
+				match = Match.CLASSNAME;
+				name = glob;
+			}
+
+			NodeList ifClassAvailableNodes = excludeElement.getElementsByTagName("if-class-available");
+
+			for (int iCAIdx = 0; iCAIdx < ifClassAvailableNodes.getLength(); iCAIdx++) {
+				Element ifClassAvailableElement = (Element)ifClassAvailableNodes.item(iCAIdx);
+
+				Attr nameAttribute = ifClassAvailableElement.getAttributeNode("name");
+
+				ifClassAvailableS.add(nameAttribute.getValue());
+			}
+
+			NodeList ifClassNotAvailableNodes = excludeElement.getElementsByTagName("if-class-not-available");
+
+			for (int iCNAIdx = 0; iCNAIdx < ifClassNotAvailableNodes.getLength(); iCNAIdx++) {
+				Element ifClassNotAvailableElement = (Element)ifClassNotAvailableNodes.item(iCNAIdx);
+
+				Attr nameAttribute = ifClassNotAvailableElement.getAttributeNode("name");
+
+				ifClassesNotAvailableS.add(nameAttribute.getValue());
+			}
+
+			NodeList ifSystemPropertyNodes = excludeElement.getElementsByTagName("if-system-property");
+
+			for (int iCNAIdx = 0; iCNAIdx < ifSystemPropertyNodes.getLength(); iCNAIdx++) {
+				Element ifSystemPropertyElement = (Element)ifSystemPropertyNodes.item(iCNAIdx);
+
+				String value = "";
+
+				if (ifSystemPropertyElement.hasAttribute("value")) {
+					value = ifSystemPropertyElement.getAttributeNode("value").getValue();
+				}
+
+				Attr nameAttribute = ifSystemPropertyElement.getAttributeNode("name");
+
+				ifSystemPropertyS.put(nameAttribute.getValue(), value);
+			}
+		}
+
+		public boolean exclude(AnnotatedType<?> annotatedType) {
+			String className = annotatedType.getJavaClass().getName();
+			String packageName = annotatedType.getJavaClass().getPackage().getName();
+
+			boolean matches = false;
+			switch (match) {
+				case CLASSNAME: {
+					matches = className.equals(name);
+					break;
+				}
+				case PACKAGE_NAME: {
+					matches = packageName.equals(name);
+					break;
+				}
+				case PACKAGE_PREFIX: {
+					matches = packageName.startsWith(name);
+				}
+			}
+
+			if (matches &&
+				ifClassAvailableS.stream().allMatch(this::classIsAvailable) &&
+				ifClassesNotAvailableS.stream().allMatch(this::classIsNotAvailable) &&
+				ifSystemPropertyS.entrySet().stream().allMatch(this::isPropertySet)) {
+
+				return true;
+			}
+
+			return false;
+		}
+
+		boolean classIsNotAvailable(String className) {
+			return !classIsAvailable(className);
+		}
+
+		boolean classIsAvailable(String className) {
+			try {
+				Class.forName(className, false, _containerState.classLoader());
+				return true;
+			}
+			catch (ClassNotFoundException cnfe) {
+				return false;
+			}
+		}
+
+		boolean isPropertySet(Entry<String, String> entry) {
+			if (entry.getValue().isEmpty()) {
+				return _containerState.bundleContext().getProperty(entry.getKey()) != null;
+			}
+			else {
+				return entry.getValue().equals(_containerState.bundleContext().getProperty(entry.getKey()));
+			}
+		}
+
+		@Override
+		public String toString() {
+			return name + ":" + match;
+		}
+
+	}
 
 }
