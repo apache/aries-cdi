@@ -41,6 +41,7 @@ import org.apache.aries.cdi.container.internal.model.FactoryActivator;
 import org.apache.aries.cdi.container.internal.model.FactoryComponent;
 import org.apache.aries.cdi.container.internal.model.SingleActivator;
 import org.apache.aries.cdi.container.internal.model.SingleComponent;
+import org.apache.aries.cdi.container.internal.spi.ContainerListener;
 import org.apache.aries.cdi.container.internal.util.Logs;
 import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.apache.felix.utils.extender.AbstractExtender;
@@ -78,6 +79,7 @@ public class Activator extends AbstractExtender {
 	private volatile Logs _logs;
 	private volatile PromiseFactory _promiseFactory;
 	private volatile ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> _containerTracker;
+	private volatile ServiceTracker<ContainerListener, ContainerListener> _containerListeners;
 
 	public Activator() {
 		setSynchronous(true);
@@ -110,6 +112,10 @@ public class Activator extends AbstractExtender {
 			}
 		);
 		_containerTracker.open();
+
+		_containerListeners = new ServiceTracker<>(bundleContext, ContainerListener.class, null);
+		_containerListeners.open();
+
 		_executorService = Executors.newSingleThreadExecutor(worker -> {
 			Thread t = new Thread(new ThreadGroup("Apache Aries CCR - CDI"), worker, "Aries CCR Thread (" + hashCode() + ")");
 			t.setDaemon(false);
@@ -175,6 +181,9 @@ public class Activator extends AbstractExtender {
 		}
 		_executorService.shutdownNow();
 		_executorService.awaitTermination(2, TimeUnit.SECONDS); // not important but just to avoid to quit too fast
+
+		_containerTracker.close();
+		_containerListeners.close();
 	}
 
 	@Override
@@ -215,7 +224,8 @@ public class Activator extends AbstractExtender {
 								new SingleComponent.Builder(containerState,
 									new SingleActivator.Builder(containerState)),
 								new FactoryComponent.Builder(containerState,
-									new FactoryActivator.Builder(containerState))
+									new FactoryActivator.Builder(containerState)),
+								_containerListeners
 							)
 						)
 					).build()
