@@ -19,6 +19,8 @@ import static java.util.Objects.requireNonNull;
 import java.net.URL;
 import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.enterprise.inject.spi.Extension;
 
@@ -29,12 +31,15 @@ import org.apache.aries.cdi.container.internal.model.ExtendedExtensionDTO;
 import org.apache.aries.cdi.container.internal.model.FactoryComponent;
 import org.apache.aries.cdi.container.internal.model.OSGiBean;
 import org.apache.aries.cdi.container.internal.model.SingleComponent;
+import org.apache.aries.cdi.container.internal.spi.ContainerListener;
 import org.apache.aries.cdi.container.internal.util.Maps;
 import org.apache.aries.cdi.container.internal.util.Syncro;
 import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceObjects;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.cdi.runtime.dto.ExtensionDTO;
 import org.osgi.service.log.Logger;
 import org.osgi.util.tracker.ServiceTracker;
@@ -42,16 +47,18 @@ import org.osgi.util.tracker.ServiceTracker;
 public class ContainerBootstrap extends Phase {
 
 	public ContainerBootstrap(
-		ContainerState containerState,
-		ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> containerTracker,
-		ConfigurationListener.Builder configurationBuilder,
-		SingleComponent.Builder singleBuilder,
-		FactoryComponent.Builder factoryBuilder) {
+			ContainerState containerState,
+			ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> containerTracker,
+			ConfigurationListener.Builder configurationBuilder,
+			SingleComponent.Builder singleBuilder,
+			FactoryComponent.Builder factoryBuilder,
+			ServiceTracker<ContainerListener, ContainerListener> listeners) {
 
 		super(containerState, null);
 
 		_configurationBuilder = configurationBuilder;
 		_containerTracker = containerTracker;
+		_listeners = listeners;
 		_singleBuilder = singleBuilder;
 		_factoryBuilder = factoryBuilder;
 		_log = containerState.containerLogs().getLogger(getClass());
@@ -66,14 +73,21 @@ public class ContainerBootstrap extends Phase {
 		try (Syncro syncro = _lock.open()) {
 			if (_containerInstance != null) {
 				_log.debug(l -> l.debug("CCR container shutdown for {}", bundle()));
-				_containerInstance.close();
-				_containerInstance = null;
 				try {
-					_serviceObjects.ungetService(_initializer);
-					_initializer = null;
-				}
-				catch (Throwable t) {
-					_log.trace(l -> l.trace("CCR Failure in returning initializer instance on {}", bundle(), t));
+					_containerInstance.close();
+					withListeners(ContainerListener::onStopSuccess);
+				} catch (final RuntimeException re) {
+					withListeners(listener -> listener.onStopError(re));
+					throw re;
+				} finally {
+					_containerInstance = null;
+					try {
+						_serviceObjects.ungetService(_initializer);
+						_initializer = null;
+					}
+					catch (Throwable t) {
+						_log.trace(l -> l.trace("CCR Failure in returning initializer instance on {}", bundle(), t));
+					}
 				}
 			}
 
@@ -109,21 +123,28 @@ public class ContainerBootstrap extends Phase {
 
 			_log.debug(log -> log.debug("CCR container startup for {}", bundle()));
 
-			// always use a new class loader
-			BundleClassLoader loader = new BundleClassLoader(containerState.bundle(), containerState.extenderBundle());
+			try {
+				// always use a new class loader
+				BundleClassLoader loader = new BundleClassLoader(containerState.bundle(), containerState.extenderBundle());
 
-			_initializer = _serviceObjects.getService();
+				_initializer = _serviceObjects.getService();
 
-			processExtensions(loader, _initializer);
+				processExtensions(loader, _initializer);
 
-			containerState.containerComponentTemplateDTO().properties.forEach(_initializer::addProperty);
+				containerState.containerComponentTemplateDTO().properties.forEach(_initializer::addProperty);
 
-			_containerInstance = _initializer
-				.addBeanClasses(containerState.beansModel().getOSGiBeans().stream().map(OSGiBean::getBeanClass).toArray(Class<?>[]::new))
-				.addBeanXmls(containerState.beansModel().getBeansXml().toArray(new URL[0]))
-				.setBundleContext(bundle().getBundleContext())
-				.setClassLoader(loader)
-				.initialize();
+				_containerInstance = _initializer
+						.addBeanClasses(containerState.beansModel().getOSGiBeans().stream().map(OSGiBean::getBeanClass).toArray(Class<?>[]::new))
+						.addBeanXmls(containerState.beansModel().getBeansXml().toArray(new URL[0]))
+						.setBundleContext(bundle().getBundleContext())
+						.setClassLoader(loader)
+						.initialize();
+
+				withListeners(ContainerListener::onStartSuccess);
+			} catch (final RuntimeException re) {
+				withListeners(listener -> listener.onStartError(re));
+				throw re;
+			}
 
 			return true;
 		}
@@ -175,6 +196,23 @@ public class ContainerBootstrap extends Phase {
 		}
 	}
 
+	private void withListeners(final Consumer<ContainerListener> action) {
+		final ServiceReference<ContainerListener>[] refs = _listeners.getServiceReferences();
+		if (refs != null && refs.length > 0) {
+			final BundleContext bundleContext = bundle().getBundleContext();
+			Stream.of(refs).forEach(ref -> {
+				final ContainerListener service = bundleContext.getService(ref);
+				if (service != null) {
+					try {
+						action.accept(service);
+					} finally {
+						bundleContext.ungetService(ref);
+					}
+				}
+			});
+		}
+	}
+
 	private volatile AutoCloseable _containerInstance;
 	private final ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> _containerTracker;
 	private final ConfigurationListener.Builder _configurationBuilder;
@@ -184,5 +222,6 @@ public class ContainerBootstrap extends Phase {
 	private final SingleComponent.Builder _singleBuilder;
 	private final Syncro _lock = new Syncro(true);
 	private final Logger _log;
+	private final ServiceTracker<ContainerListener, ContainerListener> _listeners;
 
 }

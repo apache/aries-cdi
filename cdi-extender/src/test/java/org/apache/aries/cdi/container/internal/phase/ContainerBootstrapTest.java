@@ -87,7 +87,8 @@ public class ContainerBootstrapTest extends BaseCDIBundleTest {
 			containerState, serviceTracker,
 			new ConfigurationListener.Builder(containerState),
 			new SingleComponent.Builder(containerState, null),
-			new FactoryComponent.Builder(containerState, null));
+			new FactoryComponent.Builder(containerState, null),
+			mock(ServiceTracker.class));
 
 		ExtendedComponentInstanceDTO componentInstanceDTO = new ExtendedComponentInstanceDTO(containerState, new ContainerActivator.Builder(containerState, containerBootstrap));
 		componentInstanceDTO.activations = new CopyOnWriteArrayList<>();
