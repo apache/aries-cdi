@@ -81,6 +81,7 @@
 		<dependency>
 			<groupId>org.jboss.weld</groupId>
 			<artifactId>weld-osgi-bundle</artifactId>
+			<version>${weld.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>

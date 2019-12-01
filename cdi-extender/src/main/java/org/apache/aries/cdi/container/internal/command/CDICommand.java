@@ -14,7 +14,8 @@
 
 package org.apache.aries.cdi.container.internal.command;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.partitioningBy;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
 import java.util.Formatter;
@@ -33,10 +34,12 @@ import org.osgi.service.cdi.runtime.dto.ComponentDTO;
 import org.osgi.service.cdi.runtime.dto.ComponentInstanceDTO;
 import org.osgi.service.cdi.runtime.dto.ConfigurationDTO;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
+import org.osgi.service.cdi.runtime.dto.ExtensionDTO;
 import org.osgi.service.cdi.runtime.dto.ReferenceDTO;
 import org.osgi.service.cdi.runtime.dto.template.ActivationTemplateDTO;
 import org.osgi.service.cdi.runtime.dto.template.ComponentTemplateDTO;
 import org.osgi.service.cdi.runtime.dto.template.ConfigurationTemplateDTO;
+import org.osgi.service.cdi.runtime.dto.template.ExtensionTemplateDTO;
 import org.osgi.service.cdi.runtime.dto.template.ReferenceTemplateDTO;
 
 public class CDICommand {
@@ -93,10 +96,34 @@ public class CDICommand {
 			containerDTO.bundle.symbolicName,
 			containerDTO.bundle.id);
 
+		if (!containerDTO.template.extensions.isEmpty()) {
+			f.format(
+				"%s%sEXTENSIONS%n",
+				(hasNext ? PSSS : SSSS),
+				TLLS);
+
+			for (Iterator<ExtensionTemplateDTO> itr1 = containerDTO.template.extensions.iterator(); itr1.hasNext();) {
+				ExtensionTemplateDTO templateDTO = itr1.next();
+				ExtensionDTO extensionDTO = containerDTO.extensions.stream().filter(extInstance -> templateDTO == extInstance.template).findFirst().orElse(null);
+
+				f.format(
+					"%s%sFILTER: %s%n",
+					(hasNext ? PSSS : SSSS) + PSSS,
+					(itr1.hasNext() ? TLLS : CLLS),
+					templateDTO.serviceFilter);
+				f.format(
+					"%s%s%sMATCH: %s%n",
+					(hasNext ? PSSS : SSSS) + PSSS,
+					(itr1.hasNext() ? PSSS : SSSS),
+					CLLS,
+					(extensionDTO == null) ? "null*" : extensionDTO.service);
+			}
+		}
+
 		f.format(
 			"%s%sCOMPONENTS%n",
 			(hasNext ? PSSS : SSSS),
-			curb);
+			CLLS);
 
 		Map<Boolean, List<ComponentTemplateDTO>> componentTemplateDTOs = containerDTO.template.components.stream().collect(
 			partitioningBy(c -> c.type == ComponentType.CONTAINER)
@@ -160,20 +187,35 @@ public class CDICommand {
 			c -> c.template.name.equals(componentTemplateDTO.name)
 		).findFirst().orElse(null);
 
-		if ((componentDTO != null) && !componentDTO.instances.isEmpty()) {
-			Iterator<ComponentInstanceDTO> itr3 = componentDTO.instances.iterator();
+		if (componentDTO != null) {
+			if (!componentDTO.instances.isEmpty()) {
+				Iterator<ComponentInstanceDTO> itr3 = componentDTO.instances.iterator();
 
-			for (;itr3.hasNext();) {
-				ComponentInstanceDTO instanceDTO = itr3.next();
+				for (;itr3.hasNext();) {
+					ComponentInstanceDTO instanceDTO = itr3.next();
 
+					formatInstance(
+						f,
+						prefix,
+						componentDTO,
+						componentTemplateDTO,
+						instanceDTO,
+						pids(instanceDTO, configMap),
+						hasNext,
+						itr3.hasNext(),
+						verbose);
+				}
+			}
+			else {
 				formatInstance(
 					f,
 					prefix,
 					componentDTO,
-					instanceDTO,
-					pids(instanceDTO, configMap),
+					componentTemplateDTO,
+					null,
+					configMap.get(Boolean.FALSE).stream().map(c -> c.pid).collect(toList()).toString(),
 					hasNext,
-					itr3.hasNext(),
+					false,
 					verbose);
 			}
 		}
@@ -182,6 +224,7 @@ public class CDICommand {
 				f,
 				prefix,
 				componentDTO,
+				componentTemplateDTO,
 				null,
 				configMap.get(Boolean.FALSE).stream().map(c -> c.pid).collect(toList()).toString(),
 				hasNext,
@@ -191,7 +234,7 @@ public class CDICommand {
 	}
 
 	private void formatInstance(
-		Formatter f, String prefix, ComponentDTO componentDTO,
+		Formatter f, String prefix, ComponentDTO componentDTO, ComponentTemplateDTO templateDTO,
 		ComponentInstanceDTO instanceDTO, String pids,
 		boolean hasNext, boolean hasNext2, boolean verbose) {
 
@@ -201,7 +244,7 @@ public class CDICommand {
 				prefix,
 				(hasNext ? PSSS : SSSS),
 				TLLS,
-				componentDTO.template.beans.toString());
+				templateDTO.beans.toString());
 
 			f.format(
 				"%s%s%sCONFIGURATIONS%n",
@@ -209,7 +252,7 @@ public class CDICommand {
 				(hasNext ? PSSS : SSSS),
 				TLLS);
 
-			for (Iterator<ConfigurationTemplateDTO> itr = componentDTO.template.configurations.iterator();itr.hasNext();) {
+			for (Iterator<ConfigurationTemplateDTO> itr = templateDTO.configurations.iterator();itr.hasNext();) {
 				ConfigurationTemplateDTO conf = itr.next();
 
 				ConfigurationDTO configurationDTO = null;
@@ -266,14 +309,14 @@ public class CDICommand {
 				}
 			}
 
-			if (!componentDTO.template.references.isEmpty()) {
+			if (!templateDTO.references.isEmpty()) {
 				f.format(
 					"%s%s%sREFERENCES%n",
 					prefix,
 					(hasNext ? PSSS : SSSS),
 					TLLS);
 
-				for (Iterator<ReferenceTemplateDTO> itr = componentDTO.template.references.iterator(); itr.hasNext();) {
+				for (Iterator<ReferenceTemplateDTO> itr = templateDTO.references.iterator(); itr.hasNext();) {
 					ReferenceTemplateDTO dto = itr.next();
 
 					ReferenceDTO referenceDTO = null;
@@ -345,14 +388,14 @@ public class CDICommand {
 				}
 			}
 
-			if (!componentDTO.template.activations.isEmpty()) {
+			if (!templateDTO.activations.isEmpty()) {
 				f.format(
 					"%s%s%sACTIVATIONS%n",
 					prefix,
 					(hasNext ? PSSS : SSSS),
 					TLLS);
 
-				for (Iterator<ActivationTemplateDTO> itr = componentDTO.template.activations.iterator(); itr.hasNext();) {
+				for (Iterator<ActivationTemplateDTO> itr = templateDTO.activations.iterator(); itr.hasNext();) {
 					ActivationTemplateDTO dto = itr.next();
 
 					ActivationDTO activationDTO = null;

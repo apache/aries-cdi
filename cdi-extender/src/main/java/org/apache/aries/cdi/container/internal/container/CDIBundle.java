@@ -31,23 +31,25 @@ public class CDIBundle extends Phase implements Extension {
 	@Override
 	public boolean close() {
 		try (Syncro open = syncro.open()) {
+			if (!running) return false;
+
 			containerState.closing();
 
 			return next.map(
-					next -> {
-						submit(next.closeOp(), next::close).onFailure(
-								f -> {
-									_log.error(l -> l.error("CCR Error in cdibundle CLOSE on {}", bundle(), f));
+				next -> {
+					submit(next.closeOp(), next::close).onFailure(
+						f -> {
+							_log.error(l -> l.error("CCR Error in cdibundle CLOSE on {}", bundle(), f));
 
-									error(f);
-								}
-								);
+							error(f);
+						}
+					);
 
-						_ccr.remove(bundle());
+					_ccr.remove(bundle());
 
-						return true;
-					}
-					).orElse(true);
+					return true;
+				}
+			).orElse(true);
 		}
 	}
 
@@ -64,7 +66,7 @@ public class CDIBundle extends Phase implements Extension {
 	@Override
 	public boolean open() {
 		try (Syncro open = syncro.open()) {
-			return next.map(
+			return running = next.map(
 				next -> {
 					_ccr.add(containerState.bundle(), containerState);
 
@@ -94,5 +96,6 @@ public class CDIBundle extends Phase implements Extension {
 
 	private final CCR _ccr;
 	private final Logger _log;
+	private volatile boolean running = false;
 
 }

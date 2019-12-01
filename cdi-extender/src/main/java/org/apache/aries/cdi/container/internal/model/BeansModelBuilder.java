@@ -14,9 +14,8 @@
 
 package org.apache.aries.cdi.container.internal.model;
 
-import static org.apache.aries.cdi.container.internal.util.Reflection.cast;
-import static org.osgi.service.cdi.CDIConstants.REQUIREMENT_BEANS_ATTRIBUTE;
-import static org.osgi.service.cdi.CDIConstants.REQUIREMENT_DESCRIPTOR_ATTRIBUTE;
+import static org.apache.aries.cdi.container.internal.util.Reflection.*;
+import static org.osgi.service.cdi.CDIConstants.*;
 
 import java.net.URL;
 import java.util.ArrayList;

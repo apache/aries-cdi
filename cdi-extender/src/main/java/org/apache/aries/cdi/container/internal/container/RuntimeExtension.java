@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
@@ -37,7 +38,6 @@ import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.AnnotatedField;
 import javax.enterprise.inject.spi.AnnotatedMember;
 import javax.enterprise.inject.spi.AnnotatedMethod;
-import javax.enterprise.inject.spi.AnnotatedParameter;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeBeanDiscovery;
@@ -182,7 +182,9 @@ public class RuntimeExtension implements Extension {
 
 				for (ActivationTemplateDTO at : _containerTemplate.activations) {
 					ExtendedActivationTemplateDTO extended = (ExtendedActivationTemplateDTO)at;
-					if (extended.declaringClass.equals(declaringClass) && Objects.equals(extended.producer, producer)) {
+					if (extended.declaringClass.equals(declaringClass) &&
+							equals(extended.producer, producer)) {
+
 						activationTemplate = extended;
 						break;
 					}
@@ -224,11 +226,11 @@ public class RuntimeExtension implements Extension {
 
 		ComponentDTO componentDTO = _containerState.containerDTO().components.get(0);
 
+		registerServices(componentDTO, bm);
+
 		_containerState.submit(
-			Op.of(Mode.OPEN, Type.CONTAINER_PUBLISH_SERVICES, _containerState.id()),
-			() -> registerServices(componentDTO, bm)
-		).then(
-			s -> initComponents()
+			Op.of(Mode.OPEN, Type.CONTAINER_INIT_COMPONENTS, _containerState.id()),
+			this::initComponents
 		).then(s -> {
 			Dictionary<String, Object> properties = new Hashtable<>();
 			properties.put(CDIConstants.CDI_CONTAINER_ID, _containerState.id());
@@ -240,6 +242,8 @@ public class RuntimeExtension implements Extension {
 			serviceTypes.add(BeanManager.class.getName());
 
 			registerService(serviceTypes, bm, properties);
+
+			_log.debug(l -> l.debug("CCR Container READY for {}", _containerState.bundle()));
 
 			return s;
 		});
@@ -288,7 +292,7 @@ public class RuntimeExtension implements Extension {
 					).findFirst().map(
 						ExtendedReferenceDTO.class::cast
 					).ifPresent(
-						r -> bean.setReferenceDTO(r)
+						bean::setReferenceDTO
 					);
 				}
 
@@ -323,6 +327,18 @@ public class RuntimeExtension implements Extension {
 			return null;
 
 		return producerFactory.createProducer(bean);
+	}
+
+	// Objects.equals(producer, producer1) is not expected to work so impl it as expected there
+	private boolean equals(AnnotatedMember<?> producerA, AnnotatedMember<?> producerB) {
+		if ((producerA == null) && (producerB == null)) return true;
+		if (!Objects.equals(producerA.getJavaMember(), producerB.getJavaMember())) {
+			return false;
+		}
+		if (!Objects.equals(producerA.getAnnotations(), producerB.getAnnotations())) {
+			return false;
+		}
+		return true;
 	}
 
 	private Promise<Boolean> initComponents() {
@@ -364,33 +380,29 @@ public class RuntimeExtension implements Extension {
 		return _containerState.submit(cl.openOp(), cl::open);
 	}
 
-	private boolean matchConfiguration(OSGiBean osgiBean, ProcessInjectionPoint<?, ?> pip) {
+	private void processConfiguration(OSGiBean osgiBean, ProcessInjectionPoint<?, ?> pip) {
 		InjectionPoint injectionPoint = pip.getInjectionPoint();
 
 		Class<?> declaringClass = Annotates.declaringClass(injectionPoint.getAnnotated());
 
 		ConfigurationTemplateDTO current = new ComponentPropertiesModel.Builder(injectionPoint.getType()).declaringClass(
 			declaringClass
-		).injectionPoint(
-			injectionPoint
+		).qualifiers(
+			injectionPoint.getQualifiers()
 		).build().toDTO();
 
-		return osgiBean.getComponent().configurations.stream().map(
+		osgiBean.getComponent().configurations.stream().map(
 			t -> (ExtendedConfigurationTemplateDTO)t
 		).filter(
 			t -> current.equals(t)
-		).findFirst().map(
+		).findFirst().ifPresent(
 			t -> {
-				MarkedInjectionPoint markedInjectionPoint = new MarkedInjectionPoint(injectionPoint);
+				final Mark mark = Mark.Literal.from(MARK_IP_COUNTER.incrementAndGet());
+				pip.configureInjectionPoint().addQualifiers(mark);
 
-				pip.setInjectionPoint(markedInjectionPoint);
-
-				t.bean.setInjectionPoint(injectionPoint);
-				t.bean.setMark(markedInjectionPoint.getMark());
-
-				return true;
+				t.bean.setMark(mark);
 			}
-		).orElse(false);
+		);
 	}
 
 	private boolean matchReference(OSGiBean osgiBean, ProcessInjectionPoint<?, ?> pip) {
@@ -398,19 +410,9 @@ public class RuntimeExtension implements Extension {
 
 		Annotated annotated = injectionPoint.getAnnotated();
 
-		ReferenceModel.Builder builder = null;
+		ReferenceModel.Builder builder = new ReferenceModel.Builder(annotated);
 
-		if (annotated instanceof AnnotatedField) {
-			builder = new ReferenceModel.Builder((AnnotatedField<?>)annotated);
-		}
-		else if (annotated instanceof AnnotatedMethod) {
-			builder = new ReferenceModel.Builder((AnnotatedMethod<?>)annotated);
-		}
-		else {
-			builder = new ReferenceModel.Builder((AnnotatedParameter<?>)annotated);
-		}
-
-		ReferenceModel referenceModel = builder.injectionPoint(injectionPoint).build();
+		ReferenceModel referenceModel = builder.type(injectionPoint.getType()).build();
 
 		ExtendedReferenceTemplateDTO current = referenceModel.toDTO();
 
@@ -420,11 +422,10 @@ public class RuntimeExtension implements Extension {
 			t -> current.equals(t)
 		).findFirst().map(
 			t -> {
-				MarkedInjectionPoint markedInjectionPoint = new MarkedInjectionPoint(injectionPoint);
+				final Mark mark = Mark.Literal.from(MARK_IP_COUNTER.incrementAndGet());
+				pip.configureInjectionPoint().addQualifier(mark);
 
-				pip.setInjectionPoint(markedInjectionPoint);
-
-				t.bean.setMark(markedInjectionPoint.getMark());
+				t.bean.setMark(mark);
 
 				_log.debug(l -> l.debug("CCR maping InjectionPoint {} to reference template {}", injectionPoint, t));
 
@@ -455,7 +456,20 @@ public class RuntimeExtension implements Extension {
 		}
 
 		if (componentProperties != null) {
-			matchConfiguration(osgiBean, pip);
+			processConfiguration(osgiBean, pip);
+		}
+	}
+
+	private void registerServiceHandleFailure(
+		ExtendedComponentInstanceDTO componentInstance,
+		ExtendedActivationTemplateDTO activationTemplate,
+		BeanManager bm) {
+
+		try {
+			registerService(componentInstance, activationTemplate, bm);
+		}
+		catch (Throwable t) {
+			_log.error("CDI - An error occured", t);
 		}
 	}
 
@@ -559,7 +573,7 @@ public class RuntimeExtension implements Extension {
 		componentDTO.template.activations.stream().map(
 			ExtendedActivationTemplateDTO.class::cast
 		).forEach(
-			a -> registerService((ExtendedComponentInstanceDTO)componentDTO.instances.get(0), a, bm)
+			a -> registerServiceHandleFailure((ExtendedComponentInstanceDTO)componentDTO.instances.get(0), a, bm)
 		);
 
 		return true;
@@ -574,4 +588,5 @@ public class RuntimeExtension implements Extension {
 	private final List<ServiceRegistration<?>> _registrations = new CopyOnWriteArrayList<>();
 	private final SingleComponent.Builder _singleBuilder;
 
+	private static final AtomicInteger MARK_IP_COUNTER = new AtomicInteger();
 }

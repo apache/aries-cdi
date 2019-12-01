@@ -14,19 +14,21 @@
 
 package org.apache.aries.cdi.container.internal.provider;
 
+import static java.util.Optional.ofNullable;
+
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Optional;
 
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.TypeLiteral;
 
-import org.apache.aries.cdi.container.internal.Activator;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
+import org.osgi.framework.Constants;
 
 public class CDIProvider implements javax.enterprise.inject.spi.CDIProvider {
 
@@ -44,22 +46,24 @@ public class CDIProvider implements javax.enterprise.inject.spi.CDIProvider {
 
 		@Override
 		public BeanManager getBeanManager() {
-			ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+			Bundle bundle = ofNullable(
+				Thread.currentThread().getContextClassLoader()
+			).map(BundleReference.class::cast).map(BundleReference::getBundle).orElseThrow(
+				() -> new IllegalStateException(
+					"No Bundle found for Thread.ContextClassLoader " + Thread.currentThread())
+			);
 
-			if (contextClassLoader instanceof BundleReference) {
-				BundleReference br = (BundleReference)contextClassLoader;
-
-				Bundle bundle = br.getBundle();
-
-				return Optional.ofNullable(
-					Activator.ccr.getContainerState(bundle)
-				).map(
-					cs -> cs.beanManager()
-				).orElse(null);
-			}
-
-			throw new IllegalStateException(
-				"This method can only be used when the Thread context class loader has been set to a Bundle's classloader.");
+			return Arrays.stream(bundle.getRegisteredServices()).filter(
+				sr -> ofNullable(
+					sr.getProperty(Constants.OBJECTCLASS)
+				).map(String[].class::cast).map(Arrays::asList).filter(
+					list -> list.contains(BeanManager.class.getName())
+				).isPresent()
+			).findFirst().map(
+				bundle.getBundleContext()::getService
+			).map(BeanManager.class::cast).orElseThrow(
+				() -> new IllegalStateException("No BeanManager service for bundle " + bundle)
+			);
 		}
 
 		@Override

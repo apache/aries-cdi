@@ -14,10 +14,12 @@
 
 package org.apache.aries.cdi.container.internal.phase;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +62,7 @@ public class TemplatesTests extends BaseCDIBundleTest {
 
 		assertNotNull(containerDTO.template);
 		List<ComponentTemplateDTO> components = TestUtil.sort(
-			containerDTO.template.components, (a, b) -> a.name.compareTo(b.name));
+			containerDTO.template.components, Comparator.comparing(a -> a.name));
 		assertEquals(2, components.size());
 
 		{
@@ -134,7 +136,7 @@ public class TemplatesTests extends BaseCDIBundleTest {
 
 		assertNotNull(containerDTO.template);
 		List<ComponentTemplateDTO> components = TestUtil.sort(
-			containerDTO.template.components, (a, b) -> a.name.compareTo(b.name));
+			containerDTO.template.components, Comparator.comparing(a -> a.name));
 		assertEquals(3, components.size());
 
 		{
@@ -148,7 +150,7 @@ public class TemplatesTests extends BaseCDIBundleTest {
 				assertEquals(Arrays.asList("org.apache.aries.cdi.container.test.beans.Bar"), at.serviceClasses);
 			}
 
-			assertEquals(1, ct.beans.size());
+			assertEquals(2, ct.beans.size());
 			assertEquals(1, ct.configurations.size());
 			assertEquals("barService", ct.name);
 			assertEquals(Maps.of(), ct.properties);
@@ -175,7 +177,7 @@ public class TemplatesTests extends BaseCDIBundleTest {
 				ActivationTemplateDTO at = ct.activations.get(0);
 				assertEquals(Maps.of(), at.properties);
 				assertEquals(ServiceScope.SINGLETON, at.scope);
-				assertEquals(Arrays.asList("org.apache.aries.cdi.container.test.beans.Foo"), at.serviceClasses);
+				assertEquals(singletonList("org.apache.aries.cdi.container.test.beans.Foo"), at.serviceClasses);
 			}
 
 			assertEquals(2, ct.beans.size());
@@ -219,7 +221,7 @@ public class TemplatesTests extends BaseCDIBundleTest {
 		assertNotNull(containerDTO.template);
 
 		List<ComponentTemplateDTO> components = TestUtil.sort(
-			containerDTO.template.components, (a, b) -> a.name.compareTo(b.name));
+			containerDTO.template.components, Comparator.comparing(a -> a.name));
 		assertEquals(3, components.size());
 
 		{ // component "barService"
@@ -233,7 +235,7 @@ public class TemplatesTests extends BaseCDIBundleTest {
 				assertEquals(Arrays.asList("org.apache.aries.cdi.container.test.beans.Bar"), at.serviceClasses);
 			}
 
-			assertEquals(1, ct.beans.size());
+			assertEquals(2, ct.beans.size());
 			assertEquals("org.apache.aries.cdi.container.test.beans.BarService", ct.beans.get(0));
 			assertEquals(1, ct.configurations.size());
 			assertEquals("barService", ct.name);

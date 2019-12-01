@@ -23,12 +23,9 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.enterprise.inject.spi.InjectionPoint;
-
 import org.osgi.service.cdi.ConfigurationPolicy;
 import org.osgi.service.cdi.MaximumCardinality;
 import org.osgi.service.cdi.annotations.PID;
-import org.osgi.service.cdi.runtime.dto.template.ConfigurationTemplateDTO;
 
 public class ComponentPropertiesModel {
 
@@ -49,9 +46,9 @@ public class ComponentPropertiesModel {
 			return this;
 		}
 
-		public Builder injectionPoint(InjectionPoint injectionPoint) {
-			_qualifiers = injectionPoint.getQualifiers();
-			_pid = injectionPoint.getAnnotated().getAnnotation(PID.class);
+		public Builder qualifiers(Set<Annotation> qualifiers) {
+			_qualifiers = qualifiers;
+			_pid = _qualifiers.stream().filter(PID.class::isInstance).map(PID.class::cast).findFirst().orElse(null);
 			return this;
 		}
 
@@ -100,7 +97,7 @@ public class ComponentPropertiesModel {
 		return _injectionPointType;
 	}
 
-	public ConfigurationTemplateDTO toDTO() {
+	public ExtendedConfigurationTemplateDTO toDTO() {
 		ExtendedConfigurationTemplateDTO dto = new ExtendedConfigurationTemplateDTO();
 
 		dto.beanClass = _beanClass;

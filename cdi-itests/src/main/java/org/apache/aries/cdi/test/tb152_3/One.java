@@ -32,6 +32,10 @@ import org.osgi.service.cdi.propertytypes.ServiceDescription;
 @ServiceDescription("one")
 public class One implements BeanService<Context> {
 
+	protected One() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	private Context _context;
 
 	void onComponent(@Observes @Initialized(ComponentScoped.class) Object obj, BeanManager bm) {

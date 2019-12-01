@@ -1,0 +1,62 @@
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
+-include: base-itest.bndrun
+#-runjdb: 8000
+
+-runrequires: \
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)',\
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.itests)',\
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.jndi.core)',\
+	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
+
+-runblacklist: \
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)',\
+	osgi.identity;filter:='(osgi.identity=org.jboss.spec.*)'
+
+-runbundles: \
+	biz.aQute.junit;version='[4.3.1,4.3.2)',\
+	javax.servlet.jsp-api;version='[2.3.3,2.3.4)',\
+	openwebbeans-impl;version='[2.0.13,2.0.14)',\
+	openwebbeans-spi;version='[2.0.13,2.0.14)',\
+	openwebbeans-web;version='[2.0.13,2.0.14)',\
+	org.apache.aries.cdi.extender;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.extension.jndi;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.extension.mp-config;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.extra;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.itests;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.owb;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.spi;version='[1.1.0,1.1.1)',\
+	org.apache.aries.jndi.api;version='[1.1.0,1.1.1)',\
+	org.apache.aries.jndi.core;version='[1.0.2,1.0.3)',\
+	org.apache.aries.spifly.dynamic.framework.extension;version='[1.2.0,1.2.1)',\
+	org.apache.aries.util;version='[1.0.0,1.0.1)',\
+	org.apache.commons.logging;version='[1.2.0,1.2.1)',\
+	org.apache.felix.configadmin;version='[1.9.10,1.9.11)',\
+	org.apache.felix.gogo.command;version='[1.1.0,1.1.1)',\
+	org.apache.felix.gogo.runtime;version='[1.1.2,1.1.3)',\
+	org.apache.felix.gogo.shell;version='[1.1.2,1.1.3)',\
+	org.apache.felix.http.jetty;version='[4.0.14,4.0.15)',\
+	org.apache.felix.http.servlet-api;version='[1.1.2,1.1.3)',\
+	org.apache.geronimo.specs.geronimo-annotation_1.3_spec;version='[1.1.0,1.1.1)',\
+	org.apache.geronimo.specs.geronimo-atinject_1.0_spec;version='[1.1.0,1.1.1)',\
+	org.apache.geronimo.specs.geronimo-el_2.2_spec;version='[1.1.0,1.1.1)',\
+	org.apache.geronimo.specs.geronimo-interceptor_1.2_spec;version='[1.1.0,1.1.1)',\
+	org.apache.geronimo.specs.geronimo-jcdi_2.0_spec;version='[1.1.0,1.1.1)',\
+	org.apache.httpcomponents.httpclient;version='[4.5.3,4.5.4)',\
+	org.apache.httpcomponents.httpcore;version='[4.4.6,4.4.7)',\
+	org.apache.xbean.asm7-shaded;version='[4.13.0,4.13.1)',\
+	org.apache.xbean.bundleutils;version='[4.15.0,4.15.1)',\
+	org.apache.xbean.finder-shaded;version='[4.13.0,4.13.1)',\
+	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
+	org.osgi.util.function;version='[1.1.0,1.1.1)',\
+	org.osgi.util.promise;version='[1.1.0,1.1.1)'

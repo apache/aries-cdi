@@ -14,16 +14,24 @@
 
 package org.apache.aries.cdi.container.internal.util;
 
+import static org.apache.aries.cdi.container.internal.util.Reflection.getRawType;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.enterprise.context.Dependent;
+import javax.enterprise.context.NormalScope;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.AnnotatedField;
 import javax.enterprise.inject.spi.AnnotatedMember;
@@ -36,8 +44,10 @@ import javax.enterprise.inject.spi.ProcessProducerField;
 import javax.enterprise.inject.spi.ProcessProducerMethod;
 import javax.enterprise.inject.spi.ProcessSessionBean;
 import javax.enterprise.inject.spi.ProcessSyntheticBean;
+import javax.inject.Named;
+import javax.inject.Qualifier;
+import javax.inject.Scope;
 
-import org.jboss.weld.util.Types;
 import org.osgi.service.cdi.ServiceScope;
 import org.osgi.service.cdi.annotations.Service;
 import org.osgi.service.cdi.annotations.ServiceInstance;
@@ -47,6 +57,14 @@ public class Annotates {
 	private Annotates() {
 		// no instances
 	}
+
+	private static final Predicate<Annotation> isQualifier = annotation ->
+		!annotation.annotationType().equals(Qualifier.class) &&
+		annotation.annotationType().isAnnotationPresent(Qualifier.class);
+
+	private static final Predicate<Annotation> isScope = annotation ->
+		annotation.annotationType().isAnnotationPresent(Scope.class) ||
+		annotation.annotationType().isAnnotationPresent(NormalScope.class);
 
 	public static Map<String, Object> componentProperties(Annotated annotated) {
 		return Maps.merge(annotated.getAnnotations());
@@ -77,8 +95,7 @@ public class Annotates {
 		}
 		else if (instance instanceof Annotated) {
 			Annotated annotated = (Annotated)instance;
-
-			declaringClass = Types.getRawTypes(new Type[] {annotated.getBaseType()})[0];
+			declaringClass = getRawType(annotated.getBaseType());
 		}
 		else if (instance instanceof ProcessManagedBean) {
 			ProcessManagedBean<?> bean = (ProcessManagedBean<?>)instance;
@@ -112,6 +129,31 @@ public class Annotates {
 		}
 
 		return (Class<X>)declaringClass;
+	}
+
+	public static Set<Annotation> qualifiers(Annotated annotated) {
+		return collect(annotated.getAnnotations()).stream().filter(isQualifier).collect(Collectors.toSet());
+	}
+
+	private static List<Annotation> collect(Collection<Annotation> annotations) {
+		List<Annotation> list = new ArrayList<>();
+		for (Annotation a1 : annotations) {
+			if (a1.annotationType().getName().startsWith("java.lang.annotation.")) continue;
+			list.add(a1);
+		}
+		list.addAll(inherit(list));
+		return list;
+	}
+
+	private static List<Annotation> inherit(Collection<Annotation> annotations) {
+		List<Annotation> list = new ArrayList<>();
+		for (Annotation a1 : annotations) {
+			for (Annotation a2 : collect(Arrays.asList(a1.annotationType().getAnnotations()))) {
+				if (list.contains(a2)) continue;
+				list.add(a2);
+			}
+		}
+		return list;
 	}
 
 	public static List<Class<?>> serviceClasses(Annotated annotated) {
@@ -214,9 +256,7 @@ public class Annotates {
 	}
 
 	public static List<String> serviceClassNames(Annotated annotated) {
-		return serviceClasses(annotated).stream().map(
-			st -> st.getName()
-		).sorted().collect(Collectors.toList());
+		return serviceClasses(annotated).stream().map(Class::getName).sorted().collect(Collectors.toList());
 	}
 
 	public static ServiceScope serviceScope(Annotated annotated) {
@@ -227,6 +267,45 @@ public class Annotates {
 		}
 
 		return ServiceScope.SINGLETON;
+	}
+
+	public static String beanName(Annotated annotated) {
+		return collect(annotated.getAnnotations()).stream().filter(Named.class::isInstance).map(Named.class::cast).findFirst().map(
+			named -> {
+				if (named.value().isEmpty()) {
+					if (annotated instanceof AnnotatedMethod) {
+						AnnotatedMethod<?> annotatedMethod = (AnnotatedMethod<?>)annotated;
+						String name = annotatedMethod.getJavaMember().getName();
+						if (name.startsWith("get")) {
+							name = name.substring(3);
+						}
+						else if (name.startsWith("is")) {
+							name = name.substring(2);
+						}
+						char c[] = name.toCharArray();
+						c[0] = Character.toLowerCase(c[0]);
+						return new String(c);
+					}
+					else if (annotated instanceof AnnotatedField) {
+						AnnotatedField<?> annotatedField = (AnnotatedField<?>)annotated;
+						return annotatedField.getJavaMember().getName();
+					}
+					else {
+						char c[] = Reflection.getRawType(annotated.getBaseType()).getSimpleName().toCharArray();
+						c[0] = Character.toLowerCase(c[0]);
+						return new String(c);
+					}
+				}
+
+				return named.value();
+			}
+		).orElse(null);
+	}
+
+	public static Class<? extends Annotation> beanScope(Annotated annotated) {
+		Class<? extends Annotation> scope = collect(annotated.getAnnotations()).stream().filter(isScope).map(Annotation::annotationType).findFirst().orElse(null);
+
+		return (scope == null) ? Dependent.class : scope;
 	}
 
 }

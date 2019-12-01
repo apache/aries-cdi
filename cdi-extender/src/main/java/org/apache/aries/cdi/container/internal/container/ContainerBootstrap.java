@@ -14,54 +14,87 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import static java.util.Objects.requireNonNull;
+
+import java.net.URL;
+import java.util.ServiceLoader;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.enterprise.inject.spi.Extension;
 
 import org.apache.aries.cdi.container.internal.container.Op.Mode;
 import org.apache.aries.cdi.container.internal.container.Op.Type;
-import org.apache.aries.cdi.container.internal.loader.BundleResourcesLoader;
+import org.apache.aries.cdi.container.internal.loader.BundleClassLoader;
 import org.apache.aries.cdi.container.internal.model.ExtendedExtensionDTO;
 import org.apache.aries.cdi.container.internal.model.FactoryComponent;
+import org.apache.aries.cdi.container.internal.model.OSGiBean;
 import org.apache.aries.cdi.container.internal.model.SingleComponent;
+import org.apache.aries.cdi.container.internal.spi.ContainerListener;
+import org.apache.aries.cdi.container.internal.util.Maps;
 import org.apache.aries.cdi.container.internal.util.Syncro;
-import org.jboss.weld.bootstrap.WeldBootstrap;
-import org.jboss.weld.bootstrap.spi.BeanDeploymentArchive;
-import org.jboss.weld.bootstrap.spi.Deployment;
-import org.jboss.weld.bootstrap.spi.Metadata;
-import org.jboss.weld.util.ServiceLoader;
+import org.apache.aries.cdi.spi.CDIContainerInitializer;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceObjects;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.cdi.runtime.dto.ExtensionDTO;
 import org.osgi.service.log.Logger;
+import org.osgi.util.tracker.ServiceTracker;
 
 public class ContainerBootstrap extends Phase {
 
 	public ContainerBootstrap(
-		ContainerState containerState,
-		ConfigurationListener.Builder configurationBuilder,
-		SingleComponent.Builder singleBuilder,
-		FactoryComponent.Builder factoryBuilder) {
+			ContainerState containerState,
+			ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> containerTracker,
+			ConfigurationListener.Builder configurationBuilder,
+			SingleComponent.Builder singleBuilder,
+			FactoryComponent.Builder factoryBuilder,
+			ServiceTracker<ContainerListener, ContainerListener> listeners) {
 
 		super(containerState, null);
 
 		_configurationBuilder = configurationBuilder;
+		_containerTracker = containerTracker;
+		_listeners = listeners;
 		_singleBuilder = singleBuilder;
 		_factoryBuilder = factoryBuilder;
 		_log = containerState.containerLogs().getLogger(getClass());
+
+		_serviceObjects = requireNonNull(
+			_containerTracker.getService(),
+			"A prototype scope org.apache.aries.cdi.spi.CDIContainerInitializer service must be available.");
 	}
 
 	@Override
 	public boolean close() {
 		try (Syncro syncro = _lock.open()) {
-			if (_bootstrap != null) {
-				_log.debug(l -> l.debug("CCR container bootstrap shutdown on {}", _bootstrap));
-				_bootstrap.shutdown();
-				_bootstrap = null;
+			if (_containerInstance != null) {
+				_log.debug(l -> l.debug("CCR container shutdown for {}", bundle()));
+				try {
+					_containerInstance.close();
+					withListeners(ContainerListener::onStopSuccess);
+				} catch (final RuntimeException re) {
+					withListeners(listener -> listener.onStopError(re));
+					throw re;
+				} finally {
+					_containerInstance = null;
+					try {
+						_serviceObjects.ungetService(_initializer);
+						_initializer = null;
+					}
+					catch (Throwable t) {
+						_log.trace(l -> l.trace("CCR Failure in returning initializer instance on {}", bundle(), t));
+					}
+				}
 			}
 
 			return true;
 		}
 		catch (Throwable t) {
-			_log.error(l -> l.error("CCR Failure in container bootstrap shutdown on {}", _bootstrap, t));
+			_log.error(l -> l.error("CCR Failure in container bootstrap shutdown on {}", bundle(), t));
 
 			return false;
 		}
@@ -80,7 +113,7 @@ public class ContainerBootstrap extends Phase {
 				return false;
 			}
 
-			if (_bootstrap != null) {
+			if (_containerInstance != null) {
 				return true;
 			}
 
@@ -88,61 +121,29 @@ public class ContainerBootstrap extends Phase {
 				return false;
 			}
 
-			List<Metadata<Extension>> extensions = new CopyOnWriteArrayList<>();
-
-			// Add the internal extensions
-			extensions.add(
-				new ExtensionMetadata(
-					new BundleContextExtension(containerState.bundleContext()),
-					containerState.id()));
-			extensions.add(
-				new ExtensionMetadata(
-					new RuntimeExtension(containerState, _configurationBuilder, _singleBuilder, _factoryBuilder),
-					containerState.id()));
-			extensions.add(
-				new ExtensionMetadata(
-					new LoggerExtension(containerState),
-					containerState.id()));
-
-			Thread currentThread = Thread.currentThread();
-			ClassLoader current = currentThread.getContextClassLoader();
-			BundleResourcesLoader.Builder builder = new BundleResourcesLoader.Builder(containerState.bundle(), containerState.extenderBundle());
+			_log.debug(log -> log.debug("CCR container startup for {}", bundle()));
 
 			try {
-				currentThread.setContextClassLoader(containerState.classLoader());
+				// always use a new class loader
+				BundleClassLoader loader = new BundleClassLoader(containerState.bundle(), containerState.extenderBundle());
 
-				// Add extensions found from the bundle's class loader, such as those in the Bundle-ClassPath
-				ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extensions::add);
+				_initializer = _serviceObjects.getService();
 
-				// Add external extensions
-				containerState.containerDTO().extensions.stream().map(
-					ExtendedExtensionDTO.class::cast
-				).map(
-					e -> {
-						builder.add(e.serviceReference.getBundle());
-						return new ExtensionMetadata(e.extension.getService(), e.template.serviceFilter);
-					}
-				).forEach(extensions::add);
+				processExtensions(loader, _initializer);
 
-				_bootstrap = new WeldBootstrap();
+				containerState.containerComponentTemplateDTO().properties.forEach(_initializer::addProperty);
 
-				BeanDeploymentArchive beanDeploymentArchive = new ContainerDeploymentArchive(
-					builder.build(),
-					containerState.id(),
-					containerState.beansModel().getBeanClassNames(),
-					containerState.beansModel().getBeansXml());
+				_containerInstance = _initializer
+						.addBeanClasses(containerState.beansModel().getOSGiBeans().stream().map(OSGiBean::getBeanClass).toArray(Class<?>[]::new))
+						.addBeanXmls(containerState.beansModel().getBeansXml().toArray(new URL[0]))
+						.setBundleContext(bundle().getBundleContext())
+						.setClassLoader(loader)
+						.initialize();
 
-				Deployment deployment = new ContainerDeployment(extensions, beanDeploymentArchive);
-
-				_bootstrap.startExtensions(extensions);
-				_bootstrap.startContainer(containerState.id(), new ContainerEnvironment(), deployment);
-				_bootstrap.startInitialization();
-				_bootstrap.deployBeans();
-				_bootstrap.validateBeans();
-				_bootstrap.endInitialization();
-			}
-			finally {
-				currentThread.setContextClassLoader(current);
+				withListeners(ContainerListener::onStartSuccess);
+			} catch (final RuntimeException re) {
+				withListeners(listener -> listener.onStartError(re));
+				throw re;
 			}
 
 			return true;
@@ -154,12 +155,73 @@ public class ContainerBootstrap extends Phase {
 		return Op.of(Mode.OPEN, Type.CONTAINER_BOOTSTRAP, containerState.id());
 	}
 
+	protected void processExtensions(BundleClassLoader loader, CDIContainerInitializer initializer) {
+		AtomicInteger counter = new AtomicInteger();
 
-	private volatile WeldBootstrap _bootstrap;
+		// Add the internal extensions
+		initializer.addExtension(
+			new BundleContextExtension(containerState.bundleContext()),
+			Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
+					Constants.SERVICE_DESCRIPTION, "Aries CDI BundleContextExtension"));
+		initializer.addExtension(
+			new RuntimeExtension(containerState, _configurationBuilder, _singleBuilder, _factoryBuilder),
+			Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
+					Constants.SERVICE_DESCRIPTION, "Aries CDI RuntimeExtension"));
+		initializer.addExtension(
+			new LoggerExtension(containerState),
+			Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
+					Constants.SERVICE_DESCRIPTION, "Aries CDI LoggerExtension"));
+
+		// Add extensions found from the bundle's class loader, such as those in the Bundle-ClassPath
+		ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extension ->
+			initializer.addExtension(
+				extension,
+				Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
+						Constants.SERVICE_DESCRIPTION, "ClassLoader Extension from " + containerState.bundle()))
+		);
+
+		// Add external extensions
+		for (ExtensionDTO extensionDTO : containerState.containerDTO().extensions) {
+			ExtendedExtensionDTO extendedExtensionDTO = (ExtendedExtensionDTO)extensionDTO;
+
+			initializer.addExtension(
+				extendedExtensionDTO.extension.getService(),
+				Maps.of(extendedExtensionDTO.extension.getServiceReference().getProperties()));
+
+			Bundle extensionBundle = extendedExtensionDTO.extension.getServiceReference().getBundle();
+
+			if (!loader.getBundles().contains(extensionBundle)) {
+				loader.getBundles().add(extensionBundle);
+			}
+		}
+	}
+
+	private void withListeners(final Consumer<ContainerListener> action) {
+		final ServiceReference<ContainerListener>[] refs = _listeners.getServiceReferences();
+		if (refs != null && refs.length > 0) {
+			final BundleContext bundleContext = bundle().getBundleContext();
+			Stream.of(refs).forEach(ref -> {
+				final ContainerListener service = bundleContext.getService(ref);
+				if (service != null) {
+					try {
+						action.accept(service);
+					} finally {
+						bundleContext.ungetService(ref);
+					}
+				}
+			});
+		}
+	}
+
+	private volatile AutoCloseable _containerInstance;
+	private final ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> _containerTracker;
 	private final ConfigurationListener.Builder _configurationBuilder;
 	private final FactoryComponent.Builder _factoryBuilder;
+	private CDIContainerInitializer _initializer;
+	private final ServiceObjects<CDIContainerInitializer> _serviceObjects;
 	private final SingleComponent.Builder _singleBuilder;
 	private final Syncro _lock = new Syncro(true);
 	private final Logger _log;
+	private final ServiceTracker<ContainerListener, ContainerListener> _listeners;
 
 }

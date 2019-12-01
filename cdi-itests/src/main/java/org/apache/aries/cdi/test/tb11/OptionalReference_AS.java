@@ -30,6 +30,10 @@ import org.osgi.service.cdi.annotations.Service;
 @Service
 public class OptionalReference_AS implements Pojo {
 
+	protected OptionalReference_AS() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
+
 	@Inject
 	@Reluctant
 	@Reference

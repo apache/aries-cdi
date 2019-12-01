@@ -33,6 +33,10 @@ import org.osgi.service.cdi.propertytypes.ServiceDescription;
 @ApplicationScoped
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ContextObserver {
+	protected ContextObserver() {
+		this(null, null, null);
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
 
 	@Inject
 	public ContextObserver(

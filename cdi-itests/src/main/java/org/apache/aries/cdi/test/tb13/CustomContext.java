@@ -30,6 +30,9 @@ import org.osgi.service.http.context.ServletContextHelper;
 @HttpWhiteboardListener
 @Service({ServletContextHelper.class, ServletContextListener.class})
 public class CustomContext extends ServletContextHelper implements ServletContextListener {
+	protected CustomContext() {
+		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
+	}
 
 	@Inject
 	public CustomContext(BundleContext bundleContext) {

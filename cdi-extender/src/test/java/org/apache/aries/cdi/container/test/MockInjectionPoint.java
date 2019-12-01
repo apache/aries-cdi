@@ -28,8 +28,6 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Qualifier;
 
-import org.jboss.weld.exceptions.IllegalArgumentException;
-
 public class MockInjectionPoint implements InjectionPoint {
 
 	public MockInjectionPoint(AnnotatedElement annotatedElement) {

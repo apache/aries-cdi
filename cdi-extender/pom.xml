@@ -53,6 +53,7 @@
 					<bnd><![CDATA[
 						-cdiannotations:
 						-conditionalpackage: \
+							aQute.lib.exceptions,\
 							org.apache.felix.utils.extender,\
 							org.osgi.util.converter
 					]]></bnd>
@@ -62,6 +63,11 @@
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.apache.aries.cdi</groupId>
+			<artifactId>org.apache.aries.cdi.spi</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.converter</artifactId>
@@ -85,10 +91,6 @@
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>
 			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.weld</groupId>
-			<artifactId>weld-osgi-bundle</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
@@ -129,6 +131,12 @@
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>osgi.core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>biz.aQute.bnd</groupId>
+			<artifactId>biz.aQute.bndlib</artifactId>
+			<version>${bnd.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>

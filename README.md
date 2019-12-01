@@ -78,15 +78,23 @@ If you want to emulate the CDI default use:
 
 In bnd `4.3.0+` you can rely purely on the discovery mode calculated from existing `beans.xml` files in your project. This grants even less configuration friction for existing projects migrating to OSGi CDI.
 
-## Pre-built runtime
+## Pre-built runtimes
 
-This repository provides an example for how to assemble an executable jar providing a complete runtime for you to just drop in your CDI bundles. It comes complete with logging, Gogo shell, Config Admin, Http Whiteboard support, and OSGi Promises.
+This repository provides two examples for how to assemble an executable jar providing a complete runtime for you to just drop in your CDI bundles. These come complete with logging, Gogo shell, Config Admin, Http Whiteboard support, and OSGi Promises.
 
-Once you've completed a successfull build, you should be able to execute the command:
+Once you've completed a successful build, you should be able to execute the commands:
 
-`java -jar cdi-executable/target/executable.jar`
+#### OpenWebBeans
 
-and be presented with a gogo shell prompt ready for you to install a CDI bundle.
+`java -jar cdi-executable/target/weld-executable.jar`
+
+and be presented a gogo shell prompt running in a framework that uses Aries CDI over **Apache OpenWebBeans** ready for you to install a CDI bundle.
+
+#### Weld
+
+`java -jar cdi-executable/target/owb-executable.jar`
+
+and be presented with a gogo shell prompt running in a framework that uses Aries CDI over **JBoss Weld** ready for you to install a CDI bundle.
 
 ## Architecture Overview
 
@@ -171,5 +179,17 @@ When a CDI bundle is identified by CCR several steps are taken before any bean i
          - `@Initialized(ComponentScoped.class)`
          - `@BeforeDestroy(ComponentScoped.class)`
          - `@Destroyed(ComponentScoped.class)`
+
+## Aries CDI SPI
+
+Aries CDI now has an SPI for enabling it to be used with any CDI container impl.
+
+The requirements to satisfy this SPI are quite simple:
+
+- Aries CDI Extender requires:
+
+  -  a **prototype scoped** service that implements `org.apache.aries.cdi.spi.CDIContainerInitializer`
+
+  - The behaviour of this container should be to start the `@ApplicationScoped` context immediately. This allows for services from the container component to be published right away.
 
 Check out the many questions and answers in the [FAQ](faq.md).

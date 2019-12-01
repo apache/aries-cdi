@@ -14,19 +14,23 @@
 
 package org.apache.aries.cdi.container.internal.util;
 
+import static java.util.Collections.list;
+import static java.util.Objects.requireNonNull;
+
 import java.lang.annotation.Annotation;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.osgi.service.cdi.annotations.BeanPropertyType;
 import org.osgi.util.converter.TypeReference;
@@ -51,13 +55,14 @@ public class Maps {
 		}
 	}
 
+	public static <T> Stream<Map.Entry<String, T>> streamOf(Dictionary<String, T> dictionary) {
+		return list(dictionary.keys()).stream().map(key -> new AbstractMap.SimpleEntry<>(key, dictionary.get(key)));
+	}
+
 	public static Map<String, Object> of(Dictionary<String, ?> dict) {
 		Map<String, Object> map = new HashMap<>();
 
-		for (Enumeration<String> enu = dict.keys(); enu.hasMoreElements();) {
-			String key = enu.nextElement();
-			map.put(key, dict.get(key));
-		}
+		streamOf(dict).forEach(e -> map.put(e.getKey(), e.getValue()));
 
 		return map;
 	}
@@ -65,11 +70,7 @@ public class Maps {
 	public static Dictionary<String, ?> dict(Map<String, Object> map) {
 		Dictionary<String, Object> dict = new Hashtable<>();
 
-		if (map != null) {
-			for (Entry<String, Object> entry : map.entrySet()) {
-				dict.put(entry.getKey(), entry.getValue());
-			}
-		}
+		requireNonNull(map).forEach(dict::put);
 
 		return dict;
 	}
@@ -100,15 +101,28 @@ public class Maps {
 	}
 
 	public static Map<String, Object> merge(Collection<Annotation> annotations) {
-		return annotations.stream().filter(
+		return merge(annotations.stream().filter(
 			ann -> Objects.nonNull(ann.annotationType().getAnnotation(BeanPropertyType.class))
 		).map(
 			ann -> Conversions.convert(ann).sourceAs(ann.annotationType()).to(new TypeReference<Map<String, Object>>() {})
-		).map(Map::entrySet).flatMap(Collection::stream).collect(
+		).map(Map::entrySet).flatMap(Collection::stream));
+	}
+
+	public static Map<String, Object> merge(List<Dictionary<String, Object>> dictionaries) {
+		return merge(dictionaries.stream().flatMap(Maps::streamOf));
+	}
+
+	@SafeVarargs
+	public static Map<String, Object> merge(Map<String, Object>... maps) {
+		return merge(Arrays.stream(maps).map(Map::entrySet).flatMap(Collection::stream));
+	}
+
+	public static Map<String, Object> merge(Stream<Map.Entry<String, Object>> mapEntries) {
+		return mapEntries.collect(
 			Collectors.toMap(
 				Map.Entry::getKey,
 				Map.Entry::getValue,
-				Maps::merge
+				Maps::mergeValues
 			)
 		);
 	}
@@ -122,10 +136,11 @@ public class Maps {
 		);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static List<?> merge(Object a, Object b) {
+	@SuppressWarnings("unchecked")
+	public static List<?> mergeValues(Object a, Object b) {
 		List<?> aList = Conversions.convert(a).to(new TypeReference<List<?>>() {});
 		List<?> bList = Conversions.convert(b).to(new TypeReference<List<?>>() {});
+		@SuppressWarnings({ "rawtypes" })
 		List checkedList = Collections.checkedList(new ArrayList(), aList.get(0).getClass());
 		checkedList.addAll(aList);
 		checkedList.addAll(bList);

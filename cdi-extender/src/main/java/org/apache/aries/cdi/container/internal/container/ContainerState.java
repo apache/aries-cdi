@@ -32,26 +32,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.enterprise.inject.Any;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.util.AnnotationLiteral;
 
 import org.apache.aries.cdi.container.internal.ChangeCount;
 import org.apache.aries.cdi.container.internal.loader.BundleClassLoader;
-import org.apache.aries.cdi.container.internal.loader.BundleResourcesLoader;
 import org.apache.aries.cdi.container.internal.model.BeansModel;
 import org.apache.aries.cdi.container.internal.model.BeansModelBuilder;
 import org.apache.aries.cdi.container.internal.model.ExtendedConfigurationTemplateDTO;
 import org.apache.aries.cdi.container.internal.model.ExtendedExtensionTemplateDTO;
 import org.apache.aries.cdi.container.internal.util.Logs;
 import org.apache.aries.cdi.container.internal.util.Throw;
-import org.jboss.weld.resources.spi.ResourceLoader;
-import org.jboss.weld.serialization.spi.ProxyServices;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.dto.BundleDTO;
-import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleWire;
@@ -72,10 +66,6 @@ import org.osgi.util.promise.PromiseFactory;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ContainerState {
-
-	public static final AnnotationLiteral<Any> ANY = new AnnotationLiteral<Any>() {
-		private static final long serialVersionUID = 1L;
-	};
 
 	public ContainerState(
 		Bundle bundle,
@@ -193,14 +183,12 @@ public class ContainerState {
 
 		_containerDTO.template.components.add(_containerComponentTemplateDTO);
 
-		_aggregateClassLoader = new BundleClassLoader(getBundles(_bundle, _extenderBundle));
+		_aggregateClassLoader = new BundleClassLoader(_bundle, _extenderBundle);
 
 		_beansModel = new BeansModelBuilder(this, _aggregateClassLoader, bundleWiring, cdiAttributes).build();
 
-		_bundleClassLoader = bundleWiring.getClassLoader();
-
 		try {
-			new ContainerDiscovery(this);
+			new Discovery(this).discover();
 		}
 		catch (Exception e) {
 			_log.error(l -> l.error("CCR Discovery resulted in errors on {}", bundle, e));
@@ -240,10 +228,6 @@ public class ContainerState {
 		return _bundle;
 	}
 
-	public ClassLoader bundleClassLoader() {
-		return _bundleClassLoader;
-	}
-
 	public BundleContext bundleContext() {
 		return _bundleContext;
 	}
@@ -256,7 +240,7 @@ public class ContainerState {
 		return _ccrLogs;
 	}
 
-	public ClassLoader classLoader() {
+	public BundleClassLoader classLoader() {
 		return _aggregateClassLoader;
 	}
 
@@ -330,11 +314,6 @@ public class ContainerState {
 		_changeCount.incrementAndGet();
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T extends ResourceLoader & ProxyServices> T loader() {
-		return (T)new BundleResourcesLoader.Builder(_bundle, _extenderBundle).build();
-	}
-
 	public PromiseFactory promiseFactory() {
 		return _promiseFactory;
 	}
@@ -380,39 +359,11 @@ public class ContainerState {
 		return promise;
 	}
 
-	private static Bundle[] getBundles(Bundle bundle, Bundle extenderBundle) {
-		List<Bundle> bundles = new ArrayList<>();
-
-		bundles.add(bundle);
-		bundles.add(extenderBundle);
-
-		BundleWiring extenderWiring = extenderBundle.adapt(BundleWiring.class);
-
-		List<BundleWire> requiredWires = extenderWiring.getRequiredWires(PackageNamespace.PACKAGE_NAMESPACE);
-
-		for (BundleWire bundleWire : requiredWires) {
-			BundleCapability capability = bundleWire.getCapability();
-			Map<String, Object> attributes = capability.getAttributes();
-			String packageName = (String)attributes.get(PackageNamespace.PACKAGE_NAMESPACE);
-			if (!packageName.startsWith("org.jboss.weld.")) {
-				continue;
-			}
-
-			Bundle wireBundle = bundleWire.getProvider().getBundle();
-			if (!bundles.contains(wireBundle)) {
-				bundles.add(wireBundle);
-			}
-		}
-
-		return bundles.toArray(new Bundle[0]);
-	}
-
-	private final ClassLoader _aggregateClassLoader;
+	private final BundleClassLoader _aggregateClassLoader;
 	private volatile Deferred<BeanManager> _beanManagerDeferred;
 	private final BeansModel _beansModel;
 	private final Bundle _bundle;
 	private final BundleContext _bundleContext;
-	private final ClassLoader _bundleClassLoader;
 	private final Map<CheckedCallback<?, ?>, Deferred<?>> _callbacks = new ConcurrentHashMap<>();
 	private final ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> _caTracker;
 	private final Logger _log;

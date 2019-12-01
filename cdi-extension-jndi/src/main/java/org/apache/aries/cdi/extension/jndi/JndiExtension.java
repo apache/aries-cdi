@@ -33,7 +33,7 @@ public class JndiExtension implements Extension, ObjectFactory {
 
 	public JndiExtension(Logger log) {
 		_beanManager = new Deferred<>();
-		_jndiContext = new JndiContext(log, _beanManager.getPromise());
+		_jndiContext = new JndiContext(log).setBeanManager(_beanManager.getPromise());
 	}
 
 	@Override
@@ -53,9 +53,11 @@ public class JndiExtension implements Extension, ObjectFactory {
 		AfterDeploymentValidation adv, BeanManager beanManager) {
 
 		_beanManager.resolve(beanManager);
+		_jndiContext.setBeanManager(_beanManager.getPromise());
+		_beanManager = new Deferred<>();
 	}
 
-	private final Deferred<BeanManager> _beanManager;
+	private volatile Deferred<BeanManager> _beanManager;
 	private final JndiContext _jndiContext;
 
 }
