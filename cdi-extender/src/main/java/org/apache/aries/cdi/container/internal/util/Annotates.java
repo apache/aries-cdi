@@ -23,6 +23,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,8 +31,14 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.decorator.Decorator;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.ConversationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.NormalScope;
+import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.enterprise.inject.Stereotype;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.AnnotatedField;
 import javax.enterprise.inject.spi.AnnotatedMember;
@@ -47,6 +54,7 @@ import javax.enterprise.inject.spi.ProcessSyntheticBean;
 import javax.inject.Named;
 import javax.inject.Qualifier;
 import javax.inject.Scope;
+import javax.interceptor.Interceptor;
 
 import org.osgi.service.cdi.ServiceScope;
 import org.osgi.service.cdi.annotations.Service;
@@ -57,6 +65,16 @@ public class Annotates {
 	private Annotates() {
 		// no instances
 	}
+
+	private static final Predicate<Annotation> isBeanDefining = annotation ->
+		ApplicationScoped.class.isAssignableFrom(annotation.annotationType()) ||
+		ConversationScoped.class.isAssignableFrom(annotation.annotationType()) ||
+		Decorator.class.isAssignableFrom(annotation.annotationType()) ||
+		Dependent.class.isAssignableFrom(annotation.annotationType()) ||
+		Interceptor.class.isAssignableFrom(annotation.annotationType()) ||
+		RequestScoped.class.isAssignableFrom(annotation.annotationType()) ||
+		SessionScoped.class.isAssignableFrom(annotation.annotationType()) ||
+		Stereotype.class.isAssignableFrom(annotation.annotationType());
 
 	private static final Predicate<Annotation> isQualifier = annotation ->
 		!annotation.annotationType().equals(Qualifier.class) &&
@@ -132,7 +150,11 @@ public class Annotates {
 	}
 
 	public static Set<Annotation> qualifiers(Annotated annotated) {
-		return collect(annotated.getAnnotations()).stream().filter(isQualifier).collect(Collectors.toSet());
+		return collect(annotated, isQualifier);
+	}
+
+	public static Set<Annotation> collect(Annotated annotated, Predicate<Annotation> predicate) {
+		return collect(annotated.getAnnotations()).stream().filter(predicate).collect(Collectors.toSet());
 	}
 
 	private static List<Annotation> collect(Collection<Annotation> annotations) {
@@ -303,9 +325,23 @@ public class Annotates {
 	}
 
 	public static Class<? extends Annotation> beanScope(Annotated annotated) {
+		return beanScope(annotated, Dependent.class);
+	}
+
+	public static Class<? extends Annotation> beanScope(Annotated annotated, Class<? extends Annotation> defaultValue) {
 		Class<? extends Annotation> scope = collect(annotated.getAnnotations()).stream().filter(isScope).map(Annotation::annotationType).findFirst().orElse(null);
 
-		return (scope == null) ? Dependent.class : scope;
+		return (scope == null) ? defaultValue : scope;
+	}
+
+	public static boolean hasBeanDefiningAnnotations(AnnotatedType<?> annotatedType) {
+		Set<Annotation> beanDefiningAnnotations = new HashSet<>();
+
+		beanDefiningAnnotations.addAll(collect(annotatedType, isBeanDefining));
+		beanDefiningAnnotations.addAll(annotatedType.getFields().stream().flatMap(field -> collect(field, isBeanDefining).stream()).collect(Collectors.toSet()));
+		beanDefiningAnnotations.addAll(annotatedType.getMethods().stream().flatMap(method -> collect(method, isBeanDefining).stream()).collect(Collectors.toSet()));
+
+		return !beanDefiningAnnotations.isEmpty();
 	}
 
 }

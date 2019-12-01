@@ -20,7 +20,9 @@
 	logback.configurationFile=file:${.}/logback.xml,\
 	org.osgi.service.http.port=0,\
 	osgi.console=,\
-	tck.config.test.javaconfig.converter.stringvalues=foo
+	tck.config.test.javaconfig.converter.stringvalues=foo,\
+	test.property.a=blah,\
+	test.property.b=
 
 -resolve.effective: resolve, active
 

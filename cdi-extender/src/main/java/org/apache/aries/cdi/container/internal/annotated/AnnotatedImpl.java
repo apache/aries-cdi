@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.container.internal.annotated;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toSet;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -66,6 +66,11 @@ public class AnnotatedImpl<X> implements Annotated {
 	@Override
 	public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
 		return _annotatedElement.isAnnotationPresent(annotationType);
+	}
+
+	@Override
+	public String toString() {
+		return _baseType.getTypeName();
 	}
 
 }

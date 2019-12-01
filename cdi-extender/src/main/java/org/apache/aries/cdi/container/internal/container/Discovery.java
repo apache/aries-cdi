@@ -14,16 +14,22 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
@@ -38,6 +44,13 @@ import javax.enterprise.inject.spi.AnnotatedParameter;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.aries.cdi.container.internal.annotated.AnnotatedTypeImpl;
 import org.apache.aries.cdi.container.internal.model.BeansModel;
@@ -64,15 +77,50 @@ import org.osgi.service.cdi.reference.BindBeanServiceObjects;
 import org.osgi.service.cdi.reference.BindService;
 import org.osgi.service.cdi.reference.BindServiceReference;
 import org.osgi.service.cdi.runtime.dto.template.ComponentTemplateDTO;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import aQute.lib.exceptions.Exceptions;
 
 public class Discovery {
 
 	private static final List<Type> BIND_TYPES = Arrays.asList(BindService.class, BindBeanServiceObjects.class, BindServiceReference.class);
 
+	static final DocumentBuilderFactory	dbf	= DocumentBuilderFactory.newInstance();
+	static final XPathFactory			xpf	= XPathFactory.newInstance();
+	static final XPathExpression		trimExpression;
+	static final XPathExpression		excludeExpression;
+
+	static {
+		try {
+			dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			dbf.setXIncludeAware(false);
+			dbf.setExpandEntityReferences(false);
+			XPath xPath = xpf.newXPath();
+			trimExpression = xPath.compile("boolean(/beans/trim)");
+			excludeExpression = xPath.compile("/beans/scan/exclude");
+		} catch (Throwable t) {
+			throw Exceptions.duck(t);
+		}
+	}
+
 	public Discovery(ContainerState containerState) {
 		_containerState = containerState;
 		_beansModel = _containerState.beansModel();
 		_containerTemplate = _containerState.containerDTO().template.components.get(0);
+
+		AtomicBoolean trim = new AtomicBoolean();
+
+		_excludes = new ArrayList<>();
+
+		_beansModel.getBeansXml().stream().map(this::readXMLResource).forEach(doc -> {
+			if (!trim.get()) trim.set(checkTrim(doc));
+			_excludes.addAll(getExcludes(doc));
+		});
+
+		_trim = trim.get();
 	}
 
 	public void discover() {
@@ -80,6 +128,10 @@ public class Discovery {
 			osgiBean.found(true);
 
 			AnnotatedType<?> annotatedType = new AnnotatedTypeImpl<>(osgiBean.getBeanClass());
+
+			if (trimIt(annotatedType) || exclude(annotatedType)) {
+				return;
+			}
 
 			try {
 				String beanName = Annotates.beanName(annotatedType);
@@ -152,6 +204,23 @@ public class Discovery {
 		});
 
 		postProcessComponentScopedBeans();
+	}
+
+	boolean exclude(AnnotatedType<?> annotatedType) {
+		// See https://docs.jboss.org/cdi/spec/2.0/cdi-spec.html#exclude_filters
+		return _excludes.stream().anyMatch(ex -> ex.exclude(annotatedType));
+	}
+
+	boolean trimIt(AnnotatedType<?> annotatedType) {
+		// See https://docs.jboss.org/cdi/spec/2.0/cdi-spec.html#trimmed_bean_archive
+		if (!_trim) return false;
+
+		if (Annotates.hasBeanDefiningAnnotations(annotatedType)) return false;
+
+		// or any scope annotation
+		if (Annotates.beanScope(annotatedType, null) != null) return false;
+
+		return true;
 	}
 
 	<X> boolean isInject(AnnotatedMember<X> annotatedMember) {
@@ -389,9 +458,177 @@ public class Discovery {
 		}
 	}
 
+	boolean checkTrim(Document document) {
+		try {
+			return Boolean.class.cast(trimExpression.evaluate(document, XPathConstants.BOOLEAN));
+		} catch (XPathExpressionException e) {
+			throw Exceptions.duck(e);
+		}
+	}
+
+	List<Exclude> getExcludes(Document document) {
+		try {
+			List<Exclude> excludes = new ArrayList<>();
+
+			NodeList excludeNodes = NodeList.class.cast(excludeExpression.evaluate(document, XPathConstants.NODESET));
+
+			for (int i = 0; i < excludeNodes.getLength(); i++) {
+				Element excludeElement = (Element)excludeNodes.item(i);
+
+				excludes.add(new Exclude(excludeElement));
+			}
+
+			return excludes;
+		}
+		catch (Exception e) {
+			throw Exceptions.duck(e);
+		}
+	}
+
+	Document readXMLResource(URL resource) {
+		try {
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			try (InputStream is = resource.openStream()) {
+				return db.parse(is);
+			} catch (Throwable t) {
+				return db.newDocument();
+			}
+		}
+		catch (Exception e) {
+			throw Exceptions.duck(e);
+		}
+	}
+
 	private final BeansModel _beansModel;
 	private final Set<OSGiBean> _componentScoped = new HashSet<>();
 	private final ComponentTemplateDTO _containerTemplate;
 	private final ContainerState _containerState;
+	private final boolean _trim;
+	private final List<Exclude> _excludes;
+
+	enum Match {
+		CLASSNAME, PACKAGE_NAME, PACKAGE_PREFIX
+	}
+
+	class Exclude {
+
+		private final String name;
+		private final Match match;
+		private final List<String> ifClassAvailableS = new ArrayList<>();
+		private final List<String> ifClassesNotAvailableS = new ArrayList<>();
+		private final Map<String, String> ifSystemPropertyS = new HashMap<>();
+
+		public Exclude(Element excludeElement) {
+			String glob = excludeElement.getAttribute("name");
+
+			if (glob.endsWith(".**")) {
+				match = Match.PACKAGE_PREFIX;
+				name = glob.substring(0, glob.length() - 3);
+			}
+			else if (glob.endsWith(".*")) {
+				match = Match.PACKAGE_NAME;
+				name = glob.substring(0, glob.length() - 2);
+			}
+			else {
+				match = Match.CLASSNAME;
+				name = glob;
+			}
+
+			NodeList ifClassAvailableNodes = excludeElement.getElementsByTagName("if-class-available");
+
+			for (int iCAIdx = 0; iCAIdx < ifClassAvailableNodes.getLength(); iCAIdx++) {
+				Element ifClassAvailableElement = (Element)ifClassAvailableNodes.item(iCAIdx);
+
+				Attr nameAttribute = ifClassAvailableElement.getAttributeNode("name");
+
+				ifClassAvailableS.add(nameAttribute.getValue());
+			}
+
+			NodeList ifClassNotAvailableNodes = excludeElement.getElementsByTagName("if-class-not-available");
+
+			for (int iCNAIdx = 0; iCNAIdx < ifClassNotAvailableNodes.getLength(); iCNAIdx++) {
+				Element ifClassNotAvailableElement = (Element)ifClassNotAvailableNodes.item(iCNAIdx);
+
+				Attr nameAttribute = ifClassNotAvailableElement.getAttributeNode("name");
+
+				ifClassesNotAvailableS.add(nameAttribute.getValue());
+			}
+
+			NodeList ifSystemPropertyNodes = excludeElement.getElementsByTagName("if-system-property");
+
+			for (int iCNAIdx = 0; iCNAIdx < ifSystemPropertyNodes.getLength(); iCNAIdx++) {
+				Element ifSystemPropertyElement = (Element)ifSystemPropertyNodes.item(iCNAIdx);
+
+				String value = "";
+
+				if (ifSystemPropertyElement.hasAttribute("value")) {
+					value = ifSystemPropertyElement.getAttributeNode("value").getValue();
+				}
+
+				Attr nameAttribute = ifSystemPropertyElement.getAttributeNode("name");
+
+				ifSystemPropertyS.put(nameAttribute.getValue(), value);
+			}
+		}
+
+		public boolean exclude(AnnotatedType<?> annotatedType) {
+			String className = annotatedType.getJavaClass().getName();
+			String packageName = annotatedType.getJavaClass().getPackage().getName();
+
+			boolean matches = false;
+			switch (match) {
+				case CLASSNAME: {
+					matches = className.equals(name);
+					break;
+				}
+				case PACKAGE_NAME: {
+					matches = packageName.equals(name);
+					break;
+				}
+				case PACKAGE_PREFIX: {
+					matches = packageName.startsWith(name);
+				}
+			}
+
+			if (matches &&
+				ifClassAvailableS.stream().allMatch(this::classIsAvailable) &&
+				ifClassesNotAvailableS.stream().allMatch(this::classIsNotAvailable) &&
+				ifSystemPropertyS.entrySet().stream().allMatch(this::isPropertySet)) {
+
+				return true;
+			}
+
+			return false;
+		}
+
+		boolean classIsNotAvailable(String className) {
+			return !classIsAvailable(className);
+		}
+
+		boolean classIsAvailable(String className) {
+			try {
+				Class.forName(className, false, _containerState.classLoader());
+				return true;
+			}
+			catch (ClassNotFoundException cnfe) {
+				return false;
+			}
+		}
+
+		boolean isPropertySet(Entry<String, String> entry) {
+			if (entry.getValue().isEmpty()) {
+				return _containerState.bundleContext().getProperty(entry.getKey()) != null;
+			}
+			else {
+				return entry.getValue().equals(_containerState.bundleContext().getProperty(entry.getKey()));
+			}
+		}
+
+		@Override
+		public String toString() {
+			return name + ":" + match;
+		}
+
+	}
 
 }
