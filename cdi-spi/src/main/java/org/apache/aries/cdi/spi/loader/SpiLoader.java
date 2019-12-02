@@ -22,8 +22,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleReference;
 
-public abstract class SpiLoader extends ClassLoader {
+public abstract class SpiLoader extends ClassLoader implements BundleReference {
 
 	public abstract List<Bundle> getBundles();
 
