@@ -14,7 +14,8 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import javax.enterprise.inject.spi.BeanManager;
 
@@ -48,7 +49,7 @@ public class CdiExtenderTests extends AbstractTestCase {
 
 			cdiExtenderBundle.start();
 
-			for (int i = 10; (i > 0) && (tracker.getTrackingCount() == trackingCount); i--) {
+			for (int i = 20; (i > 0) && (tracker.getTrackingCount() == trackingCount); i--) {
 				Thread.sleep(20);
 			}
 

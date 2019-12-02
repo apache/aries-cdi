@@ -14,7 +14,9 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -31,13 +33,16 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.osgi.services.HttpClientBuilderFactory;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.assertj.core.util.Arrays;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.runtime.HttpServiceRuntime;
-import org.osgi.service.http.runtime.dto.RequestInfoDTO;
+import org.osgi.service.http.runtime.dto.ServletContextDTO;
+import org.osgi.service.http.runtime.dto.ServletDTO;
+import org.osgi.service.http.whiteboard.HttpWhiteboardConstants;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class HttpTestCase extends AbstractTestCase {
@@ -50,9 +55,9 @@ public class HttpTestCase extends AbstractTestCase {
 		try {
 			String path = "/foo";
 
-			RequestInfoDTO requestInfoDTO = waitFor(path);
+			ServletDTO servletDTO = waitFor(path);
 
-			assertEquals("foo", requestInfoDTO.servletDTO.name);
+			assertEquals("foo", servletDTO.name);
 
 			HttpClientBuilder clientBuilder = hcbf.newBuilder();
 			CloseableHttpClient httpclient = clientBuilder.build();
@@ -114,9 +119,9 @@ public class HttpTestCase extends AbstractTestCase {
 		try {
 			String path = "/bar";
 
-			RequestInfoDTO requestInfoDTO = waitFor(path);
+			ServletDTO servletDTO = waitFor(path);
 
-			assertEquals("bar", requestInfoDTO.servletDTO.name);
+			assertEquals("bar", servletDTO.name);
 
 			HttpClientBuilder clientBuilder = hcbf.newBuilder();
 			CloseableHttpClient httpclient = clientBuilder.build();
@@ -221,16 +226,20 @@ public class HttpTestCase extends AbstractTestCase {
 		}
 	}
 
-	private RequestInfoDTO waitFor(String path) throws InterruptedException {
+	private ServletDTO waitFor(String path) throws InterruptedException {
 		return waitFor(path, 20);
 	}
 
-	private RequestInfoDTO waitFor(String path, int intervals) throws InterruptedException {
+	private ServletDTO waitFor(String path, int intervals) throws InterruptedException {
 		for (int j = intervals; j > 0; j--) {
-			RequestInfoDTO requestInfoDTO = hsr.calculateRequestInfoDTO(path);
-
-			if ((requestInfoDTO.servletDTO != null) || (requestInfoDTO.resourceDTO != null)) {
-				return requestInfoDTO;
+			for (ServletContextDTO scDTO : hsr.getRuntimeDTO().servletContextDTOs) {
+				if (scDTO.name.equals(HttpWhiteboardConstants.HTTP_WHITEBOARD_DEFAULT_CONTEXT_NAME)) {
+					for (ServletDTO sDTO : scDTO.servletDTOs) {
+						if (Arrays.asList(sDTO.patterns).contains(path)) {
+							return sDTO;
+						}
+					}
+				}
 			}
 
 			Thread.sleep(50);
