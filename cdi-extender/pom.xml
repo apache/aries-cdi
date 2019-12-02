@@ -54,8 +54,7 @@
 						-cdiannotations:
 						-conditionalpackage: \
 							aQute.lib.exceptions,\
-							org.apache.felix.utils.extender,\
-							org.osgi.util.converter
+							org.apache.felix.utils.extender
 					]]></bnd>
 				</configuration>
 			</plugin>

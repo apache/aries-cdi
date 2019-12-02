@@ -57,10 +57,6 @@
 				<configuration>
 					<bnd><![CDATA[
 						Export-Package: org.eclipse.microprofile.config.*
-						Import-Package: \
-							!net.bytebuddy.*,\
-							!org.osgi.annotation.bundle.*,\
-							*
 						-includepackage: org.apache.geronimo.config.*
 						-cdiannotations:
 						-noclassforname: true
@@ -82,11 +78,19 @@
 				<configuration>
 					<transformations>
 						<transformation>
-							<plugin>org.apache.aries.cdi.extension.mp.config.BB</plugin>
+							<plugin>org.apache.aries.cdi.build.tools.AddExtensionRequirement</plugin>
 							<arguments>
 								<argument>
 									<index>1</index>
+									<value>eclipse.microprofile.config</value>
+								</argument>
+								<argument>
+									<index>2</index>
 									<value>${mp.config.version}</value>
+								</argument>
+								<argument>
+									<index>3</index>
+									<value>org.eclipse.microprofile.config.inject.ConfigProperty</value>
 								</argument>
 							</arguments>
 						</transformation>
@@ -97,6 +101,11 @@
 						<groupId>org.osgi</groupId>
 						<artifactId>osgi.annotation</artifactId>
 						<version>7.0.0</version>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.aries.cdi</groupId>
+						<artifactId>org.apache.aries.cdi.build.tools</artifactId>
+						<version>${project.version}</version>
 					</dependency>
 				</dependencies>
 			</plugin>
