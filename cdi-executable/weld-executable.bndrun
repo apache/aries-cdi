@@ -45,8 +45,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
 
 -runblacklist: \
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)',\
-	osgi.identity;filter:='(osgi.identity=org.jboss.spec.*)'
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)'
 
 -runbundles: \
 	javax.ejb-api;version='[3.2.0,3.2.1)',\

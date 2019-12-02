@@ -43,8 +43,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
 
 -runblacklist: \
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)',\
-	osgi.identity;filter:='(osgi.identity=org.jboss.spec.*)'
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)'
 
 -runbundles: \
 	javax.servlet.jsp-api;version='[2.3.3,2.3.4)',\

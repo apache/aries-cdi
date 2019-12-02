@@ -22,8 +22,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
 
 -runblacklist: \
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)',\
-	osgi.identity;filter:='(osgi.identity=org.jboss.spec.*)'
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)'
 
 -runsystempackages: \
 	org.slf4j;version=1.7.25,\
