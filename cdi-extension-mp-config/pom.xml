@@ -153,13 +153,6 @@
 			<groupId>org.osgi</groupId>
 			<artifactId>osgi.core</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>net.bytebuddy</groupId>
-			<artifactId>byte-buddy</artifactId>
-			<version>${byte.buddy.version}</version>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
 
 </project>
