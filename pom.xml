@@ -78,8 +78,7 @@
 			<dependency>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>org.apache.felix.converter</artifactId>
-				<version>1.0.4</version>
-				<scope>provided</scope>
+				<version>1.0.12</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.felix</groupId>
