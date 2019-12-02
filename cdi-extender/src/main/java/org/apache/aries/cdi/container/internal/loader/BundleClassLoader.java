@@ -34,13 +34,19 @@ import org.osgi.framework.Bundle;
 public final class BundleClassLoader extends SpiLoader {
 
 	public BundleClassLoader(Bundle cdiBundle, Bundle extenderBundle) {
+		_bundle = cdiBundle;
 		_bundles.add(requireNonNull(cdiBundle));
 		_bundles.add(requireNonNull(extenderBundle));
 	}
 
 	@Override
+	public Bundle getBundle() {
+		return _bundle;
+	}
+
+	@Override
 	public URL findResource(String name) {
-		for (Bundle bundle : _bundles) {
+		for (Bundle bundle : getBundles()) {
 			if ((bundle.getState() & Bundle.UNINSTALLED) == Bundle.UNINSTALLED) {
 				continue;
 			}
@@ -56,7 +62,7 @@ public final class BundleClassLoader extends SpiLoader {
 
 	@Override
 	public Enumeration<URL> findResources(String name) {
-		for (Bundle bundle : _bundles) {
+		for (Bundle bundle : getBundles()) {
 			if ((bundle.getState() & Bundle.UNINSTALLED) == Bundle.UNINSTALLED) {
 				continue;
 			}
@@ -80,6 +86,9 @@ public final class BundleClassLoader extends SpiLoader {
 
 	@Override
 	public List<Bundle> getBundles() {
+		if (!_bundles.contains(_bundle)) {
+			_bundles.add(0, _bundle);
+		}
 		return _bundles;
 	}
 
@@ -118,7 +127,7 @@ public final class BundleClassLoader extends SpiLoader {
 		Object classLoadingLock = getClassLoadingLock(name);
 
 		synchronized (classLoadingLock) {
-			for (Bundle bundle : _bundles) {
+			for (Bundle bundle : getBundles()) {
 				if ((bundle.getState() & Bundle.UNINSTALLED) == Bundle.UNINSTALLED) {
 					continue;
 				}
@@ -212,6 +221,7 @@ public final class BundleClassLoader extends SpiLoader {
 		}
 	}
 
+	private final Bundle _bundle;
 	private final List<Bundle> _bundles = new CopyOnWriteArrayList<>();
 	private final ConcurrentMap<String, Class<?>> _cache = new ConcurrentHashMap<>();
 	private volatile Predicate<String> classPredicate;
