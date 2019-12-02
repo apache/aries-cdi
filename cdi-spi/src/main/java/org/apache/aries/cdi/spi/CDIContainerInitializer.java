@@ -83,7 +83,7 @@ public abstract class CDIContainerInitializer {
 	 * <p>
 	 * The last such call will win.
 	 *
-	 * @param beanXmls
+	 * @param bundleContext
 	 * @return this
 	 */
 	public abstract CDIContainerInitializer setBundleContext(BundleContext bundleContext);
