@@ -18,19 +18,15 @@ import static javax.interceptor.Interceptor.Priority.LIBRARY_AFTER;
 import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
 import static org.osgi.framework.Constants.SERVICE_RANKING;
 import static org.osgi.framework.Constants.SERVICE_VENDOR;
-import static org.osgi.namespace.extender.ExtenderNamespace.EXTENDER_NAMESPACE;
-import static org.osgi.service.cdi.CDIConstants.CDI_CAPABILITY_NAME;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_LISTENER;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -72,22 +68,23 @@ import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletName;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletPattern;
 import org.apache.aries.cdi.extra.propertytypes.ServiceDescription;
 import org.apache.aries.cdi.extra.propertytypes.ServiceRanking;
+import org.apache.aries.cdi.spi.configuration.Configuration;
 import org.jboss.weld.module.web.servlet.WeldInitialListener;
-import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.framework.wiring.BundleCapability;
-import org.osgi.framework.wiring.BundleRequirement;
-import org.osgi.framework.wiring.BundleWire;
-import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.cdi.annotations.Service;
 
 public class HttpExtension implements Extension {
 
-	public HttpExtension(Bundle bundle) {
-		_bundle = bundle;
+	private volatile Configuration configuration;
+
+	void getConfiguration(@Observes Configuration configuration) {
+		this.configuration = configuration;
 	}
 
-	<X> void processWebFilter(@Observes @WithAnnotations(WebFilter.class) ProcessAnnotatedType<X> pat) {
+	<X> void processWebFilter(
+		@Observes @WithAnnotations(WebFilter.class) ProcessAnnotatedType<X> pat) {
+
 		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
 		WebFilter webFilter = annotatedType.getAnnotation(WebFilter.class);
@@ -99,7 +96,7 @@ public class HttpExtension implements Extension {
 		}
 
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
+			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)));
 		}
 
 		if (!webFilter.description().isEmpty()) {
@@ -132,7 +129,9 @@ public class HttpExtension implements Extension {
 		}
 	}
 
-	<X> void processWebListener(@Observes @WithAnnotations(WebListener.class) ProcessAnnotatedType<X> pat) {
+	<X> void processWebListener(
+		@Observes @WithAnnotations(WebListener.class) ProcessAnnotatedType<X> pat) {
+
 		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
 		WebListener webListener = annotatedType.getAnnotation(WebListener.class);
@@ -170,7 +169,7 @@ public class HttpExtension implements Extension {
 		}
 
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
+			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)));
 		}
 
 		annotationsToAdd.add(HttpWhiteboardListener.Literal.INSTANCE);
@@ -184,7 +183,9 @@ public class HttpExtension implements Extension {
 		}
 	}
 
-	<X> void processWebServlet(@Observes @WithAnnotations(WebServlet.class) ProcessAnnotatedType<X> pat) {
+	<X> void processWebServlet(
+		@Observes @WithAnnotations(WebServlet.class) ProcessAnnotatedType<X> pat) {
+
 		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
 		WebServlet webServlet = annotatedType.getAnnotation(WebServlet.class);
@@ -196,7 +197,7 @@ public class HttpExtension implements Extension {
 		}
 
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of(getSelectedContext()));
+			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)));
 		}
 
 		if (!webServlet.name().isEmpty()) {
@@ -240,12 +241,14 @@ public class HttpExtension implements Extension {
 		beanManager.getEvent().fireAsync(new Ready());
 	}
 
-	void ready(@ObservesAsync Ready ready, BeanManager beanManager) {
+	void ready(
+		@ObservesAsync Ready ready, BeanManager beanManager, BundleContext bundleContext) {
+
 		Dictionary<String, Object> properties = new Hashtable<>();
 
 		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension for Weld");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
-		properties.put(HTTP_WHITEBOARD_CONTEXT_SELECT, getSelectedContext());
+		properties.put(HTTP_WHITEBOARD_CONTEXT_SELECT, configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT));
 		properties.put(HTTP_WHITEBOARD_LISTENER, Boolean.TRUE.toString());
 		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
 
@@ -255,7 +258,7 @@ public class HttpExtension implements Extension {
 
 		WeldInitialListener initialListener = bean.create(beanManager.createCreationalContext(bean));
 
-		_listenerRegistration = _bundle.getBundleContext().registerService(
+		_listenerRegistration = bundleContext.registerService(
 			LISTENER_CLASSES, new ListenerWrapper<>(initialListener), properties);
 	}
 
@@ -270,63 +273,12 @@ public class HttpExtension implements Extension {
 		}
 	}
 
-	private Map<String, Object> getAttributes() {
-		BundleWiring bundleWiring = _bundle.adapt(BundleWiring.class);
-
-		List<BundleWire> wires = bundleWiring.getRequiredWires(EXTENDER_NAMESPACE);
-
-		Map<String, Object> cdiAttributes = Collections.emptyMap();
-
-		for (BundleWire wire : wires) {
-			BundleCapability capability = wire.getCapability();
-			Map<String, Object> attributes = capability.getAttributes();
-			String extender = (String)attributes.get(EXTENDER_NAMESPACE);
-
-			if (extender.equals(CDI_CAPABILITY_NAME)) {
-				BundleRequirement requirement = wire.getRequirement();
-				cdiAttributes = requirement.getAttributes();
-				break;
-			}
-		}
-
-		return cdiAttributes;
-	}
-
-	private String getSelectedContext() {
-		if (_contextSelect != null) {
-			return _contextSelect;
-		}
-
-		return _contextSelect = getSelectedContext0();
-	}
-
-	private String getSelectedContext0() {
-		Map<String, Object> attributes = getAttributes();
-
-		if (attributes.containsKey(HTTP_WHITEBOARD_CONTEXT_SELECT)) {
-			return (String)attributes.get(HTTP_WHITEBOARD_CONTEXT_SELECT);
-		}
-
-		Dictionary<String,String> headers = _bundle.getHeaders();
-
-		if (headers.get(WEB_CONTEXT_PATH) != null) {
-			return CONTEXT_PATH_PREFIX + headers.get(WEB_CONTEXT_PATH) + ')';
-		}
-
-		return DEFAULT_CONTEXT_FILTER;
-	}
-
-	private static final String CONTEXT_PATH_PREFIX = "(osgi.http.whiteboard.context.path=";
-	private static final String DEFAULT_CONTEXT_FILTER = "(osgi.http.whiteboard.context.name=default)";
 	private static final String[] LISTENER_CLASSES = new String[] {
-		ServletContextListener.class.getName(),
-		ServletRequestListener.class.getName(),
-		HttpSessionListener.class.getName()
+			ServletContextListener.class.getName(),
+			ServletRequestListener.class.getName(),
+			HttpSessionListener.class.getName()
 	};
-	private static final String WEB_CONTEXT_PATH = "Web-ContextPath";
 
-	private final Bundle _bundle;
-	private String _contextSelect;
 	private volatile ServiceRegistration<?> _listenerRegistration;
 	private final AtomicBoolean destroyed = new AtomicBoolean(false);
 

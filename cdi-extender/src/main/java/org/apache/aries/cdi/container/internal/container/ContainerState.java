@@ -106,6 +106,8 @@ public class ContainerState {
 			}
 		}
 
+		_cdiAttributes = Collections.unmodifiableMap(cdiAttributes);
+
 		wires = bundleWiring.getRequiredWires(CDI_EXTENSION_PROPERTY);
 
 		List<String> extensionRequirements = new ArrayList<>();
@@ -138,7 +140,7 @@ public class ContainerState {
 		_containerDTO.template.components = new CopyOnWriteArrayList<>();
 		_containerDTO.template.extensions = new CopyOnWriteArrayList<>();
 		_containerDTO.template.id = Optional.ofNullable(
-			(String)cdiAttributes.get(CDI_CONTAINER_ID)
+			(String)_cdiAttributes.get(CDI_CONTAINER_ID)
 		).orElse(
 			_bundle.getSymbolicName()
 		);
@@ -171,7 +173,7 @@ public class ContainerState {
 		ExtendedConfigurationTemplateDTO configurationTemplate = new ExtendedConfigurationTemplateDTO();
 		configurationTemplate.maximumCardinality = MaximumCardinality.ONE;
 		configurationTemplate.pid = Optional.ofNullable(
-			(String)cdiAttributes.get(CDI_CONTAINER_ID)
+			(String)_cdiAttributes.get(CDI_CONTAINER_ID)
 		).map(
 			s -> s.replaceAll("-", ".")
 		).orElse(
@@ -185,7 +187,7 @@ public class ContainerState {
 
 		_aggregateClassLoader = new BundleClassLoader(_bundle, _extenderBundle);
 
-		_beansModel = new BeansModelBuilder(this, _aggregateClassLoader, bundleWiring, cdiAttributes).build();
+		_beansModel = new BeansModelBuilder(this, _aggregateClassLoader, bundleWiring, _cdiAttributes).build();
 
 		try {
 			new Discovery(this).discover();
@@ -238,6 +240,10 @@ public class ContainerState {
 
 	public Logs ccrLogs() {
 		return _ccrLogs;
+	}
+
+	public Map<String, Object> cdiAttributes() {
+		return _cdiAttributes;
 	}
 
 	public BundleClassLoader classLoader() {
@@ -368,6 +374,7 @@ public class ContainerState {
 	private final ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> _caTracker;
 	private final Logger _log;
 	private final Logs _ccrLogs;
+	private final Map<String, Object> _cdiAttributes;
 	private final ChangeCount _changeCount;
 	private final AtomicBoolean _closing = new AtomicBoolean(false);
 	private final ComponentContext _componentContext = new ComponentContext();

@@ -26,7 +26,7 @@ public class HttpExtensionFactory implements PrototypeServiceFactory<Extension> 
 	public Extension getService(
 		Bundle bundle, ServiceRegistration<Extension> registration) {
 
-		return new HttpExtension(bundle);
+		return new HttpExtension();
 	}
 
 	@Override

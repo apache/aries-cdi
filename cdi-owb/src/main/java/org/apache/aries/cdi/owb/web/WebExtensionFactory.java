@@ -26,7 +26,7 @@ public class WebExtensionFactory implements PrototypeServiceFactory<Extension> {
 	public Extension getService(
 		Bundle bundle, ServiceRegistration<Extension> registration) {
 
-		return new WebExtension(bundle);
+		return new WebExtension();
 	}
 
 	@Override

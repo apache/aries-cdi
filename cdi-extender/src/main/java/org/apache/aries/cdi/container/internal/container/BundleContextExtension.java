@@ -16,9 +16,7 @@ package org.apache.aries.cdi.container.internal.container;
 
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.configurator.BeanConfigurator;
 
 import org.osgi.framework.BundleContext;
 
@@ -28,10 +26,10 @@ public class BundleContextExtension implements Extension {
 		_bundleContext = bundleContext;
 	}
 
-	void afterBeanDiscovery(@Observes AfterBeanDiscovery abd, BeanManager manager) {
-		BeanConfigurator<BundleContext> bean = abd.addBean();
-		bean.addType(BundleContext.class);
-		bean.createWith(c -> _bundleContext);
+	void afterBeanDiscovery(@Observes AfterBeanDiscovery abd) {
+		abd.addBean()
+			.addType(BundleContext.class)
+			.createWith(c -> _bundleContext);
 	}
 
 	private final BundleContext _bundleContext;

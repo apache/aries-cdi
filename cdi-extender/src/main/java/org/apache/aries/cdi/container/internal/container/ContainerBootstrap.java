@@ -160,6 +160,10 @@ public class ContainerBootstrap extends Phase {
 
 		// Add the internal extensions
 		initializer.addExtension(
+			new ConfigurationExtension(containerState),
+			Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
+					Constants.SERVICE_DESCRIPTION, "Aries CDI ConfigurationExtension"));
+		initializer.addExtension(
 			new BundleContextExtension(containerState.bundleContext()),
 			Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
 					Constants.SERVICE_DESCRIPTION, "Aries CDI BundleContextExtension"));
