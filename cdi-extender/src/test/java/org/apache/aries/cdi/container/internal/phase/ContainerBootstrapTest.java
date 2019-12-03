@@ -83,6 +83,7 @@ public class ContainerBootstrapTest extends BaseCDIBundleTest {
 		@SuppressWarnings("unchecked")
 		ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> serviceTracker = mock(ServiceTracker.class);
 
+		@SuppressWarnings("unchecked")
 		ContainerBootstrap containerBootstrap = new ContainerBootstrap(
 			containerState, serviceTracker,
 			new ConfigurationListener.Builder(containerState),
