@@ -15,14 +15,17 @@
 package org.apache.aries.cdi.test.cases;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import javax.servlet.ServletContextListener;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
+import org.osgi.service.http.runtime.HttpServiceRuntime;
+import org.osgi.service.http.runtime.dto.ServletContextDTO;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class BeanPropertyTypeTest extends AbstractTestCase {
@@ -35,31 +38,61 @@ public class BeanPropertyTypeTest extends AbstractTestCase {
 	public static void afterClass() throws Exception {
 	}
 
-	@Override
-	public void setUp() throws Exception {
-	}
-
-	@After
-	@Override
-	public void tearDown() throws Exception {
-	}
-
 	@Test
-	public void usesMarkerAnnotation() throws Exception {
+	public void beanPropertyAnnotationsWereUsed() throws Exception {
 		Bundle tbBundle = installBundle("tb13.jar");
 
 		try {
 			getBeanManager(tbBundle);
 
-			ServiceTracker<ServletContextListener, ServletContextListener> oneTracker = track("(objectClass=%s)", ServletContextListener.class.getName());
-			oneTracker.open();
-			Object service = oneTracker.waitForService(timeout);
+			ServletContextDTO contextDTO = waitFor("customContext");
 
-			assertThat(service).isNotNull();
+			assertThat(contextDTO).isNotNull();
 		}
 		finally {
 			tbBundle.uninstall();
 		}
 	}
+
+	@Before
+	@Override
+	public void setUp() throws Exception {
+		hsrTracker = new ServiceTracker<>(bundleContext, HttpServiceRuntime.class, null);
+
+		hsrTracker.open();
+
+		hsr = hsrTracker.waitForService(timeout);
+
+		assertNotNull(hsr);
+	}
+
+	@After
+	@Override
+	public void tearDown() throws Exception {
+		hsrTracker.close();
+	}
+
+	private ServletContextDTO waitFor(String context) throws InterruptedException {
+		return waitFor(context, 20);
+	}
+
+	private ServletContextDTO waitFor(String context, int intervals) throws InterruptedException {
+		for (int j = intervals; j > 0; j--) {
+			for (ServletContextDTO scDTO : hsr.getRuntimeDTO().servletContextDTOs) {
+				if (scDTO.name.equals(context)) {
+					return scDTO;
+				}
+			}
+
+			Thread.sleep(50);
+		}
+
+		assertTrue(String.format("%s not found in time", context), false);
+
+		return null;
+	}
+
+	private HttpServiceRuntime hsr;
+	private ServiceTracker<HttpServiceRuntime, HttpServiceRuntime> hsrTracker;
 
 }
