@@ -12,7 +12,30 @@
  * limitations under the License.
  */
 
-@Beans
-package org.apache.aries.cdi.test.beans;
+package org.apache.aries.cdi.test.tb21;
 
-import org.osgi.service.cdi.annotations.Beans;
+import org.apache.aries.cdi.test.interfaces.Pojo;
+import org.osgi.annotation.bundle.Requirement;
+import org.osgi.service.cdi.CDIConstants;
+import org.osgi.service.cdi.annotations.Bean;
+import org.osgi.service.cdi.annotations.Service;
+
+@Bean
+@Requirement(
+	namespace = CDIConstants.CDI_EXTENSION_PROPERTY,
+	name = "aries.cdi.jndi"
+)
+@Service
+public class A implements Pojo {
+
+	@Override
+	public String foo(String input) {
+		return "JNDI:" + input;
+	}
+
+	@Override
+	public int getCount() {
+		return 0;
+	}
+
+}

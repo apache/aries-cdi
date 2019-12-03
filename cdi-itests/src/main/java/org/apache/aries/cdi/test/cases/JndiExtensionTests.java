@@ -28,18 +28,23 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.BundleTracker;
+import org.osgi.util.tracker.ServiceTracker;
 
-public class JndiExtensionTests extends AbstractTestCase {
+public class JndiExtensionTests extends SlimTestCase {
 
 	@Ignore("I think there's an issue with Aries JNDI. It doesn't work well with service objects")
 	@Test
 	public void testGetBeanManagerThroughJNDI() throws Exception {
-		assertNotNull(getBeanManager(cdiBundle));
+		Bundle testBundle = installBundle("tb21.jar", false);
+
+		testBundle.start();
+
+		assertNotNull(getBeanManager(testBundle));
 
 		Thread currentThread = Thread.currentThread();
 		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
 		try {
-			BundleWiring bundleWiring = cdiBundle.adapt(BundleWiring.class);
+			BundleWiring bundleWiring = testBundle.adapt(BundleWiring.class);
 			currentThread.setContextClassLoader(bundleWiring.getClassLoader());
 
 			BeanManager beanManager = (BeanManager)InitialContext.doLookup("java:comp/BeanManager");
@@ -65,12 +70,20 @@ public class JndiExtensionTests extends AbstractTestCase {
 		};
 		bundleTracker.open();
 
+		Bundle testBundle = installBundle("tb21.jar", false);
+
+		testBundle.start();
+
+		ServiceTracker<Pojo, Pojo> st = new ServiceTracker<Pojo, Pojo>(
+			bundleContext, Pojo.class, null);
+		st.open(true);
+
 		try {
 			assertFalse(bundleTracker.isEmpty());
 
 			Bundle extensionBundle = bundleTracker.getBundles()[0];
 
-			try (CloseableTracker<BeanManager, BeanManager> bmTracker = trackBM(cdiBundle);) {
+			try (CloseableTracker<BeanManager, BeanManager> bmTracker = trackBM(testBundle);) {
 				assertNotNull(bmTracker.waitForService(timeout));
 
 				extensionBundle.stop();
@@ -79,18 +92,19 @@ public class JndiExtensionTests extends AbstractTestCase {
 					Thread.sleep(100);
 				}
 
-				assertThat(bmTracker).matches(CloseableTracker::isEmpty);
+				assertThat(bmTracker).matches(CloseableTracker::isEmpty, "Is empty");
 
 				extensionBundle.start();
 
-				for (int i = 20; (i > 0) && bmTracker.isEmpty(); i--) {
+				for (int i = 100; (i > 0) && bmTracker.isEmpty(); i--) {
 					Thread.sleep(100);
 				}
 
-				assertThat(bmTracker).matches(c -> !c.isEmpty());
+				assertThat(bmTracker).matches(c -> !c.isEmpty(), "Not empty");
 			}
 		}
 		finally {
+			testBundle.uninstall();
 			bundleTracker.close();
 		}
 	}
