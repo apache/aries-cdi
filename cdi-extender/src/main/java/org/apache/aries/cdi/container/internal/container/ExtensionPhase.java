@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
-import static org.apache.aries.cdi.container.internal.util.Filters.*;
+import static org.apache.aries.cdi.container.internal.util.Filters.asFilter;
 
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +33,7 @@ import org.apache.aries.cdi.container.internal.util.SRs;
 import org.apache.aries.cdi.container.internal.util.Syncro;
 import org.apache.aries.cdi.container.internal.util.Throw;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cdi.runtime.dto.ExtensionDTO;
@@ -128,13 +129,13 @@ public class ExtensionPhase extends Phase {
 
 		StringBuilder sb = new StringBuilder("(&(objectClass=" + Extension.class.getName() + ")");
 
-		if (templates.size() > 1) sb.append("(|");
+		sb.append("(|");
 
 		for (ExtensionTemplateDTO tmpl : templates) {
 			sb.append(tmpl.serviceFilter);
 		}
 
-		if (templates.size() > 1) sb.append(")");
+		sb.append("(aries.cdi.extension.mode=implicit))");
 
 		sb.append(")");
 
@@ -156,6 +157,8 @@ public class ExtensionPhase extends Phase {
 		(e1, e2) -> e1.serviceReference.compareTo(e2.serviceReference)
 	);
 
+	private final Filter implicitFilter = asFilter("(aries.cdi.extension.mode=implicit)");
+
 	private class ExtensionPhaseCustomizer implements ServiceTrackerCustomizer<Extension, ExtendedExtensionDTO> {
 
 		@Override
@@ -168,7 +171,15 @@ public class ExtensionPhase extends Phase {
 				t -> (ExtendedExtensionTemplateDTO)t
 			).filter(
 				t -> t.filter.match(reference)
-			).findFirst().get();
+			).findFirst().orElseGet(() -> {
+				if (implicitFilter.match(reference)) {
+					ExtendedExtensionTemplateDTO implicitTemplate = new ExtendedExtensionTemplateDTO();
+					implicitTemplate.filter = asFilter("(&(aries.cdi.extension.mode=implicit)(service.id=%s))", reference.getProperty(Constants.SERVICE_ID));
+					implicitTemplate.serviceFilter = implicitTemplate.filter.toString();
+					return implicitTemplate;
+				}
+				return null;
+			});
 
 			ExtendedExtensionDTO snapshot = snapshots().stream().map(
 				s -> (ExtendedExtensionDTO)s
@@ -203,7 +214,7 @@ public class ExtensionPhase extends Phase {
 			next.ifPresent(
 				next -> submit(next.closeOp(), next::close).then(
 					s -> {
-						if (snapshots().size() == extensionTemplates().size()) {
+						if (extensionTemplates().stream().allMatch(tmpl -> snapshots().stream().anyMatch(ext -> ext.template == tmpl))) {
 							return submit(next.openOp(), next::open).onFailure(
 								f -> {
 									_log.error(l -> l.error("CCR Error in extension open TRACKING {} on {}", reference, bundle(), f));
@@ -238,7 +249,8 @@ public class ExtensionPhase extends Phase {
 
 			containerState.bundleContext().ungetService(reference);
 
-			if (!snapshots().removeIf(snap -> ((ExtendedExtensionDTO)snap).serviceReference.equals(reference))) {
+			if (!snapshots().removeIf(snap ->
+					((ExtendedExtensionDTO)snap).serviceReference.equals(reference))) {
 				return;
 			}
 
@@ -258,7 +270,7 @@ public class ExtensionPhase extends Phase {
 				next -> {
 					Promise<Boolean> result = submit(next.closeOp(), next::close).then(
 						s -> {
-							if (snapshots().size() == extensionTemplates().size()) {
+							if (extensionTemplates().stream().allMatch(tmpl -> snapshots().stream().anyMatch(ext -> ext.template == tmpl))) {
 								return submit(next.openOp(), next::open).onFailure(
 									f -> {
 										_log.error(l -> l.error("CCR Error in extension open {} on {}", reference, bundle(), f));
