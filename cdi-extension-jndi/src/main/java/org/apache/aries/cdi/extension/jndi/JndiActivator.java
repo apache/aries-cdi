@@ -30,8 +30,6 @@ import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.log.LoggerFactory;
-import org.osgi.util.tracker.ServiceTracker;
 
 @Header(
 	name = BUNDLE_ACTIVATOR,
@@ -41,9 +39,6 @@ public class JndiActivator implements BundleActivator {
 
 	@Override
 	public void start(BundleContext context) throws Exception {
-		_lft = new ServiceTracker<>(context, LoggerFactory.class, null);
-		_lft.open();
-
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(CDI_EXTENSION_PROPERTY, "aries.cdi.jndi");
 		properties.put(JNDI_URLSCHEME, "java");
@@ -52,16 +47,14 @@ public class JndiActivator implements BundleActivator {
 
 		_serviceRegistration = context.registerService(
 			new String[] {Extension.class.getName(), ObjectFactory.class.getName()},
-			new JndiExtensionFactory(_lft.getService()), properties);
+			new JndiExtensionFactory(), properties);
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		_serviceRegistration.unregister();
-		_lft.close();
 	}
 
-	private volatile ServiceTracker<LoggerFactory, LoggerFactory> _lft;
 	private ServiceRegistration<?> _serviceRegistration;
 
 }
