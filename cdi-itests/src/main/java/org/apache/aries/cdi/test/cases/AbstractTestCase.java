@@ -55,6 +55,7 @@ import org.osgi.namespace.service.ServiceNamespace;
 import org.osgi.service.cdi.CDIConstants;
 import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
+import org.osgi.service.configurator.annotations.RequireConfigurator;
 import org.osgi.util.promise.PromiseFactory;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
@@ -76,6 +77,11 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 	namespace = CDI_EXTENSION_PROPERTY,
 	name = "eclipse.microprofile.config"
 )
+@Requirement(
+	namespace = CDI_EXTENSION_PROPERTY,
+	name = "eclipse.microprofile.metrics"
+)
+@RequireConfigurator
 public abstract class AbstractTestCase {
 
 	@Rule

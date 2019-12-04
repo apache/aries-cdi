@@ -22,7 +22,8 @@
 	osgi.console=,\
 	tck.config.test.javaconfig.converter.stringvalues=foo,\
 	test.property.a=blah,\
-	test.property.b=
+	test.property.b=,\
+	org.apache.felix.http.host=localhost
 
 -resolve.effective: resolve, active
 
