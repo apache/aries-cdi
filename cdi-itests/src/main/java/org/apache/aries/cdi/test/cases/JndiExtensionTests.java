@@ -14,17 +14,20 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.Extension;
 import javax.naming.InitialContext;
 
 import org.apache.aries.cdi.test.interfaces.Pojo;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.util.tracker.BundleTracker;
 
 public class JndiExtensionTests extends AbstractTestCase {
 
@@ -51,36 +54,44 @@ public class JndiExtensionTests extends AbstractTestCase {
 
 	@Test
 	public void testDisableExtensionAndCDIContainerWaits() throws Exception {
-		try (CloseableTracker<Extension, Extension> extensionTracker = track(
-				"(&(objectClass=%s)(osgi.cdi.extension=aries.cdi.jndi))",
-				Extension.class.getName());) {
-			assertFalse(extensionTracker.isEmpty());
+		BundleTracker<Bundle> bundleTracker = new BundleTracker<Bundle>(bundleContext, Bundle.ACTIVE, null) {
+			@Override
+			public Bundle addingBundle(Bundle bundle, BundleEvent event) {
+				if (bundle.getSymbolicName().equals("org.apache.aries.cdi.extension.jndi")) {
+					return bundle;
+				}
+				return null;
+			}
+		};
+		bundleTracker.open();
 
-			Bundle extensionBundle = extensionTracker.getServiceReference().getBundle();
+		try {
+			assertFalse(bundleTracker.isEmpty());
+
+			Bundle extensionBundle = bundleTracker.getBundles()[0];
 
 			try (CloseableTracker<BeanManager, BeanManager> bmTracker = trackBM(cdiBundle);) {
 				assertNotNull(bmTracker.waitForService(timeout));
 
-				int trackingCount = bmTracker.getTrackingCount();
-
 				extensionBundle.stop();
 
-				for (int i = 100; (i > 0) && (bmTracker.getTrackingCount() == trackingCount); i--) {
+				for (int i = 100; (i > 0) && !bmTracker.isEmpty(); i--) {
 					Thread.sleep(100);
 				}
 
-				assertTrue(bmTracker.isEmpty());
-
-				trackingCount = bmTracker.getTrackingCount();
+				assertThat(bmTracker).matches(CloseableTracker::isEmpty);
 
 				extensionBundle.start();
 
-				for (int i = 20; (i > 0) && (bmTracker.getTrackingCount() == trackingCount); i--) {
+				for (int i = 20; (i > 0) && bmTracker.isEmpty(); i--) {
 					Thread.sleep(100);
 				}
 
-				assertFalse(bmTracker.isEmpty());
+				assertThat(bmTracker).matches(c -> !c.isEmpty());
 			}
+		}
+		finally {
+			bundleTracker.close();
 		}
 	}
 

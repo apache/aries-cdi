@@ -15,6 +15,7 @@
 package org.apache.aries.cdi.container.internal.model;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -99,6 +100,7 @@ public class FactoryComponent extends Component {
 
 	@Override
 	public List<ComponentInstanceDTO> instances() {
+		if (_snapshot == null) return Collections.emptyList();
 		return _snapshot.instances;
 	}
 
