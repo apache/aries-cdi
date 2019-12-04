@@ -365,6 +365,11 @@ public class ContainerState {
 		return promise;
 	}
 
+	@Override
+	public String toString() {
+		return _bundle.toString();
+	}
+
 	private final BundleClassLoader _aggregateClassLoader;
 	private volatile Deferred<BeanManager> _beanManagerDeferred;
 	private final BeansModel _beansModel;

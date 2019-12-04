@@ -60,9 +60,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		AtomicReference<Deferred<Object[]>> b = new AtomicReference<>(new Deferred<>());
 		AtomicReference<Deferred<Object[]>> c = new AtomicReference<>(new Deferred<>());
 
-		Consumer<Object[]> onInitialized = (o) -> a.get().resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.get().resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.get().resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.get().resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -96,6 +96,8 @@ public class Test152_3_1_1 extends SlimTestCase {
 				a.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 
 				configuration = configurationAdmin.getConfiguration("prototypeFactory", "?");
+
+				// this will trigger the onInitialized because of the tracker
 				configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 				// should only work with single configuration instances
@@ -108,10 +110,11 @@ public class Test152_3_1_1 extends SlimTestCase {
 
 				assertThat(tracker.waitForService(50)).isNotNull();
 
-				// we still didn't do a "get" so this should still fail
-				a.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
-
 				ServiceObjects<Object> serviceObjects = bundleContext.getServiceObjects(tracker.getService());
+
+				a.set(new Deferred<>());
+				b.set(new Deferred<>());
+				c.set(new Deferred<>());
 
 				Object service = serviceObjects.getService();
 				assertThat(service).isNotNull();
@@ -212,7 +215,6 @@ public class Test152_3_1_1 extends SlimTestCase {
 					s -> {
 						Object[] values = s.getValue();
 
-						assertThat(other).isEqualTo(values[0]);
 						assertThat((Map<String, Object>)values[1]).contains(
 							entry("component.name", "prototypeFactory")
 						).contains(
@@ -232,7 +234,6 @@ public class Test152_3_1_1 extends SlimTestCase {
 					s -> {
 						Object[] values = s.getValue();
 
-						assertThat(other).isEqualTo(values[0]);
 						assertThat((Map<String, Object>)values[1]).contains(
 							entry("component.name", "prototypeFactory")
 						).contains(
@@ -276,9 +277,11 @@ public class Test152_3_1_1 extends SlimTestCase {
 		AtomicReference<Deferred<Object[]>> b = new AtomicReference<>(new Deferred<>());
 		AtomicReference<Deferred<Object[]>> c = new AtomicReference<>(new Deferred<>());
 
-		Consumer<Object[]> onInitialized = (o) -> a.get().resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.get().resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.get().resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {
+			try {
+				a.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.get().resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -312,23 +315,14 @@ public class Test152_3_1_1 extends SlimTestCase {
 				a.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 
 				configuration = configurationAdmin.getConfiguration("prototypeSingle_C", "?");
+
+				// this will trigger the onInitialized because of the tracker
 				configuration.update(new Hashtable() {{put("foo", "bar");}});
-
-				assertThat(tracker.waitForService(50)).isNotNull();
-
-				// we still didn't do a "get" so this should still fail
-				a.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
-
-				ServiceObjects<Object> serviceObjects = bundleContext.getServiceObjects(tracker.getService());
-
-				Object service = serviceObjects.getService();
-				assertThat(service).isNotNull();
 
 				a.get().getPromise().timeout(timeout).then(
 					s -> {
 						Object[] values = s.getValue();
 
-						assertThat(service).isEqualTo(values[0]);
 						assertThat((Map<String, Object>)values[1]).contains(
 							entry("component.name", "prototypeSingle_C")
 						).contains(
@@ -344,14 +338,16 @@ public class Test152_3_1_1 extends SlimTestCase {
 
 				a.set(new Deferred<>());
 
-				Object other = serviceObjects.getService();
-				assertThat(other).isNotNull();
+				ServiceObjects<Object> serviceObjects = bundleContext.getServiceObjects(tracker.getService());
+
+				Object instance1 = serviceObjects.getService();
+				assertThat(instance1).isNotNull();
 
 				a.get().getPromise().timeout(timeout).then(
 					s -> {
 						Object[] values = s.getValue();
 
-						assertThat(other).isEqualTo(values[0]);
+						assertThat(instance1).isEqualTo(values[0]);
 						assertThat((Map<String, Object>)values[1]).contains(
 							entry("component.name", "prototypeSingle_C")
 						).contains(
@@ -365,15 +361,38 @@ public class Test152_3_1_1 extends SlimTestCase {
 				b.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 				c.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 
-				assertThat(service).isNotEqualTo(other);
+				a.set(new Deferred<>());
 
-				serviceObjects.ungetService(service);
+				Object instance2 = serviceObjects.getService();
+				assertThat(instance2).isNotNull();
+
+				a.get().getPromise().timeout(timeout).then(
+					s -> {
+						Object[] values = s.getValue();
+
+						assertThat(instance2).isEqualTo(values[0]);
+						assertThat((Map<String, Object>)values[1]).contains(
+							entry("component.name", "prototypeSingle_C")
+						).contains(
+							entry("foo", "bar")
+						);
+
+						return s;
+					},
+					f -> fail(f.toString())
+				).getValue();
+				b.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
+				c.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
+
+				assertThat(instance1).isNotEqualTo(instance2);
+
+				serviceObjects.ungetService(instance1);
 
 				b.get().getPromise().timeout(timeout).then(
 					s -> {
 						Object[] values = s.getValue();
 
-						assertThat(service).isEqualTo(values[0]);
+						assertThat(instance1).isEqualTo(values[0]);
 						assertThat((Map<String, Object>)values[1]).contains(
 							entry("component.name", "prototypeSingle_C")
 						);
@@ -387,7 +406,7 @@ public class Test152_3_1_1 extends SlimTestCase {
 					s -> {
 						Object[] values = s.getValue();
 
-						assertThat(service).isEqualTo(values[0]);
+						assertThat(instance1).isEqualTo(values[0]);
 						assertThat((Map<String, Object>)values[1]).contains(
 							entry("component.name", "prototypeSingle_C")
 						);
@@ -406,7 +425,6 @@ public class Test152_3_1_1 extends SlimTestCase {
 					s -> {
 						Object[] values = s.getValue();
 
-						assertThat(other).isEqualTo(values[0]);
 						assertThat((Map<String, Object>)values[1]).contains(
 							entry("component.name", "prototypeSingle_C")
 						);
@@ -420,7 +438,6 @@ public class Test152_3_1_1 extends SlimTestCase {
 					s -> {
 						Object[] values = s.getValue();
 
-						assertThat(other).isEqualTo(values[0]);
 						assertThat((Map<String, Object>)values[1]).contains(
 							entry("component.name", "prototypeSingle_C")
 						);
@@ -458,9 +475,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		AtomicReference<Deferred<Object[]>> b = new AtomicReference<>(new Deferred<>());
 		AtomicReference<Deferred<Object[]>> c = new AtomicReference<>(new Deferred<>());
 
-		Consumer<Object[]> onInitialized = (o) -> a.get().resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.get().resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.get().resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.get().resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -489,10 +506,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 			try (CloseableTracker<Object, ServiceReference<Object>> tracker = trackSR("(objectClass=%s)", Pojo.class.getName())) {
 				assertThat(tracker.waitForService(50)).isNotNull();
 
-				// we didn't do a "get" yet
-				a.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
-
 				ServiceObjects<Object> serviceObjects = bundleContext.getServiceObjects(tracker.getService());
+
+				a.set(new Deferred<>());
 
 				Object service = serviceObjects.getService();
 				assertThat(service).isNotNull();
@@ -619,9 +635,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -891,9 +907,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -985,9 +1001,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -1124,9 +1140,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -1248,9 +1264,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -1335,9 +1351,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -1442,9 +1458,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -1539,9 +1555,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
