@@ -1,6 +1,6 @@
 # Aries CDI Integration
 
-[![Build Status](https://builds.apache.org/buildStatus/icon?job=Aries-component-dsl-master)](https://builds.apache.org/job/Aries-cdi-master)
+[![Build Status](https://github.com/apache/aries-cdi/workflows/Java+CI/badge.svg)](https://github.com/apache/aries-cdi/actions?query=workflow%3A%22Java+CI%22)
 [![Maven Central](https://img.shields.io/maven-central/v/org.apache.aries.cdi/org.apache.aries.cdi.extender.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.apache.aries.cdi%22%20AND%20a:%22org.apache.aries.cdi.extender%22)
 
 This is an implementation of [OSGi CDI Integration Specification ](https://osgi.org/specification/osgi.enterprise/7.0.0/service.cdi.html) (hereafter referred to simply as _OSGi CDI_).
