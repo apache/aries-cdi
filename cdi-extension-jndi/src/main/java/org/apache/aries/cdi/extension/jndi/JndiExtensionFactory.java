@@ -17,25 +17,17 @@ package org.apache.aries.cdi.extension.jndi;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.PrototypeServiceFactory;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.log.Logger;
-import org.osgi.service.log.LoggerFactory;
 
 public class JndiExtensionFactory implements PrototypeServiceFactory<Object> {
 
-	public JndiExtensionFactory(LoggerFactory loggerFactory) {
-		_loggerFactory = loggerFactory;
-	}
-
 	@Override
 	public Object getService(Bundle bundle, ServiceRegistration<Object> registration) {
-		return new JndiExtension(_loggerFactory.getLogger(bundle, JndiContext.class.getName(), Logger.class));
+		return new JndiExtension();
 	}
 
 	@Override
 	public void ungetService(
 		Bundle bundle, ServiceRegistration<Object> registration, Object extension) {
 	}
-
-	private final LoggerFactory _loggerFactory;
 
 }

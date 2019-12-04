@@ -17,6 +17,7 @@ package org.apache.aries.cdi.extension.jndi;
 import static javax.interceptor.Interceptor.Priority.LIBRARY_AFTER;
 
 import java.util.Hashtable;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
@@ -26,14 +27,10 @@ import javax.enterprise.inject.spi.Extension;
 import javax.naming.Name;
 import javax.naming.spi.ObjectFactory;
 
-import org.osgi.service.log.Logger;
-import org.osgi.util.promise.Deferred;
-
 public class JndiExtension implements Extension, ObjectFactory {
 
-	public JndiExtension(Logger log) {
-		_beanManager = new Deferred<>();
-		_jndiContext = new JndiContext(log).setBeanManager(_beanManager.getPromise());
+	public JndiExtension() {
+		_jndiContext = new JndiContext(_beanManager);
 	}
 
 	@Override
@@ -52,12 +49,10 @@ public class JndiExtension implements Extension, ObjectFactory {
 		@Observes @Priority(LIBRARY_AFTER + 800)
 		AfterDeploymentValidation adv, BeanManager beanManager) {
 
-		_beanManager.resolve(beanManager);
-		_jndiContext.setBeanManager(_beanManager.getPromise());
-		_beanManager = new Deferred<>();
+		_beanManager.set(beanManager);
 	}
 
-	private volatile Deferred<BeanManager> _beanManager;
+	private final AtomicReference<BeanManager> _beanManager = new AtomicReference<>();
 	private final JndiContext _jndiContext;
 
 }
