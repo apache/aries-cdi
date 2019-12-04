@@ -1,12 +1,6 @@
 name: Java CI
 
-on: 
-  push:
-    branches:
-    - master
-  pull_request:
-    branches:
-    - master
+on: [push, pull_request]
 
 jobs:
   build:
@@ -20,4 +14,4 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Maven - Java 8
-      run: mvn -U -e -B -ntp clean verify
+      run: mvn -U -e -B -ntp verify
