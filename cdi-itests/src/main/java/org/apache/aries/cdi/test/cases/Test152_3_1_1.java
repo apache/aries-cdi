@@ -14,7 +14,9 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -763,9 +765,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		Deferred<Object[]> b = new Deferred<>();
 		Deferred<Object[]> c = new Deferred<>();
 
-		Consumer<Object[]> onInitialized = (o) -> a.resolve(o);
-		Consumer<Object[]> onBeforeDestroyed = (o) -> b.resolve(o);
-		Consumer<Object[]> onDestroyed = (o) -> c.resolve(o);
+		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
