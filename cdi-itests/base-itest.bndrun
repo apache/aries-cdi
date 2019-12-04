@@ -38,3 +38,9 @@
 	org.slf4j.helpers;version=1.7.25,\
 	org.slf4j.spi;version=1.7.25,\
 	sun.misc
+
+-runrequires.base: \
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.extra)',\
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.itests)',\
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.jndi.core)',\
+	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'

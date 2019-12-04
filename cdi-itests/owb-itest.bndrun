@@ -14,10 +14,7 @@
 #-runjdb: 8000
 
 -runrequires: \
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.itests)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.jndi.core)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)'
 
 -runblacklist: \
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)'

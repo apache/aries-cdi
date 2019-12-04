@@ -22,7 +22,6 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.naming.InitialContext;
 
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -32,7 +31,6 @@ import org.osgi.util.tracker.ServiceTracker;
 
 public class JndiExtensionTests extends SlimTestCase {
 
-	@Ignore("I think there's an issue with Aries JNDI. It doesn't work well with service objects")
 	@Test
 	public void testGetBeanManagerThroughJNDI() throws Exception {
 		Bundle testBundle = installBundle("tb21.jar", false);
@@ -106,6 +104,7 @@ public class JndiExtensionTests extends SlimTestCase {
 		finally {
 			testBundle.uninstall();
 			bundleTracker.close();
+			st.close();
 		}
 	}
 

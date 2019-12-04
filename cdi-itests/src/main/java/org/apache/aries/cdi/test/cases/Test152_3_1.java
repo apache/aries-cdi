@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,6 +90,8 @@ public class Test152_3_1 extends SlimTestCase {
 			Function.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
+		ServiceTracker<Object, Object> twoTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "two");
+
 		try {
 			getBeanManager(tb152_3_1Bundle);
 
@@ -97,7 +99,6 @@ public class Test152_3_1 extends SlimTestCase {
 			assertThat(b.get()).isNull();
 			assertThat(c.get()).isNull();
 
-			ServiceTracker<Object, Object> twoTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "two");
 			twoTracker.open();
 			int trackingCount = twoTracker.getTrackingCount();
 
@@ -146,6 +147,7 @@ public class Test152_3_1 extends SlimTestCase {
 			assertThat(eventMetadata.getQualifiers()).contains(Service.Literal.of(new Class<?>[0]));
 		}
 		finally {
+			twoTracker.close();
 			onInitializedReg.unregister();
 			onBeforeDestroyedReg.unregister();
 			onDestroyedReg.unregister();
@@ -194,6 +196,7 @@ public class Test152_3_1 extends SlimTestCase {
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
 		Configuration configuration = null;
+		ServiceTracker<Object, Object> threeTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "three");
 
 		try {
 			getBeanManager(tb152_3_1Bundle);
@@ -202,7 +205,6 @@ public class Test152_3_1 extends SlimTestCase {
 			assertThat(b.get()).isNull();
 			assertThat(c.get()).isNull();
 
-			ServiceTracker<Object, Object> threeTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "three");
 			threeTracker.open();
 			int trackingCount = threeTracker.getTrackingCount();
 
@@ -263,6 +265,7 @@ public class Test152_3_1 extends SlimTestCase {
 			assertThat(eventMetadata.getQualifiers()).contains(Service.Literal.of(new Class<?>[0]));
 		}
 		finally {
+			threeTracker.close();
 			configuration.delete();
 			onInitializedReg.unregister();
 			onBeforeDestroyedReg.unregister();
