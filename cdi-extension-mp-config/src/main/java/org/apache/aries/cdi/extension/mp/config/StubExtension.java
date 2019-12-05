@@ -18,8 +18,8 @@ import static org.apache.aries.cdi.extension.mp.config.StubExtension.EXTENSION_N
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.Extension;
 
 import org.apache.geronimo.config.cdi.ConfigExtension;
@@ -42,11 +42,8 @@ public class StubExtension extends ConfigExtension {
 
 	public final static String EXTENSION_NAME = "eclipse.microprofile.config";
 
-	@Override
-	public void registerConfigProducer(@Observes AfterBeanDiscovery abd, BeanManager bm) {
-		abd.addBean().beanClass(ConfigInjectionProducer.class).createWith(c -> new ConfigInjectionProducer());
-
-		super.registerConfigProducer(abd, bm);
+	public void addBeans(@Observes BeforeBeanDiscovery bbd, BeanManager bm) {
+		bbd.addAnnotatedType(bm.createAnnotatedType(ConfigInjectionProducer.class));
 	}
 
 }

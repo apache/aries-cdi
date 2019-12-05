@@ -15,7 +15,6 @@
 package org.apache.aries.cdi.extension.mp.metrics;
 
 import static javax.interceptor.Interceptor.Priority.LIBRARY_AFTER;
-import static javax.interceptor.Interceptor.Priority.LIBRARY_BEFORE;
 import static org.apache.aries.cdi.extension.mp.metrics.StubExtension.EXTENSION_NAME;
 import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
 import static org.osgi.framework.Constants.SERVICE_RANKING;
@@ -34,11 +33,11 @@ import java.util.Hashtable;
 import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.ObservesAsync;
-import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
@@ -79,14 +78,11 @@ public class StubExtension extends MetricsExtension {
 		this.configuration = configuration;
 	}
 
-	void addExtensionBeans(
-		@Priority(LIBRARY_BEFORE + 800)
-		@Observes final AfterBeanDiscovery abd, final BeanManager bm) {
-
-		abd.addBean().beanClass(CountedInterceptor.class).createWith(c -> new CountedInterceptor());
-		abd.addBean().beanClass(MeteredInterceptor.class).createWith(c -> new MeteredInterceptor());
-		abd.addBean().beanClass(TimedInterceptor.class).createWith(c -> new TimedInterceptor());
-		abd.addBean().beanClass(CdiMetricsEndpoints.class).createWith(c -> new CdiMetricsEndpoints());
+	public void addBeans(@Observes BeforeBeanDiscovery bbd, BeanManager bm) {
+		bbd.addAnnotatedType(bm.createAnnotatedType(CountedInterceptor.class));
+		bbd.addAnnotatedType(bm.createAnnotatedType(MeteredInterceptor.class));
+		bbd.addAnnotatedType(bm.createAnnotatedType(TimedInterceptor.class));
+		bbd.addAnnotatedType(bm.createAnnotatedType(CdiMetricsEndpoints.class));
 	}
 
 	void registerMetricsEndpoint(
