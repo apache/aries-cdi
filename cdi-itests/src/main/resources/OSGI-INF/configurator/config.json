@@ -1,0 +1,9 @@
+{
+	":configurator:resource-version" : 1,
+
+	"org.apache.aries.jax.rs.whiteboard.default": {
+		"osgi.http.whiteboard.context.select": "(osgi.http.whiteboard.context.name=default)",
+		"osgi.jaxrs.extension.select": "(osgi.jaxrs.name=metrics.json.provider)",
+		"default.web": false
+	}
+}
