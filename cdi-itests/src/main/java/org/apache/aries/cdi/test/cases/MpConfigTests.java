@@ -18,12 +18,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.apache.aries.cdi.test.interfaces.Pojo;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class MpConfigTests extends SlimTestCase {
 
+	@Ignore
 	@Test
 	public void testConfigIsSet() throws Exception {
 		Bundle tb2Bundle = installBundle("tb16.jar", false);

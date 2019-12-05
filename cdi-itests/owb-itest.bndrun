@@ -14,10 +14,7 @@
 #-runjdb: 8000
 
 -runrequires: \
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.itests)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.jndi.core)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)'
 
 -runblacklist: \
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)'
@@ -29,8 +26,6 @@
 	openwebbeans-spi;version='[2.0.13,2.0.14)',\
 	openwebbeans-web;version='[2.0.13,2.0.14)',\
 	org.apache.aries.cdi.extender;version='[1.1.0,1.1.1)',\
-	org.apache.aries.cdi.extension.jndi;version='[1.1.0,1.1.1)',\
-	org.apache.aries.cdi.extension.mp-config;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extra;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.itests;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.owb;version='[1.1.0,1.1.1)',\

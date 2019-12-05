@@ -277,11 +277,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 		AtomicReference<Deferred<Object[]>> b = new AtomicReference<>(new Deferred<>());
 		AtomicReference<Deferred<Object[]>> c = new AtomicReference<>(new Deferred<>());
 
-		Consumer<Object[]> onInitialized = (o) -> {
-			try {
-				a.get().resolve(o);} catch (Exception e) {}};
-		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.get().resolve(o);} catch (Exception e) {}};
-		Consumer<Object[]> onDestroyed = (o) -> {try {c.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onInitialized = (o) -> a.get().resolve(o);
+		Consumer<Object[]> onBeforeDestroyed = (o) -> b.get().resolve(o);
+		Consumer<Object[]> onDestroyed = (o) -> c.get().resolve(o);
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -316,27 +314,11 @@ public class Test152_3_1_1 extends SlimTestCase {
 
 				configuration = configurationAdmin.getConfiguration("prototypeSingle_C", "?");
 
-				// this will trigger the onInitialized because of the tracker
 				configuration.update(new Hashtable() {{put("foo", "bar");}});
 
-				a.get().getPromise().timeout(timeout).then(
-					s -> {
-						Object[] values = s.getValue();
-
-						assertThat((Map<String, Object>)values[1]).contains(
-							entry("component.name", "prototypeSingle_C")
-						).contains(
-							entry("foo", "bar")
-						);
-
-						return s;
-					},
-					f -> fail(f.toString())
-				).getValue();
+				a.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 				b.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 				c.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
-
-				a.set(new Deferred<>());
 
 				ServiceObjects<Object> serviceObjects = bundleContext.getServiceObjects(tracker.getService());
 
@@ -361,7 +343,7 @@ public class Test152_3_1_1 extends SlimTestCase {
 				b.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 				c.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 
-				a.set(new Deferred<>());
+				reset(a, b, c);
 
 				Object instance2 = serviceObjects.getService();
 				assertThat(instance2).isNotNull();
@@ -383,6 +365,8 @@ public class Test152_3_1_1 extends SlimTestCase {
 				).getValue();
 				b.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 				c.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
+
+				reset(a, b, c);
 
 				assertThat(instance1).isNotEqualTo(instance2);
 
@@ -416,8 +400,7 @@ public class Test152_3_1_1 extends SlimTestCase {
 					f -> fail(f.toString())
 				).getValue();
 
-				b.set(new Deferred<>());
-				c.set(new Deferred<>());
+				reset(a, b, c);
 
 				configuration.delete();
 
@@ -777,13 +760,13 @@ public class Test152_3_1_1 extends SlimTestCase {
 	@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 	@Test
 	public void bundleSingle_C() throws Exception {
-		Deferred<Object[]> a = new Deferred<>();
-		Deferred<Object[]> b = new Deferred<>();
-		Deferred<Object[]> c = new Deferred<>();
+		AtomicReference<Deferred<Object[]>> a = new AtomicReference<>(new Deferred<>());
+		AtomicReference<Deferred<Object[]>> b = new AtomicReference<>(new Deferred<>());
+		AtomicReference<Deferred<Object[]>> c = new AtomicReference<>(new Deferred<>());
 
-		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
-		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
-		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onInitialized = (o) -> {try {a.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.get().resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onDestroyed = (o) -> {try {c.get().resolve(o);} catch (Exception e) {}};
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -803,47 +786,18 @@ public class Test152_3_1_1 extends SlimTestCase {
 		try {
 			getBeanManager(tbBundle);
 
-			Success<Object[], Object[]> assertFailed = s -> {
-				fail("shouldn't have have succeeded");
-				return s;
-			};
-
-			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
+			assertPromiseIsNotResolved(a);
 
 			configuration = configurationAdmin.getConfiguration("bundleSingle_C", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
-			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
+			assertPromiseIsNotResolved(a);
 
 			try (CloseableTracker<Object, Object> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 				assertThat(tracker.waitForService(50)).isNotNull();
 			}
 
-			Success<Object[], Object[]> assertSucceeded = s -> {
-				Object[] values = s.getValue();
-
-				assertThat((Map<String, Object>)values[1]).contains(
-					entry("component.name", "bundleSingle_C")
-				).contains(
-					entry(Constants.SERVICE_PID, Arrays.asList("bundleSingle_C"))
-				).contains(
-					entry("foo", "bar")
-				);
-
-				return s;
-			};
-
-			a.getPromise().timeout(timeout).then(
-				assertSucceeded,
-				f -> fail(f.toString())
-			).getValue();
-
-			b.getPromise().timeout(timeout).then(assertFailed).getFailure();
-			c.getPromise().timeout(timeout).then(assertFailed).getFailure();
-
-			configuration.delete();
-
-			b.getPromise().timeout(timeout).then(
+			a.get().getPromise().timeout(timeout).then(
 				s -> {
 					Object[] values = s.getValue();
 
@@ -855,30 +809,50 @@ public class Test152_3_1_1 extends SlimTestCase {
 						entry("foo", "bar")
 					);
 
-					try (CloseableTracker<Object, Object> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
-						assertThat(tracker.waitForService(50)).isNull();
-					}
+					return s;
+				},
+				f -> fail(f.toString())
+			).getValue();
+
+			b.get().getPromise().timeout(timeout).then(
+				s -> {
+					Object[] values = s.getValue();
+
+					assertThat((Map<String, Object>)values[1]).contains(
+						entry("component.name", "bundleSingle_C")
+					).contains(
+						entry(Constants.SERVICE_PID, Arrays.asList("bundleSingle_C"))
+					).contains(
+						entry("foo", "bar")
+					);
 
 					return s;
 				},
 				f -> fail(f.toString())
 			).getValue();
-			c.getPromise().timeout(timeout).then(
-					s -> {
-						Object[] values = s.getValue();
+			c.get().getPromise().timeout(timeout).then(
+				s -> {
+					Object[] values = s.getValue();
 
-						assertThat((Map<String, Object>)values[1]).contains(
-							entry("component.name", "bundleSingle_C")
-						).contains(
-							entry(Constants.SERVICE_PID, Arrays.asList("bundleSingle_C"))
-						).contains(
-							entry("foo", "bar")
-						);
+					assertThat((Map<String, Object>)values[1]).contains(
+						entry("component.name", "bundleSingle_C")
+					).contains(
+						entry(Constants.SERVICE_PID, Arrays.asList("bundleSingle_C"))
+					).contains(
+						entry("foo", "bar")
+					);
 
-						return s;
-					},
+					return s;
+				},
 				f -> fail(f.toString())
 			).getValue();
+
+			reset(a, b, c);
+
+			configuration.delete();
+
+			assertPromiseIsNotResolved(b);
+			assertPromiseIsNotResolved(c);
 		}
 		finally {
 			if (configuration != null) {
@@ -897,6 +871,14 @@ public class Test152_3_1_1 extends SlimTestCase {
 				onBeforeDestroyedReg.unregister();
 				onDestroyedReg.unregister();
 			}
+		}
+	}
+
+	private void assertPromiseIsNotResolved(AtomicReference<Deferred<Object[]>> a) throws Exception {
+		Throwable throwable = a.get().getPromise().timeout(timeout).getFailure();
+
+		if (throwable == null) {
+			throw new AssertionError("Didn't fail! " + a);
 		}
 	}
 
@@ -1628,6 +1610,12 @@ public class Test152_3_1_1 extends SlimTestCase {
 				onBeforeDestroyedReg.unregister();
 				onDestroyedReg.unregister();
 			}
+		}
+	}
+
+	private void reset(@SuppressWarnings("unchecked") AtomicReference<Deferred<Object[]>> ... refs) {
+		for (AtomicReference<Deferred<Object[]>> ref : refs) {
+			ref.set(new Deferred<Object[]>());
 		}
 	}
 

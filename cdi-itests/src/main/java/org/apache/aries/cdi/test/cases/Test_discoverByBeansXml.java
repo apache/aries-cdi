@@ -14,20 +14,19 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Ignore;
+import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.template.ContainerTemplateDTO;
 
 public class Test_discoverByBeansXml extends SlimTestCase {
 
-	@Ignore("Until we get bnd 4.3.0")
-	//@Test
+	@Test
 	public void componentScopeContext() throws Exception {
 		Bundle tbBundle = installBundle("tb14.jar");
 
