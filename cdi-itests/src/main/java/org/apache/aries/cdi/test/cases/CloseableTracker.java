@@ -29,4 +29,9 @@ public class CloseableTracker<S, T> extends ServiceTracker<S, T> implements Auto
 		super(context, filter, customizer);
 	}
 
+	@Override
+	public void close() {
+		super.close();
+	}
+
 }

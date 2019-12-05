@@ -15,7 +15,11 @@
 package org.apache.aries.cdi.test.cases;
 
 import static java.lang.Thread.sleep;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -197,14 +201,13 @@ public class ConfigurationTests extends AbstractTestCase {
 		Bundle tb5Bundle = installBundle("tb5.jar");
 
 		Configuration configurationC = null;
-		ServiceTracker<BeanService, BeanService> stC = null;
+		ServiceTracker<BeanService, BeanService> stC = new ServiceTracker<BeanService, BeanService>(
+			bundleContext, bundleContext.createFilter(
+				"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C))"), null);
 
 		try {
 			Thread.sleep(1000); // <---- TODO fix this
 
-			stC = new ServiceTracker<BeanService, BeanService>(
-				bundleContext, bundleContext.createFilter(
-					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C))"), null);
 			stC.open(true);
 
 			BeanService<Callable<int[]>> beanService = stC.waitForService(timeout);

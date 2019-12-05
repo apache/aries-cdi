@@ -16,10 +16,7 @@
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=javax.ejb-api)',\
 	osgi.identity;filter:='(osgi.identity=javax.transaction-api)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.itests)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.jndi.core)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)'
 
 -runblacklist: \
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)'
