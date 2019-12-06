@@ -53,17 +53,8 @@ public class ExtensionPhase extends Phase {
 	@Override
 	public boolean close() {
 		try (Syncro open = syncro.open()) {
-			if (!extensionTemplates().isEmpty()) {
-				if (_extensionTracker != null) {
-					_extensionTracker.close();
-
-					_extensionTracker = null;
-				}
-
-				return true;
-			}
-			else {
-				return next.map(
+			if (extensionTemplates().isEmpty()) {
+				next.map(
 					next -> {
 						submit(next.closeOp(), next::close).onFailure(
 							f -> {
@@ -77,6 +68,14 @@ public class ExtensionPhase extends Phase {
 					}
 				).orElse(true);
 			}
+
+			if (_extensionTracker != null) {
+				_extensionTracker.close();
+
+				_extensionTracker = null;
+			}
+
+			return true;
 		}
 	}
 
@@ -93,29 +92,28 @@ public class ExtensionPhase extends Phase {
 				return false;
 			}
 
-			if (!extensionTemplates().isEmpty()) {
-				_extensionTracker = new ServiceTracker<>(
-						containerState.bundleContext(), createExtensionFilter(), new ExtensionPhaseCustomizer());
+			_extensionTracker = new ServiceTracker<>(
+				containerState.bundleContext(), createExtensionFilter(), new ExtensionPhaseCustomizer());
 
-				_extensionTracker.open();
+			_extensionTracker.open();
 
-				return true;
+			if (extensionTemplates().isEmpty()) {
+				next.map(
+					next -> {
+						submit(next.openOp(), next::open).onFailure(
+							f -> {
+								_log.error(l -> l.error("CCR Error in extension OPEN on {}", bundle(), f));
+
+								error(f);
+							}
+						);
+
+						return true;
+					}
+				).orElse(true);
 			}
-			else {
-				return next.map(
-						next -> {
-							submit(next.openOp(), next::open).onFailure(
-									f -> {
-										_log.error(l -> l.error("CCR Error in extension OPEN on {}", bundle(), f));
 
-										error(f);
-									}
-									);
-
-							return true;
-						}
-						).orElse(true);
-			}
+			return true;
 		}
 	}
 
