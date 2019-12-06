@@ -16,7 +16,6 @@ package org.apache.aries.cdi.test.cases;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 
@@ -34,9 +33,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.runtime.HttpServiceRuntime;
 import org.osgi.service.jaxrs.runtime.JaxrsServiceRuntime;
 import org.osgi.service.jaxrs.runtime.JaxrsServiceRuntimeConstants;
-import org.osgi.service.jaxrs.runtime.dto.ResourceDTO;
-import org.osgi.service.jaxrs.runtime.dto.ResourceMethodInfoDTO;
-import org.osgi.service.jaxrs.runtime.dto.RuntimeDTO;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class MpMetricsTests extends SlimTestCase {
@@ -98,30 +94,6 @@ public class MpMetricsTests extends SlimTestCase {
 		return null;
 	}
 
-	private ResourceDTO waitFor(String path) throws InterruptedException {
-		return waitFor(path, 20);
-	}
-
-	private ResourceDTO waitFor(String path, int intervals) throws InterruptedException {
-		for (int j = intervals; j > 0; j--) {
-			RuntimeDTO runtimeDTO = jsr.getRuntimeDTO();
-
-			for (ResourceDTO curResourceDTO : runtimeDTO.defaultApplication.resourceDTOs) {
-				for (ResourceMethodInfoDTO rmid : curResourceDTO.resourceMethods) {
-					if (path.equals(rmid.path)) {
-						return curResourceDTO;
-					}
-				}
-			}
-
-			Thread.sleep(50);
-		}
-
-		assertTrue(String.format("%s not found in time", path), false);
-
-		return null;
-	}
-
 	@Before
 	@Override
 	public void setUp() throws Exception {
@@ -156,12 +128,12 @@ public class MpMetricsTests extends SlimTestCase {
 		cbTracker.close();
 	}
 
-	private ServiceTracker<HttpServiceRuntime, HttpServiceRuntime> hsrTracker = new ServiceTracker<>(bundleContext, HttpServiceRuntime.class, null);
-	private HttpServiceRuntime hsr;
-	private ClientBuilder cb;
-	private ServiceTracker<ClientBuilder, ClientBuilder> cbTracker;
-	private JaxrsServiceRuntime jsr;
-	private ServiceReference<JaxrsServiceRuntime> jsrReference;
-	private ServiceTracker<JaxrsServiceRuntime, JaxrsServiceRuntime> jsrTracker;
+	ClientBuilder cb;
+	ServiceTracker<ClientBuilder, ClientBuilder> cbTracker;
+	HttpServiceRuntime hsr;
+	ServiceTracker<HttpServiceRuntime, HttpServiceRuntime> hsrTracker = new ServiceTracker<>(bundleContext, HttpServiceRuntime.class, null);
+	JaxrsServiceRuntime jsr;
+	ServiceReference<JaxrsServiceRuntime> jsrReference;
+	ServiceTracker<JaxrsServiceRuntime, JaxrsServiceRuntime> jsrTracker;
 
 }

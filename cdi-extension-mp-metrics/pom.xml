@@ -26,11 +26,6 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<properties>
-		<mp.metrics.version>1.1.1</mp.metrics.version>
-		<byte.buddy.version>1.10.3</byte.buddy.version>
-	</properties>
-
 	<artifactId>org.apache.aries.cdi.extension.mp-metrics</artifactId>
 	<name>Apache Aries CDI - MicroProfile Metrics ${mp.metrics.version} Using Apache Geronimo</name>
 	<description>Apache Aries CDI - MicroProfile Metrics ${mp.metrics.version} Using Apache Geronimo</description>
