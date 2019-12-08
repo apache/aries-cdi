@@ -21,8 +21,8 @@
 	osgi.identity;filter:='(osgi.identity=*weld*)'
 
 -runbundles: \
-	openwebbeans-impl;version='[2.0.13,2.0.14)',\
-	openwebbeans-spi;version='[2.0.13,2.0.14)',\
+	openwebbeans-impl;version='[2.0.14,2.0.15)',\
+	openwebbeans-spi;version='[2.0.14,2.0.15)',\
 	org.apache.aries.cdi.extender;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.owb;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.spi;version='[1.1.0,1.1.1)',\

@@ -147,6 +147,12 @@
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.test.junit4</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
 		<!-- RUNTIME dependencies not found in BOMs -->
 		<dependency>
 			<groupId>org.apache.aries.cdi</groupId>
@@ -182,10 +188,8 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-web</artifactId>
-			<version>${owb.version}</version>
-			<scope>runtime</scope>
+			<groupId>org.apache.johnzon</groupId>
+			<artifactId>johnzon-osgi</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -221,13 +225,11 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<includes>
-						<include>META-INF/**</include>
-						<include>OSGI-INF/**</include>
-						<include>org/apache/aries/cdi/test/cases/*</include>
-						<include>org/apache/aries/cdi/test/interfaces/*</include>
-						<include>*.jar</include>
-					</includes>
+					<excludes>
+						<exclude>org/apache/aries/cdi/test/beans/**</exclude>
+						<exclude>org/apache/aries/cdi/test/components/**</exclude>
+						<exclude>org/apache/aries/cdi/test/tb*/**</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>

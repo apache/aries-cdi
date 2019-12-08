@@ -14,17 +14,20 @@
 
 package org.apache.aries.cdi.extension.mp.metrics;
 
+import static java.lang.String.format;
 import static javax.interceptor.Interceptor.Priority.LIBRARY_AFTER;
-import static org.apache.aries.cdi.extension.mp.metrics.StubExtension.EXTENSION_NAME;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.apache.aries.cdi.extension.mp.metrics.MPMetricsExtension.EXTENSION_NAME;
+import static org.apache.aries.cdi.extension.mp.metrics.MPMetricsExtension.EXTENSION_VERSION;
+import static org.osgi.framework.Constants.SCOPE_PROTOTYPE;
 import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
 import static org.osgi.framework.Constants.SERVICE_RANKING;
+import static org.osgi.framework.Constants.SERVICE_SCOPE;
 import static org.osgi.framework.Constants.SERVICE_VENDOR;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_APPLICATION_SELECT;
-import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_EXTENSION;
 import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT;
 import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_MEDIA_TYPE;
-import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_NAME;
 import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_RESOURCE;
 
 import java.util.Dictionary;
@@ -32,7 +35,6 @@ import java.util.Hashtable;
 
 import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
-import javax.enterprise.event.ObservesAsync;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
@@ -41,7 +43,6 @@ import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 
@@ -51,7 +52,6 @@ import org.apache.geronimo.microprofile.metrics.cdi.MeteredInterceptor;
 import org.apache.geronimo.microprofile.metrics.cdi.MetricsExtension;
 import org.apache.geronimo.microprofile.metrics.cdi.TimedInterceptor;
 import org.apache.geronimo.microprofile.metrics.jaxrs.CdiMetricsEndpoints;
-import org.apache.johnzon.jaxrs.jsonb.jaxrs.JsonbJaxrsProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -59,20 +59,25 @@ import aQute.bnd.annotation.spi.ServiceProvider;
 
 @ServiceProvider(
 	attribute = {
-		CDI_EXTENSION_PROPERTY + "=" + EXTENSION_NAME,
-		"service.scope=prototype",
-		"service.vendor=Apache Software Foundation",
-		"version:Version=1.1.1"
+		CDI_EXTENSION_PROPERTY + '=' + EXTENSION_NAME,
+		SERVICE_SCOPE + '=' + SCOPE_PROTOTYPE,
+		SERVICE_VENDOR + "=Apache Software Foundation",
+		"version:Version=" + EXTENSION_VERSION
 	},
-	effective = "active",
 	uses = Extension.class,
 	value = Extension.class
 )
-public class StubExtension extends MetricsExtension {
+public class MPMetricsExtension extends MetricsExtension {
 
 	public final static String EXTENSION_NAME = "eclipse.microprofile.metrics";
+	public final static String EXTENSION_VERSION = "1.1.1";
 
+	private volatile BundleContext bundleContext;
 	private volatile Configuration configuration;
+
+	void getBundleContext(@Observes BundleContext bundleContext) {
+		this.bundleContext = bundleContext;
+	}
 
 	void getConfiguration(@Observes Configuration configuration) {
 		this.configuration = configuration;
@@ -89,33 +94,20 @@ public class StubExtension extends MetricsExtension {
 		@Observes @Priority(LIBRARY_AFTER + 800)
 		AfterDeploymentValidation adv, BeanManager beanManager) {
 
-		beanManager.getEvent().fireAsync(new Ready());
-	}
+		if (bundleContext == null || configuration == null) {
+			return;
+		}
 
-	void registerMetricsEndpoint0(
-		@ObservesAsync Ready ready, BeanManager beanManager, BundleContext bundleContext) {
 		Dictionary<String, Object> properties = new Hashtable<>();
-
-		properties.put(SERVICE_DESCRIPTION, "Aries CDI - MP Metrics JSON Provider");
-		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
-		properties.put(JAX_RS_APPLICATION_SELECT, configuration.get(JAX_RS_APPLICATION_SELECT));
-		properties.put(JAX_RS_EXTENSION, Boolean.TRUE.toString());
-		properties.put(JAX_RS_MEDIA_TYPE, MediaType.APPLICATION_JSON);
-		properties.put(JAX_RS_NAME, "metrics.json.provider");
-		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
-
-		JsonbJaxrsProvider<?> johnzonProvider = new JsonbJaxrsProvider<>();
-
-		_jsonProviderRegistration = bundleContext.registerService(
-			new String[] {MessageBodyReader.class.getName(), MessageBodyWriter.class.getName()}, johnzonProvider, properties);
-
-		properties = new Hashtable<>();
 
 		properties.put(SERVICE_DESCRIPTION, "Aries CDI - MP Metrics Portable Extension Endpoint");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
 		properties.put(JAX_RS_APPLICATION_SELECT, configuration.get(JAX_RS_APPLICATION_SELECT));
 		properties.put(JAX_RS_RESOURCE, Boolean.TRUE.toString());
-		properties.put(JAX_RS_EXTENSION_SELECT, "(osgi.jaxrs.name=metrics.json.provider)");
+		properties.put(JAX_RS_EXTENSION_SELECT, new String[] {
+			format("(&(objectClass=%s)(%s=%s))", MessageBodyReader.class.getName(), JAX_RS_MEDIA_TYPE, APPLICATION_JSON),
+			format("(&(objectClass=%s)(%s=%s))", MessageBodyWriter.class.getName(), JAX_RS_MEDIA_TYPE, APPLICATION_JSON)
+		});
 		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
 
 		AnnotatedType<CdiMetricsEndpoints> annotatedType = beanManager.createAnnotatedType(CdiMetricsEndpoints.class);
@@ -134,22 +126,11 @@ public class StubExtension extends MetricsExtension {
 				_endpointRegistration.unregister();
 			}
 			catch (IllegalStateException ise) {
-				// the service was already unregistered.
-			}
-		}
-		if (_jsonProviderRegistration != null) {
-			try {
-				_jsonProviderRegistration.unregister();
-			}
-			catch (IllegalStateException ise) {
-				// the service was already unregistered.
+				//
 			}
 		}
 	}
 
-	public static class Ready {}
-
-	private volatile ServiceRegistration<?> _jsonProviderRegistration;
 	private volatile ServiceRegistration<?> _endpointRegistration;
 
 }

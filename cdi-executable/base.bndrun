@@ -36,4 +36,5 @@
 	org.slf4j.event;version=1.7.28,\
 	org.slf4j.helpers;version=1.7.28,\
 	org.slf4j.spi;version=1.7.28,\
+	sun.invoke,\
 	sun.misc

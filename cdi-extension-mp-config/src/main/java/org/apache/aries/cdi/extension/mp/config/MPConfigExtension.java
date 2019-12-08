@@ -14,7 +14,11 @@
 
 package org.apache.aries.cdi.extension.mp.config;
 
-import static org.apache.aries.cdi.extension.mp.config.StubExtension.EXTENSION_NAME;
+import static org.apache.aries.cdi.extension.mp.config.MPConfigExtension.EXTENSION_NAME;
+import static org.apache.aries.cdi.extension.mp.config.MPConfigExtension.EXTENSION_VERSION;
+import static org.osgi.framework.Constants.SCOPE_PROTOTYPE;
+import static org.osgi.framework.Constants.SERVICE_SCOPE;
+import static org.osgi.framework.Constants.SERVICE_VENDOR;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import javax.enterprise.event.Observes;
@@ -29,18 +33,18 @@ import aQute.bnd.annotation.spi.ServiceProvider;
 
 @ServiceProvider(
 	attribute = {
-		CDI_EXTENSION_PROPERTY + "=" + EXTENSION_NAME,
-		"service.scope=prototype",
-		"service.vendor=Apache Software Foundation",
-		"version:Version=1.3.0"
+		CDI_EXTENSION_PROPERTY + '=' + EXTENSION_NAME,
+		SERVICE_SCOPE + '=' + SCOPE_PROTOTYPE,
+		SERVICE_VENDOR + "=Apache Software Foundation",
+		"version:Version=" + EXTENSION_VERSION
 	},
-	effective = "active",
 	uses = Extension.class,
 	value = Extension.class
 )
-public class StubExtension extends ConfigExtension {
+public class MPConfigExtension extends ConfigExtension {
 
 	public final static String EXTENSION_NAME = "eclipse.microprofile.config";
+	public final static String EXTENSION_VERSION = "1.3.0";
 
 	public void addBeans(@Observes BeforeBeanDiscovery bbd, BeanManager bm) {
 		bbd.addAnnotatedType(bm.createAnnotatedType(ConfigInjectionProducer.class));

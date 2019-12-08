@@ -56,6 +56,9 @@
 						-cdiannotations:
 						-noclassforname: true
 						-fixupmessages: "Split package...";is:=ignore
+						-bundleannotations: \
+							!org.eclipse.microprofile.config.*,\
+							org.apache.aries.cdi.extension.mp.config.*
 					]]></bnd>
 				</configuration>
 			</plugin>
@@ -137,6 +140,14 @@
 			<artifactId>geronimo-config-impl</artifactId>
 			<version>1.2.2</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.namespace.extender</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.namespace.implementation</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>

@@ -24,12 +24,13 @@
 		javax.enterprise.event.Observes.class,
 		Extension.class
 	},
-	version = "1.3" // TODO ?maybe read this from pom property?
+	version = EXTENSION_VERSION
 )
 @RequireCDIExtender
 package org.apache.aries.cdi.extension.mp.config;
 
-import static org.apache.aries.cdi.extension.mp.config.StubExtension.EXTENSION_NAME;
+import static org.apache.aries.cdi.extension.mp.config.MPConfigExtension.EXTENSION_NAME;
+import static org.apache.aries.cdi.extension.mp.config.MPConfigExtension.EXTENSION_VERSION;
 import static org.osgi.namespace.service.ServiceNamespace.SERVICE_NAMESPACE;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 

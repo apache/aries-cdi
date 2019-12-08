@@ -24,16 +24,19 @@
 		javax.enterprise.event.Observes.class,
 		javax.enterprise.inject.spi.Extension.class
 	},
-	version = "1.1.1" // TODO ?maybe read this from pom property?
+	version = EXTENSION_VERSION
 )
+@JSONRequired
 @RequireCDIExtender
 @RequireJaxrsWhiteboard
 package org.apache.aries.cdi.extension.mp.metrics;
 
-import static org.apache.aries.cdi.extension.mp.metrics.StubExtension.EXTENSION_NAME;
+import static org.apache.aries.cdi.extension.mp.metrics.MPMetricsExtension.EXTENSION_NAME;
+import static org.apache.aries.cdi.extension.mp.metrics.MPMetricsExtension.EXTENSION_VERSION;
 import static org.osgi.namespace.service.ServiceNamespace.SERVICE_NAMESPACE;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
+import org.apache.aries.cdi.extra.propertytypes.JSONRequired;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.service.cdi.annotations.RequireCDIExtender;
 import org.osgi.service.jaxrs.whiteboard.annotations.RequireJaxrsWhiteboard;

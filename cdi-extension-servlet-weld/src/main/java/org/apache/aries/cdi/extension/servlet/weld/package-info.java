@@ -12,11 +12,11 @@
  * limitations under the License.
  */
 
-@org.osgi.annotation.bundle.Capability(
+@Capability(
 	attribute = "objectClass:List<String>=javax.enterprise.inject.spi.Extension",
 	namespace = SERVICE_NAMESPACE
 )
-@org.osgi.annotation.bundle.Capability(
+@Capability(
 	name = "aries.cdi.http",
 	namespace = CDI_EXTENSION_PROPERTY,
 	uses= {
@@ -30,14 +30,18 @@
 	version = "1.0.0"
 )
 //Deliberately depend on Http Whiteboard version 1.0.0 (the spec annotation starts at 1.1.0)
-@org.osgi.annotation.bundle.Requirement(
+@Requirement(
 	name = "osgi.http",
 	namespace = IMPLEMENTATION_NAMESPACE,
 	version = "1.0.0"
 )
-@org.osgi.service.cdi.annotations.RequireCDIImplementation
+@RequireCDIImplementation
 package org.apache.aries.cdi.extension.servlet.weld;
 
 import static org.osgi.namespace.implementation.ImplementationNamespace.IMPLEMENTATION_NAMESPACE;
 import static org.osgi.namespace.service.ServiceNamespace.SERVICE_NAMESPACE;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
+
+import org.osgi.annotation.bundle.Capability;
+import org.osgi.annotation.bundle.Requirement;
+import org.osgi.service.cdi.annotations.RequireCDIImplementation;
