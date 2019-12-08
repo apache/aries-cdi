@@ -17,18 +17,19 @@ package org.apache.aries.cdi.container.internal.provider;
 import static java.util.Optional.ofNullable;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.TypeLiteral;
 
+import org.apache.aries.cdi.container.internal.Activator;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
-import org.osgi.framework.Constants;
 
 public class CDIProvider implements javax.enterprise.inject.spi.CDIProvider {
 
@@ -53,16 +54,8 @@ public class CDIProvider implements javax.enterprise.inject.spi.CDIProvider {
 					"No Bundle found for Thread.ContextClassLoader " + Thread.currentThread())
 			);
 
-			return Arrays.stream(bundle.getRegisteredServices()).filter(
-				sr -> ofNullable(
-					sr.getProperty(Constants.OBJECTCLASS)
-				).map(String[].class::cast).map(Arrays::asList).filter(
-					list -> list.contains(BeanManager.class.getName())
-				).isPresent()
-			).findFirst().map(
-				bundle.getBundleContext()::getService
-			).map(BeanManager.class::cast).orElseThrow(
-				() -> new IllegalStateException("No BeanManager service for bundle " + bundle)
+			return ofNullable(Activator.get(bundle)).orElseThrow(
+				() -> new IllegalStateException("No BeanManager for bundle " + bundle)
 			);
 		}
 
@@ -83,17 +76,26 @@ public class CDIProvider implements javax.enterprise.inject.spi.CDIProvider {
 
 		@Override
 		public Instance<Object> select(Annotation... qualifiers) {
-			return getBeanManager().createInstance().select(qualifiers);
+			return createInstance().select(qualifiers);
 		}
 
 		@Override
 		public <U> Instance<U> select(Class<U> subtype, Annotation... qualifiers) {
-			return getBeanManager().createInstance().select(subtype, qualifiers);
+			return createInstance().select(subtype, qualifiers);
 		}
 
 		@Override
 		public <U> Instance<U> select(TypeLiteral<U> subtype, Annotation... qualifiers) {
-			return getBeanManager().createInstance().select(subtype, qualifiers);
+			return createInstance().select(subtype, qualifiers);
+		}
+
+		private Instance<Object> createInstance() {
+			BeanManager beanManager = getBeanManager();
+			Set<Bean<?>> beans = beanManager.getBeans(Instance.class);
+			@SuppressWarnings("unchecked")
+			Bean<Instance<Object>> instanceBean = (Bean<Instance<Object>>)beanManager.resolve(beans);
+			Instance<Object> instance = instanceBean.create(beanManager.createCreationalContext(instanceBean));
+			return instance;
 		}
 
 	}
