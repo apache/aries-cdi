@@ -10,11 +10,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeBeanDiscovery;
+import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
+import javax.interceptor.Interceptor;
 
+import org.apache.aries.cdi.container.internal.Activator;
 import org.apache.aries.cdi.spi.configuration.Configuration;
 
 public class ConfigurationExtension  extends AbstractMap<String, Object> implements Configuration, Extension {
@@ -45,8 +49,20 @@ public class ConfigurationExtension  extends AbstractMap<String, Object> impleme
 		return _configuration.entrySet();
 	}
 
-	void fire(@Observes BeforeBeanDiscovery bbd, BeanManager beanManager) {
+	void init(
+		@Priority(Interceptor.Priority.PLATFORM_BEFORE)
+		@Observes BeforeBeanDiscovery bbd, BeanManager beanManager) {
+
+		Activator.put(_containerState.bundle(), beanManager);
+
 		beanManager.fireEvent(this);
+	}
+
+	void destroy(
+		@Priority(Integer.MAX_VALUE - 1000)
+		@Observes BeforeShutdown bs) {
+
+		Activator.remove(_containerState.bundle());
 	}
 
 	String getSelectedApplication(Map<String, Object> configuration) {

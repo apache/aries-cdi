@@ -24,10 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import javax.enterprise.inject.spi.BeanManager;
 
 import org.apache.aries.cdi.container.internal.command.CDICommand;
 import org.apache.aries.cdi.container.internal.container.CDIBundle;
@@ -283,6 +286,20 @@ public class Activator extends AbstractExtender {
 
 		return false;
 	}
+
+	public static void put(Bundle bundle, BeanManager beanManager) {
+		_cache.put(bundle, beanManager);
+	}
+
+	public static BeanManager get(Bundle bundle) {
+		return _cache.get(bundle);
+	}
+
+	public static void remove(Bundle bundle) {
+		_cache.remove(bundle);
+	}
+
+	private static final Map<Bundle, BeanManager> _cache = new ConcurrentHashMap<>();
 
 	private BundleContext _bundleContext;
 	private final ChangeCount _ccrChangeCount = new ChangeCount();
