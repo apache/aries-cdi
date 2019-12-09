@@ -14,7 +14,8 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -22,26 +23,26 @@ import java.util.Hashtable;
 import org.apache.aries.cdi.test.interfaces.Pojo;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.test.junit4.service.ServiceUseRule;
 
-public class DisableComponentTests extends AbstractTestCase {
+public class DisableComponentTests	 extends AbstractTestCase {
+
+	@Rule
+	public ServiceUseRule<ConfigurationAdmin> car = new ServiceUseRule.Builder<ConfigurationAdmin>(ConfigurationAdmin.class).build();
 
 	@Before
 	@Override
 	public void setUp() throws Exception {
-		adminTracker = new ServiceTracker<>(bundleContext, ConfigurationAdmin.class, null);
-		adminTracker.open();
-		configurationAdmin = adminTracker.getService();
 	}
 
 	@After
 	@Override
 	public void tearDown() throws Exception {
-		adminTracker.close();
 	}
 
 	@Test
@@ -61,7 +62,7 @@ public class DisableComponentTests extends AbstractTestCase {
 			Configuration configurationA = null;
 
 			try {
-				configurationA = configurationAdmin.getConfiguration("osgi.cdi.cdi.itests.tb8", "?");
+				configurationA = car.getService().getConfiguration("osgi.cdi.cdi.itests.tb8", "?");
 
 				Dictionary<String, Object> p1 = new Hashtable<>();
 				p1.put("cdi-itests.tb8.enabled", false);
@@ -120,7 +121,7 @@ public class DisableComponentTests extends AbstractTestCase {
 			Configuration configurationA = null;
 
 			try {
-				configurationA = configurationAdmin.getConfiguration("osgi.cdi.cdi.itests.tb8", "?");
+				configurationA = car.getService().getConfiguration("osgi.cdi.cdi.itests.tb8", "?");
 
 				Dictionary<String, Object> p1 = new Hashtable<>();
 				p1.put("singleComponentBean.enabled", false);
@@ -161,8 +162,5 @@ public class DisableComponentTests extends AbstractTestCase {
 			}
 		}
 	}
-
-	private ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> adminTracker;
-	private ConfigurationAdmin configurationAdmin;
 
 }

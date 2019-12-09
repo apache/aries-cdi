@@ -73,7 +73,10 @@ public class ConfigurationListener extends Phase implements org.osgi.service.cm.
 	@Override
 	public boolean close() {
 		try (Syncro open = syncro.open()) {
-			if (_listenerService != null) {
+			if (_listenerService == null) {
+				return true;
+			}
+			else {
 				_listenerService.unregister();
 				_listenerService = null;
 			}
@@ -131,6 +134,10 @@ public class ConfigurationListener extends Phase implements org.osgi.service.cm.
 	@Override
 	public boolean open() {
 		try (Syncro open = syncro.open()) {
+			if (_listenerService != null) {
+				return true;
+			}
+
 			if (containerState.bundleContext() == null) {
 				// this bundle was already removed
 				return false;
