@@ -29,23 +29,23 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
 /**
  * Example:
  * <pre>
- * &lt;transformation>
- *   &lt;plugin>org.apache.aries.cdi.build.tools.AddExtensionRequirement.AddExtensionRequirement&lt;/plugin>
- *   &lt;arguments>
- *     &lt;argument>
- *       &lt;index>1</index>
- *       &lt;value>eclipse.microprofile.config&lt;/value>
- *     &lt;/argument>
- *     &lt;argument>
- *       &lt;index>2&lt;/index>
- *       &lt;value>${mp.config.version}&lt;/value>
- *     &lt;/argument>
- *     &lt;argument>
- *       &lt;index>3&lt;/index>
- *       &lt;value>org.eclipse.microprofile.config.inject.ConfigProperty&lt;/value>
- *     &lt;/argument>
- *   &lt;/arguments>
- * &lt;/transformation>
+ * &lt;transformation&gt;
+ *   &lt;plugin&gt;org.apache.aries.cdi.build.tools.AddExtensionRequirement.AddExtensionRequirement&lt;/plugin&gt;
+ *   &lt;arguments&gt;
+ *     &lt;argument&gt;
+ *       &lt;index&gt;1&lt;/index&gt;
+ *       &lt;value&gt;eclipse.microprofile.config&lt;/value&gt;
+ *     &lt;/argument&gt;
+ *     &lt;argument&gt;
+ *       &lt;index&gt;2&lt;/index&gt;
+ *       &lt;value&gt;${mp.config.version}&lt;/value&gt;
+ *     &lt;/argument&gt;
+ *     &lt;argument&gt;
+ *       &lt;index&gt;3&lt;/index&gt;
+ *       &lt;value&gt;org.eclipse.microprofile.config.inject.ConfigProperty&lt;/value&gt;
+ *     &lt;/argument&gt;
+ *   &lt;/arguments&gt;
+ * &lt;/transformation&gt;
  * </pre>
  */
 public class AddExtensionRequirement implements Plugin {
