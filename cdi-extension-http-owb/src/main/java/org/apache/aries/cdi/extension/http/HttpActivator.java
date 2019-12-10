@@ -24,6 +24,9 @@ import java.util.Hashtable;
 
 import javax.enterprise.inject.spi.Extension;
 
+import org.apache.webbeans.spi.ContainerLifecycle;
+import org.apache.webbeans.spi.ContextsService;
+import org.apache.webbeans.spi.ConversationService;
 import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -39,8 +42,20 @@ public class HttpActivator implements BundleActivator {
 	public void start(BundleContext context) throws Exception {
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(CDI_EXTENSION_PROPERTY, "aries.cdi.http");
-		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension Factory");
+		properties.put("aries.cdi.http.provider", "OpenWebBeans");
+		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension Factory for OpenWebBeans");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
+
+		// Web mode - minimal set, see META-INF/openwebbeans/openwebbeans.properties in openwebbeans-web for details
+		properties.put(
+			ContainerLifecycle.class.getName(),
+			org.apache.webbeans.web.lifecycle.WebContainerLifecycle.class.getName());
+		properties.put(
+			ContextsService.class.getName(),
+			org.apache.webbeans.web.context.WebContextsService.class.getName());
+		properties.put(
+			ConversationService.class.getName(),
+			org.apache.webbeans.web.context.WebConversationService.class.getName());
 
 		_serviceRegistration = context.registerService(
 			Extension.class, new HttpExtensionFactory(), properties);

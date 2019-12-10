@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.owb.web;
+package org.apache.aries.cdi.extension.http;
 
 import javax.enterprise.inject.spi.Extension;
 
@@ -20,13 +20,13 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.PrototypeServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-public class WebExtensionFactory implements PrototypeServiceFactory<Extension> {
+public class HttpExtensionFactory implements PrototypeServiceFactory<Extension> {
 
 	@Override
 	public Extension getService(
 		Bundle bundle, ServiceRegistration<Extension> registration) {
 
-		return new WebExtension();
+		return new HttpExtension(bundle);
 	}
 
 	@Override

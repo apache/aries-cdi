@@ -10,33 +10,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-#-runtrace: false
-#-runvm: -Xdebug, "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000"
-
--standalone: true
--runee: JavaSE-1.8
--runfw: org.eclipse.osgi
--runkeep: true
--runproperties: \
-	eclipse.log.enabled=false,\
-	logback.configurationFile=file:${.}/logback.xml,\
-	org.osgi.service.http.port=8080,\
-	osgi.console=
-
--resolve.effective: resolve, active
-
--runpath: \
-	ch.qos.logback.classic,\
-	ch.qos.logback.core,\
-	org.apache.felix.logback,\
-	slf4j.api
-
--runsystempackages: \
-	org.slf4j;version=1.7.28,\
-	org.slf4j.event;version=1.7.28,\
-	org.slf4j.helpers;version=1.7.28,\
-	org.slf4j.spi;version=1.7.28,\
-	sun.misc
+-include: base.bndrun
+#-runjdb: 8000
 
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=javax.ejb-api)',\
@@ -45,7 +20,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
 
 -runblacklist: \
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)'
+	osgi.identity;filter:='(osgi.identity=*owb*)'
 
 -runbundles: \
 	javax.ejb-api;version='[3.2.0,3.2.1)',\

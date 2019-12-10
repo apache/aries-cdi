@@ -59,7 +59,13 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.aries.cdi</groupId>
-				<artifactId>org.apache.aries.cdi.extension.http</artifactId>
+				<artifactId>org.apache.aries.cdi.extension.http.owb</artifactId>
+				<version>${project.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.aries.cdi</groupId>
+				<artifactId>org.apache.aries.cdi.extension.http.weld</artifactId>
 				<version>${project.version}</version>
 				<scope>runtime</scope>
 			</dependency>
