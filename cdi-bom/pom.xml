@@ -59,18 +59,6 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.aries.cdi</groupId>
-				<artifactId>org.apache.aries.cdi.extension.http.owb</artifactId>
-				<version>${project.version}</version>
-				<scope>runtime</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.aries.cdi</groupId>
-				<artifactId>org.apache.aries.cdi.extension.http.weld</artifactId>
-				<version>${project.version}</version>
-				<scope>runtime</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.aries.cdi</groupId>
 				<artifactId>org.apache.aries.cdi.extension.jndi</artifactId>
 				<version>${project.version}</version>
 				<scope>runtime</scope>
@@ -86,6 +74,24 @@
 				<artifactId>org.apache.aries.cdi.extension.mp-metrics</artifactId>
 				<version>${project.version}</version>
 				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.aries.cdi</groupId>
+				<artifactId>org.apache.aries.cdi.extension.servlet.common</artifactId>
+				<version>${project.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.aries.cdi</groupId>
+				<artifactId>org.apache.aries.cdi.extension.servlet.owb</artifactId>
+				<version>${project.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.aries.cdi</groupId>
+				<artifactId>org.apache.aries.cdi.extension.servlet.weld</artifactId>
+				<version>${project.version}</version>
+				<scope>runtime</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.aries.cdi</groupId>
