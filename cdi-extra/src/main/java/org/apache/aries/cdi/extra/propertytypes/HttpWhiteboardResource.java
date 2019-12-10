@@ -26,6 +26,7 @@ import java.lang.annotation.Target;
 
 import javax.enterprise.util.AnnotationLiteral;
 
+import org.apache.aries.cdi.extra.RequireCDIExtension;
 import org.osgi.service.cdi.annotations.BeanPropertyType;
 import org.osgi.service.http.whiteboard.annotations.RequireHttpWhiteboard;
 
@@ -41,6 +42,7 @@ import org.osgi.service.http.whiteboard.annotations.RequireHttpWhiteboard;
  */
 @BeanPropertyType
 @RequireHttpWhiteboard
+@RequireCDIExtension("aries.cdi.http")
 @Retention(RUNTIME)
 @Target({FIELD, METHOD, TYPE})
 public @interface HttpWhiteboardResource {

@@ -26,17 +26,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletName;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletPattern;
-import org.osgi.annotation.bundle.Requirement;
-import org.osgi.service.cdi.CDIConstants;
 import org.osgi.service.cdi.annotations.Service;
 import org.osgi.service.cdi.annotations.SingleComponent;
 
 @HttpWhiteboardServletName("bar")
 @HttpWhiteboardServletPattern("/bar")
-@Requirement(
-	namespace = CDIConstants.CDI_EXTENSION_PROPERTY,
-	name = "aries.cdi.http"
-)
 @Service(Servlet.class)
 @SingleComponent
 @SuppressWarnings("serial")

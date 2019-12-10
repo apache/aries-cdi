@@ -14,17 +14,13 @@
 
 package org.apache.aries.cdi.test.tb21;
 
+import org.apache.aries.cdi.extra.RequireCDIExtension;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.osgi.annotation.bundle.Requirement;
-import org.osgi.service.cdi.CDIConstants;
 import org.osgi.service.cdi.annotations.Bean;
 import org.osgi.service.cdi.annotations.Service;
 
 @Bean
-@Requirement(
-	namespace = CDIConstants.CDI_EXTENSION_PROPERTY,
-	name = "aries.cdi.jndi"
-)
+@RequireCDIExtension("aries.cdi.jndi")
 @Service
 public class A implements Pojo {
 

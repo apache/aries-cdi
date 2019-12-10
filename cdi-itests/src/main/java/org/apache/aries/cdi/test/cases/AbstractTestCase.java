@@ -17,7 +17,6 @@ package org.apache.aries.cdi.test.cases;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import java.io.InputStream;
 import java.util.Dictionary;
@@ -34,6 +33,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 
+import org.apache.aries.cdi.extra.RequireCDIExtension;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -65,22 +65,10 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 	filter = "(objectClass=org.osgi.service.cm.ConfigurationAdmin)",
 	namespace = ServiceNamespace.SERVICE_NAMESPACE
 )
-@Requirement(
-	namespace = CDI_EXTENSION_PROPERTY,
-	name = "aries.cdi.http"
-)
-@Requirement(
-	namespace = CDI_EXTENSION_PROPERTY,
-	name = "aries.cdi.jndi"
-)
-@Requirement(
-	namespace = CDI_EXTENSION_PROPERTY,
-	name = "eclipse.microprofile.config"
-)
-@Requirement(
-	namespace = CDI_EXTENSION_PROPERTY,
-	name = "eclipse.microprofile.metrics"
-)
+@RequireCDIExtension("aries.cdi.http")
+@RequireCDIExtension("aries.cdi.jndi")
+@RequireCDIExtension("eclipse.microprofile.config")
+@RequireCDIExtension("eclipse.microprofile.metrics")
 @RequireConfigurator
 public abstract class AbstractTestCase {
 
