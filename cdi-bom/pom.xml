@@ -112,6 +112,12 @@
 				<scope>runtime</scope>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.aries.jax.rs</groupId>
+				<artifactId>org.apache.aries.jax.rs.whiteboard</artifactId>
+				<version>1.0.6</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.apache.aries.spifly</groupId>
 				<artifactId>org.apache.aries.spifly.dynamic.framework.extension</artifactId>
 				<version>1.2.3</version>

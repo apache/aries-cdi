@@ -14,6 +14,19 @@
  * limitations under the License.
  */
 
-@org.osgi.annotation.bundle.Export
-@org.osgi.annotation.versioning.Version("1.1.0")
-package org.apache.aries.cdi.extra.propertytypes;
+package org.apache.aries.cdi.extra;
+
+import static java.lang.annotation.ElementType.PACKAGE;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Retention(CLASS)
+@Target({
+	PACKAGE, TYPE
+})
+public @interface RequireCDIExtensions {
+	RequireCDIExtension[] value();
+}
