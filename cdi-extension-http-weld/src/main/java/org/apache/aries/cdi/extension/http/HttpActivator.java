@@ -12,16 +12,18 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.owb;
+package org.apache.aries.cdi.extension.http;
 
 import static org.osgi.framework.Constants.BUNDLE_ACTIVATOR;
 import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
 import static org.osgi.framework.Constants.SERVICE_VENDOR;
+import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.apache.aries.cdi.spi.CDIContainerInitializer;
+import javax.enterprise.inject.spi.Extension;
+
 import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -31,24 +33,25 @@ import org.osgi.framework.ServiceRegistration;
 	name = BUNDLE_ACTIVATOR,
 	value = "${@class}"
 )
-public class Activator implements BundleActivator {
+public class HttpActivator implements BundleActivator {
 
 	@Override
-	public void start(BundleContext bundleContext) throws Exception {
-		System.setProperty("openwebbeans.web.sci.active", "false"); // we handle it ourself, disable this jetty feature
+	public void start(BundleContext context) throws Exception {
 		Dictionary<String, Object> properties = new Hashtable<>();
-		properties.put(SERVICE_DESCRIPTION, "Aries CDI - OpenWebBeans CDIContainerInitializer Factory");
+		properties.put(CDI_EXTENSION_PROPERTY, "aries.cdi.http");
+		properties.put("aries.cdi.http.provider", "Weld");
+		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension Factory for Weld");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
 
-		_containerInitializer = bundleContext.registerService(
-			CDIContainerInitializer.class, new OWBCDIContainerInitializerFactory(bundleContext), properties);
+		_serviceRegistration = context.registerService(
+			Extension.class, new HttpExtensionFactory(), properties);
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		_containerInitializer.unregister();
+		_serviceRegistration.unregister();
 	}
 
-	private ServiceRegistration<CDIContainerInitializer> _containerInitializer;
+	private ServiceRegistration<Extension> _serviceRegistration;
 
 }

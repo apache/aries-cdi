@@ -26,8 +26,8 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>org.apache.aries.cdi.extension.http</artifactId>
-	<name>Apache Aries CDI - Http Extension</name>
+	<artifactId>org.apache.aries.cdi.extension.http.owb</artifactId>
+	<name>Apache Aries CDI - Http Extension for OpenWebBeans</name>
 	<description>
 		Provides support to CDI bundles for http servlet scopes; @RequestScoped,
 		@SessionScoped and @ConversationScoped.
@@ -84,43 +84,9 @@
 			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.weld</groupId>
-			<artifactId>weld-osgi-bundle</artifactId>
-			<version>${weld.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.annotation</groupId>
-					<artifactId>javax.annotation-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.enterprise</groupId>
-					<artifactId>cdi-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.inject</groupId>
-					<artifactId>javax.inject</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.annotation</groupId>
-					<artifactId>jboss-annotations-api_1.3_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.ejb</groupId>
-					<artifactId>jboss-ejb-api_3.2_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.el</groupId>
-					<artifactId>jboss-el-api_3.0_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.interceptor</groupId>
-					<artifactId>jboss-interceptors-api_1.2_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.transaction</groupId>
-					<artifactId>jboss-transaction-api_1.2_spec</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-web</artifactId>
+			<version>${owb.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>

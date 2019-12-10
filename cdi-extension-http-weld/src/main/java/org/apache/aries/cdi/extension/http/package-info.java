@@ -33,13 +33,11 @@
 @org.osgi.annotation.bundle.Requirement(
 	name = "osgi.http",
 	namespace = IMPLEMENTATION_NAMESPACE,
-	version = "1.0.0",
-	resolution = OPTIONAL
+	version = "1.0.0"
 )
 @org.osgi.service.cdi.annotations.RequireCDIImplementation
-package org.apache.aries.cdi.owb.web;
+package org.apache.aries.cdi.extension.http;
 
-import static org.osgi.annotation.bundle.Requirement.Resolution.OPTIONAL;
 import static org.osgi.namespace.implementation.ImplementationNamespace.IMPLEMENTATION_NAMESPACE;
 import static org.osgi.namespace.service.ServiceNamespace.SERVICE_NAMESPACE;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;

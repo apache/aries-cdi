@@ -15,6 +15,8 @@
 package org.apache.aries.cdi.owb;
 
 import static java.util.Objects.requireNonNull;
+import static org.osgi.framework.namespace.PackageNamespace.PACKAGE_NAMESPACE;
+import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -45,13 +47,10 @@ import org.apache.webbeans.corespi.DefaultSingletonService;
 import org.apache.webbeans.portable.events.ExtensionLoader;
 import org.apache.webbeans.spi.ApplicationBoundaryService;
 import org.apache.webbeans.spi.ContainerLifecycle;
-import org.apache.webbeans.spi.ContextsService;
-import org.apache.webbeans.spi.ConversationService;
 import org.apache.webbeans.spi.DefiningClassService;
 import org.apache.webbeans.spi.ScannerService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
@@ -110,12 +109,12 @@ public class OWBCDIContainerInitializer extends CDIContainerInitializer {
 		spiLoader.getBundles().add(owbBundleContext.getBundle());
 
 		BundleWiring bundleWiring = owbBundleContext.getBundle().adapt(BundleWiring.class);
-		List<BundleWire> requiredWires = bundleWiring.getRequiredWires(PackageNamespace.PACKAGE_NAMESPACE);
+		List<BundleWire> requiredWires = bundleWiring.getRequiredWires(PACKAGE_NAMESPACE);
 
 		for (BundleWire bundleWire : requiredWires) {
 			BundleCapability capability = bundleWire.getCapability();
 			Map<String, Object> attributes = capability.getAttributes();
-			String packageName = (String)attributes.get(PackageNamespace.PACKAGE_NAMESPACE);
+			String packageName = (String)attributes.get(PACKAGE_NAMESPACE);
 			if (!packageName.startsWith("org.apache.webbeans.")) {
 				continue;
 			}
@@ -149,22 +148,21 @@ public class OWBCDIContainerInitializer extends CDIContainerInitializer {
 				new CdiScannerService(beanClasses, beanDescriptorURLs));
 			services.put(BundleContext.class, clientBundleContext);
 
-			if (Activator.webEnabled) {
-				// Web mode - minimal set, see META-INF/openwebbeans/openwebbeans.properties in openwebbeans-web for details
-				// todo: enable to not use web?
-				properties.setProperty(
-					ContainerLifecycle.class.getName(),
-					org.apache.webbeans.web.lifecycle.WebContainerLifecycle.class.getName());
-				properties.setProperty(
-					ContextsService.class.getName(),
-					org.apache.webbeans.web.context.WebContextsService.class.getName());
-				properties.setProperty(
-					ConversationService.class.getName(),
-					org.apache.webbeans.web.context.WebConversationService.class.getName());
+			// If we find the OpenWebBeans "aries.cdi.http" Extension enable web mode.
+			// This Extension will have properties:
+			//    osgi.cdi.extension = aries.cdi.http
+			//    aries.cdi.http.provider = OpenWebBeans
+			extensions.entrySet().stream().filter(
+				e -> "aries.cdi.http".equals(e.getValue().get(CDI_EXTENSION_PROPERTY)) &&
+					"OpenWebBeans".equalsIgnoreCase(String.valueOf(e.getValue().get("aries.cdi.http.provider")))
+			).findFirst().ifPresent(entry -> {
+				// The service properties of the extension should list any properties needed
+				// to configure OWB for web support.
+				properties.putAll(entry.getValue());
 
-				startObject = new org.apache.aries.cdi.owb.web.UpdatableServletContext(bootstrap, clientBundleContext);
-				services.put(org.apache.aries.cdi.owb.web.UpdatableServletContext.class, startObject);
-			}
+				// The extension itself implements ServletContextEvent so set as the start object
+				startObject = entry.getKey();
+			});
 
 			bootstrap = new WebBeansContext(services, properties) {
 				private final ExtensionLoader overridenExtensionLoader = new ExtensionLoader(this) {

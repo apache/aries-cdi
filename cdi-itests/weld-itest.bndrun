@@ -19,14 +19,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)'
 
 -runblacklist: \
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)'
-
--runsystempackages: \
-	org.slf4j;version=1.7.25,\
-	org.slf4j.event;version=1.7.25,\
-	org.slf4j.helpers;version=1.7.25,\
-	org.slf4j.spi;version=1.7.25,\
-	sun.misc
+	osgi.identity;filter:='(osgi.identity=*owb*)'
 
 -runbundles: \
 	biz.aQute.junit;version='[4.3.1,4.3.2)',\
@@ -34,7 +27,7 @@
 	javax.transaction-api;version='[1.2.0,1.2.1)',\
 	jboss-classfilewriter;version='[1.2.3,1.2.4)',\
 	org.apache.aries.cdi.extender;version='[1.1.0,1.1.1)',\
-	org.apache.aries.cdi.extension.http;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.extension.http.weld;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.jndi;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.mp-config;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.mp-metrics;version='[1.1.0,1.1.1)',\

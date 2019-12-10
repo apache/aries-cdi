@@ -12,9 +12,10 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.owb.web;
+package org.apache.aries.cdi.extension.http;
 
 import static java.util.Collections.list;
+import static java.util.Optional.ofNullable;
 import static javax.interceptor.Interceptor.Priority.LIBRARY_AFTER;
 import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
 import static org.osgi.framework.Constants.SERVICE_RANKING;
@@ -24,6 +25,7 @@ import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHIT
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashSet;
@@ -69,13 +71,50 @@ import org.apache.aries.cdi.extra.propertytypes.ServiceRanking;
 import org.apache.aries.cdi.spi.configuration.Configuration;
 import org.apache.webbeans.config.WebBeansContext;
 import org.apache.webbeans.spi.ContainerLifecycle;
+import org.apache.webbeans.web.lifecycle.test.MockServletContext;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cdi.annotations.Service;
 
-public class WebExtension implements Extension {
+@SuppressWarnings("serial")
+public class HttpExtension extends ServletContextEvent implements Extension {
 
+	private final BundleContext bundleContext;
+	private final ServletContext proxyContext;
 	private volatile Configuration configuration;
+	private volatile ServletContext delegateContext;
+
+	public HttpExtension(Bundle bundle) {
+		super(new MockServletContext());
+
+		this.bundleContext = bundle.getBundleContext();
+
+		// ensure we can switch the impl and keep ServletContextBean working with an updated context
+		this.proxyContext = ServletContext.class.cast(Proxy.newProxyInstance(ServletContext.class.getClassLoader(),
+				new Class<?>[]{ServletContext.class},
+				(proxy, method, args) -> {
+					try {
+						return method.invoke(ofNullable(delegateContext).orElseGet(HttpExtension.super::getServletContext), args);
+					}
+					catch (final InvocationTargetException ite) {
+						throw ite.getTargetException();
+					}
+				}));
+	}
+
+	public void setDelegate(final ServletContext delegateContext) {
+		this.delegateContext = delegateContext;
+	}
+
+	public ServletContext getOriginal() {
+		return super.getServletContext();
+	}
+
+	@Override
+	public ServletContext getServletContext() {
+		return proxyContext;
+	}
 
 	void getConfiguration(@Observes Configuration configuration) {
 		this.configuration = configuration;
@@ -235,10 +274,10 @@ public class WebExtension implements Extension {
 
 	void afterDeploymentValidation(
 		@Observes @Priority(LIBRARY_AFTER + 800)
-		AfterDeploymentValidation adv, BeanManager beanManager, BundleContext bundleContext) {
+		AfterDeploymentValidation adv, BeanManager beanManager) {
 
 		Dictionary<String, Object> properties = new Hashtable<>();
-		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension");
+		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension for OpenWebBeans");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
 		properties.put(HTTP_WHITEBOARD_CONTEXT_SELECT, configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT));
 		properties.put(HTTP_WHITEBOARD_LISTENER, Boolean.TRUE.toString());
@@ -277,25 +316,17 @@ public class WebExtension implements Extension {
 
 		@Override
 		public void contextInitialized(ServletContextEvent event) {
-			// update the sce to have the real one in CDI
-			try {
-				final Class<?> usc = event.getServletContext().getClassLoader()
-						.loadClass("org.apache.aries.cdi.container.internal.servlet.UpdatableServletContext");
-				final Object uscInstance = webBeansContext.getService(usc);
-				usc.getMethod("setDelegate", ServletContext.class)
-						.invoke(uscInstance, event.getServletContext());
+			ServletContext realSC = event.getServletContext();
 
-				// propagate attributes from the temporary sc
-				final ServletContext original = ServletContext.class.cast(usc.getMethod("getOriginal").invoke(uscInstance));
-				list(original.getAttributeNames())
-					.forEach(attr -> event.getServletContext().setAttribute(attr, original.getAttribute(attr)));
-			}
-			catch (final ClassNotFoundException | NoSuchMethodException | IllegalAccessException cnfe) {
-				// no-op, weirdly using another extender impl
-			}
-			catch (final InvocationTargetException ite) {
-				throw new IllegalStateException(ite.getTargetException());
-			}
+			// update the sce to have the real one in CDI
+			setDelegate(realSC);
+
+			// propagate attributes from the temporary sc
+			list(getOriginal().getAttributeNames()).forEach(
+				attr -> realSC.setAttribute(attr, getOriginal().getAttribute(attr)));
+
+			realSC.setAttribute(BundleContext.class.getName(), bundleContext);
+			realSC.setAttribute(WebBeansContext.class.getName(), webBeansContext);
 
 			// already started in the activator so let's skip it, just ensure it is skipped if re-called
 			event.getServletContext().setAttribute(getClass().getName(), true);

@@ -72,7 +72,8 @@
 		<module>cdi-spi</module>
 		<module>cdi-extender</module>
 		<module>cdi-extension-el-jsp</module>
-		<module>cdi-extension-http</module>
+		<module>cdi-extension-http-owb</module>
+		<module>cdi-extension-http-weld</module>
 		<module>cdi-extension-jndi</module>
 		<module>cdi-extension-mp-config</module>
 		<module>cdi-extension-mp-metrics</module>

@@ -17,7 +17,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.owb)'
 
 -runblacklist: \
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.weld)'
+	osgi.identity;filter:='(osgi.identity=*weld*)'
 
 -runbundles: \
 	biz.aQute.junit;version='[4.3.1,4.3.2)',\
@@ -26,6 +26,7 @@
 	openwebbeans-spi;version='[2.0.13,2.0.14)',\
 	openwebbeans-web;version='[2.0.13,2.0.14)',\
 	org.apache.aries.cdi.extender;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.extension.http.owb;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.jndi;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.mp-config;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.mp-metrics;version='[1.1.0,1.1.1)',\
