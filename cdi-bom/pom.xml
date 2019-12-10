@@ -59,6 +59,12 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.aries.cdi</groupId>
+				<artifactId>org.apache.aries.cdi.extension.jaxrs</artifactId>
+				<version>${project.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.aries.cdi</groupId>
 				<artifactId>org.apache.aries.cdi.extension.jndi</artifactId>
 				<version>${project.version}</version>
 				<scope>runtime</scope>
@@ -98,6 +104,12 @@
 				<artifactId>org.apache.aries.cdi.extension.servlet.weld</artifactId>
 				<version>${project.version}</version>
 				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.aries.cdi</groupId>
+				<artifactId>org.apache.aries.cdi.extension.spi</artifactId>
+				<version>${project.version}</version>
+				<scope>compile</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.aries.cdi</groupId>

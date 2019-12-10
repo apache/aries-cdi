@@ -64,6 +64,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.aries.cdi</groupId>
+			<artifactId>org.apache.aries.cdi.extension.spi</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.aries.cdi</groupId>
 			<artifactId>org.apache.aries.cdi.spi</artifactId>
 			<version>${project.version}</version>
 		</dependency>

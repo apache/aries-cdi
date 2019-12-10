@@ -46,3 +46,6 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.itests)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.jndi.core)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
+
+-runblacklist.base: \
+	osgi.identity;filter:='(osgi.identity=biz.aQute.bndlib)'

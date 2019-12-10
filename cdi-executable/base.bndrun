@@ -38,3 +38,6 @@
 	org.slf4j.spi;version=1.7.28,\
 	sun.invoke,\
 	sun.misc
+
+-runblacklist.base: \
+	osgi.identity;filter:='(osgi.identity=biz.aQute.bndlib)'

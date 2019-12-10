@@ -71,8 +71,10 @@
 		<module>cdi-build-tools</module>
 		<module>cdi-extra</module>
 		<module>cdi-spi</module>
+		<module>cdi-extension-spi</module>
 		<module>cdi-extender</module>
 		<module>cdi-extension-el-jsp</module>
+		<module>cdi-extension-jaxrs</module>
 		<module>cdi-extension-jndi</module>
 		<module>cdi-extension-servlet-common</module>
 		<module>cdi-extension-servlet-owb</module>

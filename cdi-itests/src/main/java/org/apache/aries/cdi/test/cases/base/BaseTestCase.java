@@ -66,6 +66,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 	namespace = ServiceNamespace.SERVICE_NAMESPACE
 )
 @RequireCDIExtension("aries.cdi.http")
+@RequireCDIExtension("aries.cdi.jaxrs")
 @RequireCDIExtension("aries.cdi.jndi")
 @RequireCDIExtension("eclipse.microprofile.config")
 @RequireCDIExtension("eclipse.microprofile.jwt-auth")

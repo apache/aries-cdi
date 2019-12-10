@@ -14,6 +14,8 @@
 
 package org.apache.aries.cdi.container.internal.util;
 
+import static java.util.Arrays.asList;
+import static java.util.Optional.ofNullable;
 import static org.apache.aries.cdi.container.internal.util.Reflection.getRawType;
 
 import java.lang.annotation.Annotation;
@@ -26,10 +28,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.decorator.Decorator;
 import javax.enterprise.context.ApplicationScoped;
@@ -56,6 +58,7 @@ import javax.inject.Qualifier;
 import javax.inject.Scope;
 import javax.interceptor.Interceptor;
 
+import org.apache.aries.cdi.extension.spi.annotation.AdaptedService;
 import org.osgi.service.cdi.ServiceScope;
 import org.osgi.service.cdi.annotations.Service;
 import org.osgi.service.cdi.annotations.ServiceInstance;
@@ -185,11 +188,11 @@ public class Annotates {
 
 		if (annotated instanceof AnnotatedType) {
 			Class<?> annotatedClass = ((AnnotatedType<?>)annotated).getJavaClass();
-			Optional.ofNullable(annotatedClass.getAnnotatedSuperclass()).ifPresent(at -> ats.add(at));
-			ats.addAll(Arrays.asList(annotatedClass.getAnnotatedInterfaces()));
+			ofNullable(annotatedClass.getAnnotatedSuperclass()).ifPresent(at -> ats.add(at));
+			ats.addAll(asList(annotatedClass.getAnnotatedInterfaces()));
 
 			for (java.lang.reflect.AnnotatedType at : ats) {
-				Optional.ofNullable(at.getAnnotation(Service.class)).ifPresent(
+				ofNullable(at.getAnnotation(Service.class)).ifPresent(
 					service -> {
 						if (service.value().length > 0) {
 							throw new IllegalArgumentException(
@@ -211,6 +214,10 @@ public class Annotates {
 					}
 				);
 			}
+
+			ofNullable(
+				annotated.getAnnotation(AdaptedService.class)
+			).map(AdaptedService::value).map(Stream::of).orElseGet(Stream::empty).forEach(serviceTypes::add);
 
 			Service service = annotated.getAnnotation(Service.class);
 

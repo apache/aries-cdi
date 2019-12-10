@@ -14,17 +14,20 @@
 
 package org.apache.aries.cdi.extension.servlet.common;
 
+import static java.util.Optional.ofNullable;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT;
 
-import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
+import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.servlet.Filter;
 import javax.servlet.annotation.WebFilter;
 
+import org.apache.aries.cdi.extension.spi.annotation.AdaptedService;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardContextSelect;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardFilterAsyncSupported;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardFilterDispatcher;
@@ -52,45 +55,60 @@ public class WebFilterProcessor {
 
 		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
+		if (annotatedType.isAnnotationPresent(Service.class)) {
+			return;
+		}
+
 		WebFilter webFilter = annotatedType.getAnnotation(WebFilter.class);
 
-		final Set<Annotation> annotationsToAdd = new HashSet<>();
+		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
 
-		if (!annotatedType.isAnnotationPresent(Service.class)) {
-			annotationsToAdd.add(Service.Literal.of(new Class[] {Filter.class}));
+		Set<Class<?>> serviceTypes = new HashSet<>();
+		serviceTypes.add(Filter.class);
+
+		AdaptedService adaptedService = annotatedType.getAnnotation(AdaptedService.class);
+
+		if (adaptedService != null) {
+			configurator.remove(adaptedService::equals);
+			serviceTypes.addAll(Arrays.asList(adaptedService.value()));
 		}
+
+		configurator.add(
+			AdaptedService.Literal.of(serviceTypes.toArray(new Class<?>[0])));
 
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)));
+			ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+				select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+			);
 		}
 
-		if (!webFilter.description().isEmpty()) {
-			annotationsToAdd.add(ServiceDescription.Literal.of(webFilter.description()));
+		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webFilter.description().isEmpty()) {
+			configurator.add(ServiceDescription.Literal.of(webFilter.description()));
 		}
 
-		if (!webFilter.filterName().isEmpty()) {
-			annotationsToAdd.add(HttpWhiteboardFilterName.Literal.of(webFilter.filterName()));
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterName.class) && !webFilter.filterName().isEmpty()) {
+			configurator.add(HttpWhiteboardFilterName.Literal.of(webFilter.filterName()));
 		}
 
-		if (webFilter.servletNames().length > 0) {
-			annotationsToAdd.add(HttpWhiteboardFilterServlet.Literal.of(webFilter.servletNames()));
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterServlet.class) && webFilter.servletNames().length > 0) {
+			configurator.add(HttpWhiteboardFilterServlet.Literal.of(webFilter.servletNames()));
 		}
 
-		if (webFilter.value().length > 0) {
-			annotationsToAdd.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.value()));
-		}
-		else if (webFilter.urlPatterns().length > 0) {
-			annotationsToAdd.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.urlPatterns()));
-		}
-
-		if (webFilter.dispatcherTypes().length > 0) {
-			annotationsToAdd.add(HttpWhiteboardFilterDispatcher.Literal.of(webFilter.dispatcherTypes()));
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterPattern.class)) {
+			if (webFilter.value().length > 0) {
+				configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.value()));
+			}
+			else if (webFilter.urlPatterns().length > 0) {
+				configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.urlPatterns()));
+			}
 		}
 
-		annotationsToAdd.add(HttpWhiteboardFilterAsyncSupported.Literal.of(webFilter.asyncSupported()));
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterDispatcher.class) && webFilter.dispatcherTypes().length > 0) {
+			configurator.add(HttpWhiteboardFilterDispatcher.Literal.of(webFilter.dispatcherTypes()));
+		}
 
-		if (!annotationsToAdd.isEmpty()) {
-			annotationsToAdd.forEach(pat.configureAnnotatedType()::add);
+		if(!annotatedType.isAnnotationPresent(HttpWhiteboardFilterAsyncSupported.class)) {
+			configurator.add(HttpWhiteboardFilterAsyncSupported.Literal.of(webFilter.asyncSupported()));
 		}
 	}
 

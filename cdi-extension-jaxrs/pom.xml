@@ -26,11 +26,10 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>org.apache.aries.cdi.extension.servlet.weld</artifactId>
-	<name>Apache Aries CDI - Servlet Extension for Weld</name>
+	<artifactId>org.apache.aries.cdi.extension.jaxrs</artifactId>
+	<name>Apache Aries CDI - JAX-RS Extension</name>
 	<description>
-		Provides support to CDI bundles for http servlet scopes; @RequestScoped,
-		@SessionScoped and @ConversationScoped.
+		Provides support to CDI bundles for JAX-RS components.
 	</description>
 
 	<licenses>
@@ -59,7 +58,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.aries.cdi</groupId>
-			<artifactId>org.apache.aries.cdi.extension.servlet.common</artifactId>
+			<artifactId>org.apache.aries.cdi.extension.spi</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -73,12 +72,12 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.http.servlet-api</artifactId>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-annotation_1.3_spec</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-annotation_1.3_spec</artifactId>
+			<artifactId>geronimo-atinject_1.0_spec</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>
@@ -86,46 +85,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
+			<artifactId>geronimo-jaxrs_2.1_spec</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.weld</groupId>
-			<artifactId>weld-osgi-bundle</artifactId>
-			<version>${weld.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.annotation</groupId>
-					<artifactId>javax.annotation-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.enterprise</groupId>
-					<artifactId>cdi-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.inject</groupId>
-					<artifactId>javax.inject</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.annotation</groupId>
-					<artifactId>jboss-annotations-api_1.3_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.ejb</groupId>
-					<artifactId>jboss-ejb-api_3.2_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.el</groupId>
-					<artifactId>jboss-el-api_3.0_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.interceptor</groupId>
-					<artifactId>jboss-interceptors-api_1.2_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.transaction</groupId>
-					<artifactId>jboss-transaction-api_1.2_spec</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
@@ -145,13 +109,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
-			<artifactId>org.osgi.service.http.whiteboard</artifactId>
+			<artifactId>org.osgi.service.jaxrs</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>osgi.annotation</artifactId>
 		</dependency>
-		<dependency>
+			<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>osgi.core</artifactId>
 		</dependency>
