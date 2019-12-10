@@ -303,8 +303,9 @@
 					<artifactId>bnd-baseline-maven-plugin</artifactId>
 					<version>${bnd.version}</version>
 					<configuration>
-						<includeDistributionManagement>false</includeDistributionManagement>
+						<failOnMissing>false</failOnMissing>
 						<fullReport>true</fullReport>
+						<includeDistributionManagement>false</includeDistributionManagement>
 					</configuration>
 					<executions>
 						<execution>
@@ -426,6 +427,10 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>biz.aQute.bnd</groupId>
+				<artifactId>bnd-baseline-maven-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<groupId>biz.aQute.bnd</groupId>
 				<artifactId>bnd-run-maven-plugin</artifactId>
