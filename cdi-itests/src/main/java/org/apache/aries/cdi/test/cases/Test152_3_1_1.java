@@ -615,13 +615,13 @@ public class Test152_3_1_1 extends SlimTestCase {
 	@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 	@Test
 	public void bundleFactory() throws Exception {
-		Deferred<Object[]> a = new Deferred<>();
-		Deferred<Object[]> b = new Deferred<>();
-		Deferred<Object[]> c = new Deferred<>();
+		AtomicReference<Deferred<Object[]>> a = new AtomicReference<>(new Deferred<>());
+		AtomicReference<Deferred<Object[]>> b = new AtomicReference<>(new Deferred<>());
+		AtomicReference<Deferred<Object[]>> c = new AtomicReference<>(new Deferred<>());
 
-		Consumer<Object[]> onInitialized = (o) -> {try {a.resolve(o);} catch (Exception e) {}};
-		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
-		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
+		Consumer<Object[]> onInitialized = (o) -> a.get().resolve(o);
+		Consumer<Object[]> onBeforeDestroyed = (o) -> b.get().resolve(o);
+		Consumer<Object[]> onDestroyed = (o) -> c.get().resolve(o);
 
 		ServiceRegistration<Consumer> onInitializedReg = bundleContext.registerService(
 			Consumer.class, onInitialized,
@@ -641,12 +641,7 @@ public class Test152_3_1_1 extends SlimTestCase {
 		try {
 			getBeanManager(tbBundle);
 
-			Success<Object[], Object[]> assertFailed = s -> {
-				fail("shouldn't have have succeeded");
-				return s;
-			};
-
-			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
+			assertPromiseIsNotResolved(a);
 
 			configuration = configurationAdmin.getConfiguration("bundleFactory", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
@@ -656,7 +651,9 @@ public class Test152_3_1_1 extends SlimTestCase {
 				assertThat(tracker.waitForService(50)).isNull();
 			}
 
-			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
+			assertPromiseIsNotResolved(a);
+			assertPromiseIsNotResolved(b);
+			assertPromiseIsNotResolved(c);
 
 			configuration.delete();
 
@@ -664,79 +661,84 @@ public class Test152_3_1_1 extends SlimTestCase {
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			// Even with configuration, there's still no instance until a "get" is performed
-			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
+			assertPromiseIsNotResolved(a);
 
+			// This automatically also ungets the service
 			try (CloseableTracker<Object, Object> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 				assertThat(tracker.waitForService(50)).isNotNull();
+
+				a.get().getPromise().timeout(timeout).then(
+					s -> {
+						Object[] values = s.getValue();
+
+						assertThat((Map<String, Object>)values[1]).contains(
+							entry("component.name", "bundleFactory")
+						).contains(
+							entry("service.factoryPid", "bundleFactory")
+						).contains(
+							entry(Constants.SERVICE_PID, Arrays.asList("bundleFactory~one"))
+						).contains(
+							entry("foo", "bar")
+						);
+
+						return s;
+					},
+					f -> fail(f.toString())
+				).getValue();
+
+				assertPromiseIsNotResolved(b);
+				assertPromiseIsNotResolved(c);
+
+				reset(a);
+
+				// this must terminate all bundle instances
+				configuration.delete();
+
+				assertPromiseIsNotResolved(a);
+
+				b.get().getPromise().timeout(timeout).then(
+					s -> {
+						Object[] values = s.getValue();
+
+						assertThat((Map<String, Object>)values[1]).contains(
+							entry("component.name", "bundleFactory")
+						).contains(
+							entry("service.factoryPid", "bundleFactory")
+						).contains(
+							entry(Constants.SERVICE_PID, Arrays.asList("bundleFactory~one"))
+						).contains(
+							entry("foo", "bar")
+						);
+
+						return s;
+					},
+					f -> fail(f.toString())
+				).getValue();
+				c.get().getPromise().timeout(timeout).then(
+					s -> {
+						Object[] values = s.getValue();
+
+						assertThat((Map<String, Object>)values[1]).contains(
+							entry("component.name", "bundleFactory")
+						).contains(
+							entry("service.factoryPid", "bundleFactory")
+						).contains(
+							entry(Constants.SERVICE_PID, Arrays.asList("bundleFactory~one"))
+						).contains(
+							entry("foo", "bar")
+						);
+
+						return s;
+					},
+					f -> fail(f.toString())
+				).getValue();
+
+				reset(a, b, c);
 			}
 
-			Success<Object[], Object[]> assertSucceeded = s -> {
-				Object[] values = s.getValue();
-
-				assertThat((Map<String, Object>)values[1]).contains(
-					entry("component.name", "bundleFactory")
-				).contains(
-					entry("service.factoryPid", "bundleFactory")
-				).contains(
-					entry(Constants.SERVICE_PID, Arrays.asList("bundleFactory~one"))
-				).contains(
-					entry("foo", "bar")
-				);
-
-				return s;
-			};
-
-			a.getPromise().timeout(timeout).then(
-				assertSucceeded,
-				f -> fail(f.toString())
-			).getValue();
-
-			b.getPromise().timeout(timeout).then(assertFailed).getFailure();
-			c.getPromise().timeout(timeout).then(assertFailed).getFailure();
-
-			// this must terminate all bundle instances
-			configuration.delete();
-
-			b.getPromise().timeout(timeout).then(
-				s -> {
-					Object[] values = s.getValue();
-
-					assertThat((Map<String, Object>)values[1]).contains(
-						entry("component.name", "bundleFactory")
-					).contains(
-						entry("service.factoryPid", "bundleFactory")
-					).contains(
-						entry(Constants.SERVICE_PID, Arrays.asList("bundleFactory~one"))
-					).contains(
-						entry("foo", "bar")
-					);
-
-					try (CloseableTracker<Object, Object> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
-						assertThat(tracker.waitForService(50)).isNull();
-					}
-
-					return s;
-				},
-				f -> fail(f.toString())
-			).getValue();
-			c.getPromise().timeout(timeout).then(
-				s -> {
-					Object[] values = s.getValue();
-
-					assertThat((Map<String, Object>)values[1]).contains(
-						entry("component.name", "bundleFactory")
-					).contains(
-						entry("service.factoryPid", "bundleFactory")
-					).contains(
-						entry(Constants.SERVICE_PID, Arrays.asList("bundleFactory~one"))
-					).contains(
-						entry("foo", "bar")
-					);
-
-					return s;
-				},
-				f -> fail(f.toString())
-			).getValue();
+			assertPromiseIsNotResolved(a);
+			assertPromiseIsNotResolved(b);
+			assertPromiseIsNotResolved(c);
 		}
 		finally {
 			if (configuration != null) {
@@ -877,12 +879,21 @@ public class Test152_3_1_1 extends SlimTestCase {
 		}
 	}
 
+	private void assertPromiseIsResolved(AtomicReference<Deferred<Object[]>> a) throws Exception {
+		Throwable throwable = a.get().getPromise().timeout(timeout).getFailure();
+
+		if (throwable != null) {
+			Object[] value = a.get().getPromise().getValue();
+			throw new AssertionError("Is Not Resolved! " + value[1]);
+		}
+	}
+
 	private void assertPromiseIsNotResolved(AtomicReference<Deferred<Object[]>> a) throws Exception {
 		Throwable throwable = a.get().getPromise().timeout(timeout).getFailure();
 
 		if (throwable == null) {
 			Object[] value = a.get().getPromise().getValue();
-			throw new AssertionError("Didn't fail! " + value[1]);
+			throw new AssertionError("Is resolved! " + value[1]);
 		}
 	}
 

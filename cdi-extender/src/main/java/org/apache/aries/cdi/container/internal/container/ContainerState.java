@@ -21,12 +21,12 @@ import static org.osgi.service.cdi.CDIConstants.CDI_CONTAINER_ID;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -90,11 +90,9 @@ public class ContainerState {
 
 		BundleWiring bundleWiring = _bundle.adapt(BundleWiring.class);
 
-		List<BundleWire> wires = bundleWiring.getRequiredWires(EXTENDER_NAMESPACE);
-
 		Map<String, Object> cdiAttributes = Collections.emptyMap();
 
-		for (BundleWire wire : wires) {
+		for (BundleWire wire : bundleWiring.getRequiredWires(EXTENDER_NAMESPACE)) {
 			BundleCapability capability = wire.getCapability();
 			Map<String, Object> attributes = capability.getAttributes();
 			String extender = (String)attributes.get(EXTENDER_NAMESPACE);
@@ -108,27 +106,9 @@ public class ContainerState {
 
 		_cdiAttributes = Collections.unmodifiableMap(cdiAttributes);
 
-		wires = bundleWiring.getRequiredWires(CDI_EXTENSION_PROPERTY);
+		Set<String> extensionRequirements = new HashSet<>();
 
-		List<String> extensionRequirements = new ArrayList<>();
-
-		for (BundleWire wire : wires) {
-			String filter = wire.getRequirement().getDirectives().get(
-				Namespace.REQUIREMENT_FILTER_DIRECTIVE);
-			Bundle extensionProvider = wire.getProvider().getBundle();
-
-			StringBuilder sb = new StringBuilder();
-
-			sb.append("(&");
-			sb.append(filter);
-			sb.append("(");
-			sb.append(Constants.SERVICE_BUNDLEID);
-			sb.append("=");
-			sb.append(extensionProvider.getBundleId());
-			sb.append("))");
-
-			extensionRequirements.add(sb.toString());
-		}
+		collectExtensionRequirements(bundleWiring, extensionRequirements);
 
 		_containerDTO = new ContainerDTO();
 		_containerDTO.bundle = _bundle.adapt(BundleDTO.class);
@@ -368,6 +348,29 @@ public class ContainerState {
 	@Override
 	public String toString() {
 		return _bundle.toString();
+	}
+
+	private void collectExtensionRequirements(BundleWiring bundleWiring, Set<String> extensionRequirements) {
+		for (BundleWire wire : bundleWiring.getRequiredWires(CDI_EXTENSION_PROPERTY)) {
+			String filter = wire.getRequirement().getDirectives().get(
+				Namespace.REQUIREMENT_FILTER_DIRECTIVE);
+			Bundle extensionProvider = wire.getProvider().getBundle();
+
+			StringBuilder sb = new StringBuilder();
+
+			sb.append("(&");
+			sb.append(filter);
+			sb.append("(");
+			sb.append(Constants.SERVICE_BUNDLEID);
+			sb.append("=");
+			sb.append(extensionProvider.getBundleId());
+			sb.append("))");
+
+			if (extensionRequirements.add(sb.toString())) {
+				collectExtensionRequirements(
+					extensionProvider.adapt(BundleWiring.class), extensionRequirements);
+			}
+		}
 	}
 
 	private final BundleClassLoader _aggregateClassLoader;
