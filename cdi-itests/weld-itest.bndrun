@@ -29,6 +29,7 @@
 	org.apache.aries.cdi.extender;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.jndi;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.mp-config;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.extension.mp-jwt-auth;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.mp-metrics;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.servlet.common;version='[1.1.0,1.1.1)',\
 	org.apache.aries.cdi.extension.servlet.weld;version='[1.1.0,1.1.1)',\
@@ -41,6 +42,7 @@
 	org.apache.aries.jndi.core;version='[1.0.2,1.0.3)',\
 	org.apache.aries.spifly.dynamic.framework.extension;version='[1.2.3,1.2.4)',\
 	org.apache.aries.util;version='[1.0.0,1.0.1)',\
+	org.apache.commons.io;version='[2.6.0,2.6.1)',\
 	org.apache.commons.logging;version='[1.2.0,1.2.1)',\
 	org.apache.felix.configadmin;version='[1.9.10,1.9.11)',\
 	org.apache.felix.converter;version='[1.0.12,1.0.13)',\

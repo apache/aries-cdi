@@ -879,15 +879,6 @@ public class Test152_3_1_1 extends SlimTestCase {
 		}
 	}
 
-	private void assertPromiseIsResolved(AtomicReference<Deferred<Object[]>> a) throws Exception {
-		Throwable throwable = a.get().getPromise().timeout(timeout).getFailure();
-
-		if (throwable != null) {
-			Object[] value = a.get().getPromise().getValue();
-			throw new AssertionError("Is Not Resolved! " + value[1]);
-		}
-	}
-
 	private void assertPromiseIsNotResolved(AtomicReference<Deferred<Object[]>> a) throws Exception {
 		Throwable throwable = a.get().getPromise().timeout(timeout).getFailure();
 

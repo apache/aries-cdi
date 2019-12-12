@@ -68,6 +68,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 @RequireCDIExtension("aries.cdi.http")
 @RequireCDIExtension("aries.cdi.jndi")
 @RequireCDIExtension("eclipse.microprofile.config")
+@RequireCDIExtension("eclipse.microprofile.jwt-auth")
 @RequireCDIExtension("eclipse.microprofile.metrics")
 @RequireConfigurator
 public abstract class AbstractTestCase {
@@ -112,7 +113,7 @@ public abstract class AbstractTestCase {
 		cdiBundle.uninstall();
 	}
 
-	void assertBeanExists(Class<?> clazz, BeanManager beanManager) {
+	public void assertBeanExists(Class<?> clazz, BeanManager beanManager) {
 		Set<Bean<?>> beans = beanManager.getBeans(clazz, Any.Literal.INSTANCE);
 
 		assertFalse(beans.isEmpty());
@@ -127,13 +128,13 @@ public abstract class AbstractTestCase {
 		assertNotNull(pojo);
 	}
 
-	static InputStream getBundle(String name) {
+	public static InputStream getBundle(String name) {
 		ClassLoader classLoader = AbstractTestCase.class.getClassLoader();
 
 		return classLoader.getResourceAsStream(name);
 	}
 
-	Bundle getCdiExtenderBundle() {
+	public Bundle getCdiExtenderBundle() {
 		BundleWiring bundleWiring = cdiBundle.adapt(BundleWiring.class);
 
 		List<BundleWire> requiredWires = bundleWiring.getRequiredWires(ExtenderNamespace.EXTENDER_NAMESPACE);
@@ -186,7 +187,7 @@ public abstract class AbstractTestCase {
 		return b;
 	}
 
-	Filter filter(String pattern, Object... objects) {
+	public Filter filter(String pattern, Object... objects) {
 		try {
 			return FrameworkUtil.createFilter(String.format(pattern, objects));
 		}
@@ -238,11 +239,11 @@ public abstract class AbstractTestCase {
 		return tracker;
 	}
 
-	BeanManager getBeanManager(Bundle bundle) throws Exception {
+	public BeanManager getBeanManager(Bundle bundle) throws Exception {
 		return trackBM(bundle).waitForService(timeout);
 	}
 
-	CloseableTracker<BeanManager, BeanManager> trackBM(Bundle bundle) throws Exception {
+	public CloseableTracker<BeanManager, BeanManager> trackBM(Bundle bundle) throws Exception {
 		CloseableTracker<BeanManager, BeanManager> serviceTracker = new CloseableTracker<>(
 			bundle.getBundleContext(),
 			filter(
@@ -254,7 +255,7 @@ public abstract class AbstractTestCase {
 		return serviceTracker;
 	}
 
-	long getChangeCount(ServiceReference<?> reference) {
+	public long getChangeCount(ServiceReference<?> reference) {
 		return Optional.ofNullable(
 			reference.getProperty("service.changecount")
 		).map(
@@ -264,7 +265,7 @@ public abstract class AbstractTestCase {
 		).longValue();
 	}
 
-	<T> T with(ClassLoader classLoader, Supplier<T> supplier) {
+	public <T> T with(ClassLoader classLoader, Supplier<T> supplier) {
 		Thread currentThread = Thread.currentThread();
 		ClassLoader original = currentThread.getContextClassLoader();
 		try {
@@ -276,14 +277,14 @@ public abstract class AbstractTestCase {
 		}
 	}
 
-	static final Bundle bundle = FrameworkUtil.getBundle(CdiBeanTests.class);
-	static final BundleContext bundleContext = bundle.getBundleContext();
-	static final long timeout = 500;
-	static Bundle servicesBundle;
-	static ServiceTracker<CDIComponentRuntime, CDIComponentRuntime> runtimeTracker;
+	public static final Bundle bundle = FrameworkUtil.getBundle(CdiBeanTests.class);
+	public static final BundleContext bundleContext = bundle.getBundleContext();
+	public static final long timeout = 500;
+	public static Bundle servicesBundle;
+	public static ServiceTracker<CDIComponentRuntime, CDIComponentRuntime> runtimeTracker;
 
-	Bundle cdiBundle;
-	CDIComponentRuntime cdiRuntime;
-	final PromiseFactory promiseFactory = new PromiseFactory(null);
+	public Bundle cdiBundle;
+	public CDIComponentRuntime cdiRuntime;
+	public final PromiseFactory promiseFactory = new PromiseFactory(null);
 
 }
