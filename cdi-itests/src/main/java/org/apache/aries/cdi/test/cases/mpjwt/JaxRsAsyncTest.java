@@ -55,7 +55,7 @@ public class JaxRsAsyncTest extends MpJwtAuthTests {
 
 		try {
 			final String token = TokenUtils.generateTokenString("/Token2.json");
-			final JsonObject object = client.target(getEndpoint())
+			final JsonObject object = client.target(getJaxrsEndpoint())
 					.path("test/async")
 					.request(APPLICATION_JSON_TYPE)
 					.header("Authorization", "bearer " + token)

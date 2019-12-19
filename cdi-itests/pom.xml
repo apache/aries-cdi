@@ -58,6 +58,12 @@
 			<groupId>biz.aQute.bnd</groupId>
 			<artifactId>biz.aQute.junit</artifactId>
 			<version>${bnd.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>biz.aQute.bnd</groupId>
+					<artifactId>biz.aQute.bndlib</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.aries.cdi</groupId>

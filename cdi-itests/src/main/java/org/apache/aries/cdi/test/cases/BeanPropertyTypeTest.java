@@ -18,46 +18,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.http.runtime.HttpServiceRuntime;
 import org.osgi.service.http.runtime.dto.ServletContextDTO;
 import org.osgi.util.tracker.ServiceTracker;
 
-public class BeanPropertyTypeTest extends AbstractTestCase {
-
-	@BeforeClass
-	public static void beforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void afterClass() throws Exception {
-	}
+public class BeanPropertyTypeTest extends SlimBaseTestCase {
 
 	@Test
 	public void beanPropertyAnnotationsWereUsed() throws Exception {
-		Bundle tbBundle = installBundle("tb13.jar");
+		Bundle tbBundle = bcr.installBundle("tb13.jar");
 
-		try {
-			getBeanManager(tbBundle);
+		getBeanManager(tbBundle);
 
-			ServletContextDTO contextDTO = waitFor("customContext");
+		ServletContextDTO contextDTO = waitFor("customContext");
 
-			assertThat(contextDTO).isNotNull();
-		}
-		finally {
-			tbBundle.uninstall();
-		}
+		assertThat(contextDTO).isNotNull();
 	}
 
 	@Before
 	@Override
 	public void setUp() throws Exception {
-		hsrTracker = new ServiceTracker<>(bundleContext, HttpServiceRuntime.class, null);
+		hsrTracker = new ServiceTracker<>(bcr.getBundleContext(), HttpServiceRuntime.class, null);
 
 		hsrTracker.open();
 

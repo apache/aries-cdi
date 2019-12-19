@@ -12,19 +12,17 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.test.cases;
+package org.apache.aries.cdi.test.cases.base;
 
+import static java.util.Optional.ofNullable;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.osgi.test.common.filter.Filters.format;
 
-import java.io.InputStream;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -35,18 +33,13 @@ import javax.enterprise.inject.spi.BeanManager;
 
 import org.apache.aries.cdi.extra.RequireCDIExtension;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.osgi.annotation.bundle.Requirement;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
@@ -55,9 +48,11 @@ import org.osgi.namespace.service.ServiceNamespace;
 import org.osgi.service.cdi.CDIConstants;
 import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.configurator.annotations.RequireConfigurator;
+import org.osgi.test.junit4.context.BundleContextRule;
+import org.osgi.test.junit4.service.ServiceUseRule;
 import org.osgi.util.promise.PromiseFactory;
-import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 @Requirement(
@@ -72,7 +67,19 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 @RequireCDIExtension("eclipse.microprofile.jwt-auth")
 @RequireCDIExtension("eclipse.microprofile.metrics")
 @RequireConfigurator
-public abstract class AbstractTestCase {
+public abstract class BaseTestCase {
+
+	public static final long timeout = 500;
+	public Bundle cdiBundle;
+	public Bundle servicesBundle;
+	public static final PromiseFactory promiseFactory = new PromiseFactory(null);
+
+	@Rule
+	public BundleContextRule bcr = new BundleContextRule();
+	@Rule
+	public ServiceUseRule<CDIComponentRuntime> ccrr = new ServiceUseRule.Builder<CDIComponentRuntime>(CDIComponentRuntime.class, bcr).build();
+	@Rule
+	public ServiceUseRule<ConfigurationAdmin> car = new ServiceUseRule.Builder<ConfigurationAdmin>(ConfigurationAdmin.class, bcr).build();
 
 	@Rule
 	public TestWatcher watchman= new TestWatcher() {
@@ -87,31 +94,18 @@ public abstract class AbstractTestCase {
 		}
 	};
 
-	@BeforeClass
-	public static void beforeClass() throws Exception {
-		runtimeTracker = new ServiceTracker<>(
-				bundleContext, CDIComponentRuntime.class, null);
-		runtimeTracker.open();
-		servicesBundle = installBundle("services-one.jar", false);
-		servicesBundle.start();
-	}
-
-	@AfterClass
-	public static void afterClass() throws Exception {
-		runtimeTracker.close();
-		servicesBundle.uninstall();
-	}
-
 	@Before
 	public void setUp() throws Exception {
-		cdiRuntime = runtimeTracker.waitForService(timeout);
-		cdiBundle = installBundle("basic-beans.jar", false);
+		servicesBundle = bcr.installBundle("services-one.jar", false);
+		servicesBundle.start();
+		cdiBundle = bcr.installBundle("basic-beans.jar", false);
 		cdiBundle.start();
 	}
 
 	@After
 	public void tearDown() throws Exception {
 		cdiBundle.uninstall();
+		servicesBundle.uninstall();
 	}
 
 	public void assertBeanExists(Class<?> clazz, BeanManager beanManager) {
@@ -127,12 +121,6 @@ public abstract class AbstractTestCase {
 		CreationalContext<?> ctx = beanManager.createCreationalContext(bean);
 		Object pojo = clazz.cast(beanManager.getReference(bean, clazz, ctx));
 		assertNotNull(pojo);
-	}
-
-	public static InputStream getBundle(String name) {
-		ClassLoader classLoader = AbstractTestCase.class.getClassLoader();
-
-		return classLoader.getResourceAsStream(name);
 	}
 
 	public Bundle getCdiExtenderBundle() {
@@ -157,7 +145,7 @@ public abstract class AbstractTestCase {
 		ContainerDTO containerDTO = null;
 		int attempts = 50;
 		while (--attempts > 0) {
-			iterator = cdiRuntime.getContainerDTOs(bundle).iterator();
+			iterator = ccrr.getService().getContainerDTOs(bundle).iterator();
 			if (iterator.hasNext()) {
 				containerDTO = iterator.next();
 				if (containerDTO != null) {
@@ -174,53 +162,22 @@ public abstract class AbstractTestCase {
 		return containerDTO;
 	}
 
-	public static Bundle installBundle(String url) throws Exception {
-		return installBundle(url, true);
-	}
-
-	public static Bundle installBundle(String bundleName, boolean start) throws Exception {
-		Bundle b = bundleContext.installBundle(bundleName, getBundle(bundleName));
-
-		if (start) {
-			b.start();
-		}
-
-		return b;
-	}
-
-	public Filter filter(String pattern, Object... objects) {
-		try {
-			return FrameworkUtil.createFilter(String.format(pattern, objects));
-		}
-		catch (InvalidSyntaxException e) {
-			throw new RuntimeException(e.getMessage());
-		}
-	}
-
-	public Dictionary<String, Object> getProperties(ServiceReference<Integer> reference) {
-		Dictionary<String, Object> properties = new Hashtable<>();
-		for (String key : reference.getPropertyKeys()) {
-			properties.put(key, reference.getProperty(key));
-		}
-		return properties;
-	}
-
 	public <S,T> CloseableTracker<S, T> track(Filter filter) {
-		CloseableTracker<S, T> tracker = new CloseableTracker<>(bundleContext, filter);
+		CloseableTracker<S, T> tracker = new CloseableTracker<>(bcr.getBundleContext(), filter);
 		tracker.open();
 		return tracker;
 	}
 
 	public <S,T> CloseableTracker<S, T> track(String pattern, Object... objects) {
-		return track(filter(pattern, objects));
+		return track(format(pattern, objects));
 	}
 
 	public <S> CloseableTracker<S, ServiceReference<S>> trackSR(String pattern, Object... objects) {
-		return trackSR(filter(pattern, objects));
+		return trackSR(format(pattern, objects));
 	}
 
 	public <S> CloseableTracker<S, ServiceReference<S>> trackSR(Filter filter) {
-		CloseableTracker<S, ServiceReference<S>> tracker = new CloseableTracker<>(bundleContext, filter, new ServiceTrackerCustomizer<S, ServiceReference<S>>() {
+		CloseableTracker<S, ServiceReference<S>> tracker = new CloseableTracker<>(bcr.getBundleContext(), filter, new ServiceTrackerCustomizer<S, ServiceReference<S>>() {
 
 			@Override
 			public ServiceReference<S> addingService(ServiceReference<S> reference) {
@@ -247,7 +204,7 @@ public abstract class AbstractTestCase {
 	public CloseableTracker<BeanManager, BeanManager> trackBM(Bundle bundle) throws Exception {
 		CloseableTracker<BeanManager, BeanManager> serviceTracker = new CloseableTracker<>(
 			bundle.getBundleContext(),
-			filter(
+			format(
 				"(&(objectClass=%s)(service.bundleid=%d))",
 				BeanManager.class.getName(),
 				bundle.getBundleId()),
@@ -257,16 +214,16 @@ public abstract class AbstractTestCase {
 	}
 
 	public long getChangeCount(ServiceReference<?> reference) {
-		return Optional.ofNullable(
+		return ofNullable(
 			reference.getProperty("service.changecount")
 		).map(
-			v -> (Long)v
-		).orElse(
-			new Long(-1l)
+			Long.class::cast
+		).orElseGet(
+			() -> new Long(-1l)
 		).longValue();
 	}
 
-	public <T> T with(ClassLoader classLoader, Supplier<T> supplier) {
+	public static <T> T tccl(ClassLoader classLoader, Supplier<T> supplier) {
 		Thread currentThread = Thread.currentThread();
 		ClassLoader original = currentThread.getContextClassLoader();
 		try {
@@ -277,15 +234,5 @@ public abstract class AbstractTestCase {
 			currentThread.setContextClassLoader(original);
 		}
 	}
-
-	public static final Bundle bundle = FrameworkUtil.getBundle(CdiBeanTests.class);
-	public static final BundleContext bundleContext = bundle.getBundleContext();
-	public static final long timeout = 500;
-	public static Bundle servicesBundle;
-	public static ServiceTracker<CDIComponentRuntime, CDIComponentRuntime> runtimeTracker;
-
-	public Bundle cdiBundle;
-	public CDIComponentRuntime cdiRuntime;
-	public final PromiseFactory promiseFactory = new PromiseFactory(null);
 
 }

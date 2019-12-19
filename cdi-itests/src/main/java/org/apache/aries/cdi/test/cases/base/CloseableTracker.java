@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.test.cases;
+package org.apache.aries.cdi.test.cases.base;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;

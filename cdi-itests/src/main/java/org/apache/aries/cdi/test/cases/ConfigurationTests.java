@@ -27,56 +27,32 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.BeanService;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cdi.ConfigurationPolicy;
-import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ComponentDTO;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 import org.osgi.service.cdi.runtime.dto.template.ConfigurationTemplateDTO;
 import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class ConfigurationTests extends AbstractTestCase {
-
-	@Before
-	@Override
-	public void setUp() throws Exception {
-		runtimeTracker = new ServiceTracker<>(
-			bundleContext, CDIComponentRuntime.class, null);
-		runtimeTracker.open();
-
-		cdiRuntime = runtimeTracker.waitForService(timeout);
-
-		adminTracker = new ServiceTracker<>(bundleContext, ConfigurationAdmin.class, null);
-		adminTracker.open();
-		configurationAdmin = adminTracker.getService();
-	}
-
-	@After
-	@Override
-	public void tearDown() throws Exception {
-		runtimeTracker.close();
-		adminTracker.close();
-	}
+public class ConfigurationTests extends SlimBaseTestCase {
 
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testConfiguration() throws Exception {
-		Bundle tb3Bundle = installBundle("tb3.jar");
+		Bundle tb3Bundle = bcr.installBundle("tb3.jar");
 
 		Configuration configurationA = null, configurationB = null;
-		ServiceTracker<BeanService, BeanService> stA = null, stB = null;
+
 		try {
 			int attempts = 50;
 			ComponentDTO configurationBeanA = null;
 
 			while (--attempts > 0) {
-				ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb3Bundle);
+				ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb3Bundle);
 
 				configurationBeanA = containerDTO.components.stream().filter(
 					c -> c.template.name.equals("configurationBeanA")
@@ -98,7 +74,7 @@ public class ConfigurationTests extends AbstractTestCase {
 				)
 			);
 
-			configurationA = configurationAdmin.getConfiguration("configurationBeanA", "?");
+			configurationA = car.getService().getConfiguration("configurationBeanA", "?");
 
 			Dictionary<String, Object> p1 = new Hashtable<>();
 			p1.put("ports", new int[] {12, 4567});
@@ -110,47 +86,41 @@ public class ConfigurationTests extends AbstractTestCase {
 				)
 			);
 
-			configurationB = configurationAdmin.getConfiguration("configurationBeanB", "?");
+			configurationB = car.getService().getConfiguration("configurationBeanB", "?");
 
 			Dictionary<String, Object> p2 = new Hashtable<>();
 			p2.put("color", "green");
 			p2.put("ports", new int[] {80});
 			configurationB.update(p2);
 
-			stA = new ServiceTracker<>(
-					bundleContext, bundleContext.createFilter(
-					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=A))"), null);
-			stA.open(true);
+			try (CloseableTracker<BeanService, BeanService> stA = track("(&(objectClass=%s)(bean=A))", BeanService.class.getName())) {
+				BeanService<Callable<int[]>> beanService = stA.waitForService(timeout);
 
-			BeanService<Callable<int[]>> beanService = stA.waitForService(timeout);
+				assertNotNull(beanService);
 
-			assertNotNull(beanService);
+				assertWithRetries(() -> {
+					assertEquals("blue", beanService.doSomething());
+					try {
+						assertArrayEquals(new int[]{12, 4567}, beanService.get().call());
+					} catch (final Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
 
-			assertWithRetries(() -> {
-				assertEquals("blue", beanService.doSomething());
-				try {
-					assertArrayEquals(new int[]{12, 4567}, beanService.get().call());
-				} catch (final Exception e) {
-					fail(e.getMessage());
-				}
-			});
+			try (CloseableTracker<BeanService, BeanService> stB = track("(&(objectClass=%s)(bean=B))", BeanService.class.getName())) {
+				final BeanService<Callable<int[]>> beanServiceB = stB.waitForService(timeout);
+				assertNotNull(beanServiceB);
 
-			stB = new ServiceTracker<>(
-					bundleContext, bundleContext.createFilter(
-					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=B))"), null);
-			stB.open(true);
-
-			final BeanService<Callable<int[]>> beanServiceB = stB.waitForService(timeout);
-			assertNotNull(beanServiceB);
-
-			assertWithRetries(() -> {
-				assertEquals("green", beanServiceB.doSomething());
-				try {
-					assertArrayEquals(new int[]{80}, beanServiceB.get().call());
-				} catch (final Exception e) {
-					fail(e.getMessage());
-				}
-			});
+				assertWithRetries(() -> {
+					assertEquals("green", beanServiceB.doSomething());
+					try {
+						assertArrayEquals(new int[]{80}, beanServiceB.get().call());
+					} catch (final Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
 		}
 		finally {
 			if (configurationA != null) {
@@ -169,13 +139,6 @@ public class ConfigurationTests extends AbstractTestCase {
 					// ignore
 				}
 			}
-			if (stA != null) {
-				stA.close();
-			}
-			if (stB != null) {
-				stB.close();
-			}
-			tb3Bundle.uninstall();
 		}
 	}
 
@@ -198,36 +161,25 @@ public class ConfigurationTests extends AbstractTestCase {
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testOptionalConfiguration() throws Exception {
-		Bundle tb5Bundle = installBundle("tb5.jar");
+		bcr.installBundle("tb5.jar");
 
 		Configuration configurationC = null;
-		ServiceTracker<BeanService, BeanService> stC = new ServiceTracker<BeanService, BeanService>(
-			bundleContext, bundleContext.createFilter(
-				"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C))"), null);
 
-		try {
-			Thread.sleep(1000); // <---- TODO fix this
-
-			stC.open(true);
-
+		try (CloseableTracker<BeanService, BeanService> stC = track("(&(objectClass=%s)(bean=C))", BeanService.class.getName())) {
 			BeanService<Callable<int[]>> beanService = stC.waitForService(timeout);
 
 			assertNotNull(beanService);
 			assertEquals("blue", beanService.doSomething());
 			assertArrayEquals(new int[] {35777}, beanService.get().call());
+		}
 
-			configurationC = configurationAdmin.getConfiguration("foo.bar", "?");
+		configurationC = car.getService().getConfiguration("foo.bar", "?");
 
-			Dictionary<String, Object> properties = new Hashtable<>();
-			properties.put("ports", new int[] {12, 4567});
-			configurationC.update(properties);
+		Dictionary<String, Object> properties = new Hashtable<>();
+		properties.put("ports", new int[] {12, 4567});
+		configurationC.update(properties);
 
-			stC.close();
-			stC = new ServiceTracker<>(
-					bundleContext, bundleContext.createFilter(
-					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C)(ports=12))"), null);
-			stC.open(true);
-
+		try (CloseableTracker<BeanService, BeanService> stC = track("(&(objectClass=%s)(bean=C)(ports=12))", BeanService.class.getName())) {
 			final BeanService<Callable<int[]>> beanServiceC = stC.waitForService(timeout);
 
 			assertNotNull(beanServiceC);
@@ -239,21 +191,18 @@ public class ConfigurationTests extends AbstractTestCase {
 					fail(e.getMessage());
 				}
 			});
+		}
 
-			configurationC.delete();
+		configurationC.delete();
 
-			stC.close();
-			stC = new ServiceTracker<>(
-					bundleContext, bundleContext.createFilter(
-					"(&(objectClass=org.apache.aries.cdi.test.interfaces.BeanService)(bean=C)(!(ports=*)))"), null);
-			stC.open(true);
-			final BeanService<Callable<int[]>> beanServiceC2 = stC.waitForService(timeout);
+		try (CloseableTracker<BeanService, BeanService> stC = track("(&(objectClass=%s)(bean=C)(!(ports=*)))", BeanService.class.getName())) {
+			final BeanService<Callable<int[]>> beanService = stC.waitForService(timeout);
 
 			assertNotNull(beanService);
 			assertWithRetries(() -> {
-				assertEquals("blue", beanServiceC2.doSomething());
+				assertEquals("blue", beanService.doSomething());
 				try {
-					assertArrayEquals(new int[] {35777}, beanServiceC2.get().call());
+					assertArrayEquals(new int[] {35777}, beanService.get().call());
 				} catch (final Exception e) {
 					fail(e.getMessage());
 				}
@@ -268,14 +217,7 @@ public class ConfigurationTests extends AbstractTestCase {
 					// ignore
 				}
 			}
-			if (stC != null) {
-				stC.close();
-			}
-			tb5Bundle.uninstall();
 		}
 	}
-
-	private ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> adminTracker;
-	private ConfigurationAdmin configurationAdmin;
 
 }

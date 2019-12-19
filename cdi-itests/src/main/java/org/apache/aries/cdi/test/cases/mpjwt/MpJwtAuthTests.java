@@ -16,25 +16,26 @@ package org.apache.aries.cdi.test.cases.mpjwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.apache.aries.cdi.test.cases.JaxrsBaseTestCase;
+import org.apache.aries.cdi.test.cases.base.JaxrsBaseTestCase;
 import org.junit.After;
 import org.junit.Before;
+import org.osgi.service.jaxrs.runtime.dto.RuntimeDTO;
 
 public class MpJwtAuthTests extends JaxrsBaseTestCase {
 
 	@Before
 	@Override
 	public void setUp() throws Exception {
-		super.setUp();
-		cdiBundle = installBundle("tb23.jar");
+		cdiBundle = bcr.installBundle("tb23.jar");
 
 		int count = 100;
-		while (jsr.getRuntimeDTO().defaultApplication.resourceDTOs.length < 3 && (count > 0)) {
+		RuntimeDTO runtimeDTO;
+		while ((runtimeDTO = jsrr.getService().getRuntimeDTO()).defaultApplication.resourceDTOs.length < 3 && (count > 0)) {
 			count--;
 			Thread.sleep(100);
 		}
 
-		assertThat(jsr.getRuntimeDTO().defaultApplication.resourceDTOs).extracting("name").contains(
+		assertThat(runtimeDTO.defaultApplication.resourceDTOs).extracting("name").contains(
 			"AsyncEndpoint", "PassthroughEndpoint", "TokenInspector");
 	}
 
@@ -42,7 +43,6 @@ public class MpJwtAuthTests extends JaxrsBaseTestCase {
 	@Override
 	public void tearDown() throws Exception {
 		cdiBundle.uninstall();
-		super.tearDown();
 	}
 
 }

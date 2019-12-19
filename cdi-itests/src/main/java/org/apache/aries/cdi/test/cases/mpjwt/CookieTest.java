@@ -46,7 +46,7 @@ public class CookieTest extends MpJwtAuthTests {
 
 		try {
 			final String token = TokenUtils.generateTokenString("/Token2.json");
-			final String serverToken = client.target(getEndpoint())
+			final String serverToken = client.target(getJaxrsEndpoint())
 					.path("passthrough")
 					.request(TEXT_PLAIN_TYPE)
 					.cookie(new Cookie("Bearer", token))

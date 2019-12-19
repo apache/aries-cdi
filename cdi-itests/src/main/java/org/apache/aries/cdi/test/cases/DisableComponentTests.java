@@ -20,34 +20,18 @@ import static org.junit.Assert.assertNull;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.test.junit4.service.ServiceUseRule;
 
-public class DisableComponentTests	 extends AbstractTestCase {
-
-	@Rule
-	public ServiceUseRule<ConfigurationAdmin> car = new ServiceUseRule.Builder<ConfigurationAdmin>(ConfigurationAdmin.class).build();
-
-	@Before
-	@Override
-	public void setUp() throws Exception {
-	}
-
-	@After
-	@Override
-	public void tearDown() throws Exception {
-	}
+public class DisableComponentTests extends SlimBaseTestCase {
 
 	@Test
 	public void testDisableContainerComponent() throws Exception {
-		Bundle tb8Bundle = installBundle("tb8.jar");
+		Bundle tb8Bundle = bcr.installBundle("tb8.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track(
 				"(&(objectClass=%s)(objectClass=*.%s)(service.bundleid=%s))",
@@ -99,14 +83,13 @@ public class DisableComponentTests	 extends AbstractTestCase {
 						// ignore
 					}
 				}
-				tb8Bundle.uninstall();
 			}
 		}
 	}
 
 	@Test
 	public void testDisableSingleComponent() throws Exception {
-		Bundle tb8Bundle = installBundle("tb8.jar");
+		Bundle tb8Bundle = bcr.installBundle("tb8.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s)(service.bundleid=%s))",
@@ -158,7 +141,6 @@ public class DisableComponentTests	 extends AbstractTestCase {
 						// ignore
 					}
 				}
-				tb8Bundle.uninstall();
 			}
 		}
 	}

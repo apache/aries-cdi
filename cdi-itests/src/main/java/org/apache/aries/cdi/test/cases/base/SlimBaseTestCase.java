@@ -12,21 +12,11 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.test.cases;
+package org.apache.aries.cdi.test.cases.base;
 
 import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 
-public abstract class SlimTestCase extends AbstractTestCase {
-
-	@BeforeClass
-	public static void beforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void afterClass() throws Exception {
-	}
+public abstract class SlimBaseTestCase extends BaseTestCase {
 
 	@Override
 	public void setUp() throws Exception {

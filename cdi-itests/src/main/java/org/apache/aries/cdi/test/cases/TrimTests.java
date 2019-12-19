@@ -17,60 +17,25 @@ package org.apache.aries.cdi.test.cases;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
-import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class TrimTests extends AbstractTestCase {
-
-	@BeforeClass
-	public static void beforeClass() throws Exception {
-		runtimeTracker = new ServiceTracker<>(
-				bundleContext, CDIComponentRuntime.class, null);
-		runtimeTracker.open();
-	}
-
-	@AfterClass
-	public static void afterClass() throws Exception {
-		runtimeTracker.close();
-	}
-
-	@Override
-	@Before
-	public void setUp() throws Exception {
-		cdiRuntime = runtimeTracker.waitForService(timeout);
-	}
-
-	@Override
-	@After
-	public void tearDown() throws Exception {
-	}
+public class TrimTests extends SlimBaseTestCase {
 
 	@Test
 	public void testTrimmed() throws Exception {
-		Bundle tb2Bundle = installBundle("tb17.jar", false);
+		Bundle tb2Bundle = bcr.installBundle("tb17.jar");
 
-		tb2Bundle.start();
+		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb2Bundle);
+		assertNotNull(containerDTO);
 
-		try {
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb2Bundle);
-			assertNotNull(containerDTO);
+		assertEquals(5, containerDTO.template.components.get(0).beans.size());
 
-			assertEquals(5, containerDTO.template.components.get(0).beans.size());
+		assertEquals(2, containerDTO.template.components.size());
 
-			assertEquals(2, containerDTO.template.components.size());
-
-			assertEquals(2, containerDTO.template.components.get(1).beans.size());
-		}
-		finally {
-			tb2Bundle.uninstall();
-		}
+		assertEquals(2, containerDTO.template.components.get(1).beans.size());
 	}
 
 }

@@ -14,11 +14,13 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 
+import org.apache.aries.cdi.test.cases.base.BaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -28,7 +30,7 @@ import org.osgi.service.cdi.runtime.dto.ComponentDTO;
 import org.osgi.service.cdi.runtime.dto.ComponentInstanceDTO;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 
-public class CdiContainerTests extends AbstractTestCase {
+public class CdiContainerTests extends BaseTestCase {
 
 	@Test
 	public void testGetBeanFromCdiContainerService() throws Exception {
@@ -41,7 +43,7 @@ public class CdiContainerTests extends AbstractTestCase {
 	@Test
 	@Ignore("Due to a Service Loader Mediator incompatibility in the official CDI 2.0 API")
 	public void testGetBeanManagerFromCDI() throws Exception {
-		BeanManager beanManager = with(
+		BeanManager beanManager = tccl(
 			cdiBundle.adapt(BundleWiring.class).getClassLoader(),
 			() ->
 				CDI.current().getBeanManager()
@@ -53,11 +55,11 @@ public class CdiContainerTests extends AbstractTestCase {
 
 	@Test
 	public void testContainerComponentSingleton() throws Exception {
-		while (getContainerDTO(cdiRuntime, cdiBundle).components.isEmpty()) {
+		while (getContainerDTO(ccrr.getService(), cdiBundle).components.isEmpty()) {
 			Thread.sleep(10);
 		}
 
-		ContainerDTO containerDTO = getContainerDTO(cdiRuntime, cdiBundle);
+		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), cdiBundle);
 		assertNotNull(containerDTO);
 
 		ComponentDTO containerComponentDTO = containerDTO.components.stream()

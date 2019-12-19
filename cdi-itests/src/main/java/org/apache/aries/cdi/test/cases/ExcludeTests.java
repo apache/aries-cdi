@@ -17,96 +17,47 @@ package org.apache.aries.cdi.test.cases;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.apache.aries.cdi.test.cases.base.BaseTestCase;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
-import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class ExcludeTests extends AbstractTestCase {
-
-	@BeforeClass
-	public static void beforeClass() throws Exception {
-		runtimeTracker = new ServiceTracker<>(
-				bundleContext, CDIComponentRuntime.class, null);
-		runtimeTracker.open();
-	}
-
-	@AfterClass
-	public static void afterClass() throws Exception {
-		runtimeTracker.close();
-	}
-
-	@Override
-	@Before
-	public void setUp() throws Exception {
-		cdiRuntime = runtimeTracker.waitForService(timeout);
-	}
-
-	@Override
-	@After
-	public void tearDown() throws Exception {
-	}
+public class ExcludeTests extends BaseTestCase {
 
 	@Test
 	public void testExclude_ByName() throws Exception {
-		Bundle tb2Bundle = installBundle("tb18.jar", false);
+		Bundle tb2Bundle = bcr.installBundle("tb18.jar");
 
-		tb2Bundle.start();
+		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb2Bundle);
+		assertNotNull(containerDTO);
 
-		try {
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb2Bundle);
-			assertNotNull(containerDTO);
+		assertEquals(1, containerDTO.template.components.size());
 
-			assertEquals(1, containerDTO.template.components.size());
-
-			assertEquals(3, containerDTO.template.components.get(0).beans.size());
-		}
-		finally {
-			tb2Bundle.uninstall();
-		}
+		assertEquals(3, containerDTO.template.components.get(0).beans.size());
 	}
 
 	@Test
 	public void testExclude_IfClassAvailable() throws Exception {
-		Bundle tb2Bundle = installBundle("tb19.jar", false);
+		Bundle tb2Bundle = bcr.installBundle("tb19.jar");
 
-		tb2Bundle.start();
+		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb2Bundle);
+		assertNotNull(containerDTO);
 
-		try {
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb2Bundle);
-			assertNotNull(containerDTO);
+		assertEquals(1, containerDTO.template.components.size());
 
-			assertEquals(1, containerDTO.template.components.size());
-
-			assertEquals(1, containerDTO.template.components.get(0).beans.size());
-		}
-		finally {
-			tb2Bundle.uninstall();
-		}
+		assertEquals(1, containerDTO.template.components.get(0).beans.size());
 	}
 
 	@Test
 	public void testExclude_IfSystemProperty() throws Exception {
-		Bundle tb2Bundle = installBundle("tb20.jar", false);
+		Bundle tb2Bundle = bcr.installBundle("tb20.jar");
 
-		tb2Bundle.start();
+		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb2Bundle);
+		assertNotNull(containerDTO);
 
-		try {
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb2Bundle);
-			assertNotNull(containerDTO);
+		assertEquals(1, containerDTO.template.components.size());
 
-			assertEquals(1, containerDTO.template.components.size());
-
-			assertEquals(2, containerDTO.template.components.get(0).beans.size());
-		}
-		finally {
-			tb2Bundle.uninstall();
-		}
+		assertEquals(2, containerDTO.template.components.get(0).beans.size());
 	}
 
 }

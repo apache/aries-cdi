@@ -21,19 +21,20 @@ import static org.junit.Assert.assertNotNull;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.naming.InitialContext;
 
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.BundleTracker;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class JndiExtensionTests extends SlimTestCase {
+public class JndiExtensionTests extends SlimBaseTestCase {
 
 	@Test
 	public void testGetBeanManagerThroughJNDI() throws Exception {
-		Bundle testBundle = installBundle("tb21.jar", false);
+		Bundle testBundle = bcr.installBundle("tb21.jar", false);
 
 		testBundle.start();
 
@@ -57,7 +58,7 @@ public class JndiExtensionTests extends SlimTestCase {
 
 	@Test
 	public void testDisableExtensionAndCDIContainerWaits() throws Exception {
-		BundleTracker<Bundle> bundleTracker = new BundleTracker<Bundle>(bundleContext, Bundle.ACTIVE, null) {
+		BundleTracker<Bundle> bundleTracker = new BundleTracker<Bundle>(bcr.getBundleContext(), Bundle.ACTIVE, null) {
 			@Override
 			public Bundle addingBundle(Bundle bundle, BundleEvent event) {
 				if (bundle.getSymbolicName().equals("org.apache.aries.cdi.extension.jndi")) {
@@ -68,15 +69,11 @@ public class JndiExtensionTests extends SlimTestCase {
 		};
 		bundleTracker.open();
 
-		Bundle testBundle = installBundle("tb21.jar", false);
+		Bundle testBundle = bcr.installBundle("tb21.jar", false);
 
 		testBundle.start();
 
-		ServiceTracker<Pojo, Pojo> st = new ServiceTracker<Pojo, Pojo>(
-			bundleContext, Pojo.class, null);
-		st.open(true);
-
-		try {
+		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			assertFalse(bundleTracker.isEmpty());
 
 			Bundle extensionBundle = bundleTracker.getBundles()[0];
@@ -102,9 +99,7 @@ public class JndiExtensionTests extends SlimTestCase {
 			}
 		}
 		finally {
-			testBundle.uninstall();
 			bundleTracker.close();
-			st.close();
 		}
 	}
 

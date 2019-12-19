@@ -18,27 +18,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.enterprise.context.spi.Context;
 
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.BeanService;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class Test152_3 extends SlimTestCase {
+public class Test152_3 extends SlimBaseTestCase {
 
 	@Test
 	public void componentScopeContext() throws Exception {
-		Bundle tbBundle = installBundle("tb152_3.jar");
+		Bundle tbBundle = bcr.installBundle("tb152_3.jar");
 
-		ServiceTracker<Object, Object> oneTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "one");
-		ServiceTracker<Object, Object> twoTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "two");
-		try {
+		try (CloseableTracker<Object, Object> oneTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "one");
+				CloseableTracker<Object, Object> twoTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "two")) {
+
 			getBeanManager(tbBundle);
 
-			oneTracker.open();
 			Object service = oneTracker.waitForService(timeout);
-
-			twoTracker.open();
 			twoTracker.waitForService(timeout);
 
 			assertThat(service).isNotNull();
@@ -46,11 +44,6 @@ public class Test152_3 extends SlimTestCase {
 			BeanService<Context> bs = (BeanService<Context>)service;
 			Context context = bs.get();
 			assertThat(context).isNotNull();
-		}
-		finally {
-			oneTracker.close();
-			twoTracker.close();
-			tbBundle.uninstall();
 		}
 	}
 

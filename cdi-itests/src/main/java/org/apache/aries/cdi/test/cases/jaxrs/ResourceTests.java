@@ -9,31 +9,28 @@ import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.aries.cdi.test.cases.JaxrsBaseTestCase;
+import org.apache.aries.cdi.test.cases.base.JaxrsBaseTestCase;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.osgi.test.junit4.service.ServiceUseRule;
+import org.osgi.service.jaxrs.runtime.dto.RuntimeDTO;
 
 public class ResourceTests extends JaxrsBaseTestCase {
-	@Rule
-	public ServiceUseRule<ClientBuilder> cbr = new ServiceUseRule.Builder<>(ClientBuilder.class) //
-		.build();
 
 	@Before
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
-		cdiBundle = installBundle("tb24.jar");
+		cdiBundle = bcr.installBundle("tb24.jar");
 
 		int count = 100;
-		while (jsr.getRuntimeDTO().defaultApplication.resourceDTOs.length < 1 && (count > 0)) {
+		RuntimeDTO runtimeDTO;
+		while ((runtimeDTO = jsrr.getService().getRuntimeDTO()).defaultApplication.resourceDTOs.length < 1 && (count > 0)) {
 			count--;
 			Thread.sleep(100);
 		}
 
-		assertThat(jsr.getRuntimeDTO().defaultApplication.resourceDTOs).extracting("name").contains(
+		assertThat(runtimeDTO.defaultApplication.resourceDTOs).extracting("name").contains(
 			"A");
 	}
 
@@ -41,7 +38,6 @@ public class ResourceTests extends JaxrsBaseTestCase {
 	@Override
 	public void tearDown() throws Exception {
 		cdiBundle.uninstall();
-		super.tearDown();
 	}
 
 	@Test
@@ -53,7 +49,7 @@ public class ResourceTests extends JaxrsBaseTestCase {
 		final Client client = cb.build();
 
 		try {
-			final String serverToken = client.target(getEndpoint())
+			final String serverToken = client.target(getJaxrsEndpoint())
 					.path("a")
 					.request(TEXT_PLAIN_TYPE)
 					.get(String.class);

@@ -12,27 +12,26 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.test.cases;
-
-import static org.assertj.core.api.Assertions.assertThat;
+package org.apache.aries.cdi.test.cases.base;
 
 import java.util.Collection;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.junit.After;
-import org.junit.Before;
-import org.osgi.framework.ServiceObjects;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.runtime.HttpServiceRuntime;
+import org.junit.Rule;
 import org.osgi.service.jaxrs.runtime.JaxrsServiceRuntime;
 import org.osgi.service.jaxrs.runtime.JaxrsServiceRuntimeConstants;
-import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.test.junit4.service.ServiceUseRule;
 
-public abstract class JaxrsBaseTestCase extends SlimTestCase {
+public abstract class JaxrsBaseTestCase extends HttpBaseTestCase {
 
-	public String getEndpoint() {
-		Object endpointsObj = jsrReference.getProperty(
+	@Rule
+	public ServiceUseRule<JaxrsServiceRuntime> jsrr = new ServiceUseRule.Builder<JaxrsServiceRuntime>(JaxrsServiceRuntime.class, bcr).build();
+	@Rule
+	public ServiceUseRule<ClientBuilder> cbr = new ServiceUseRule.Builder<ClientBuilder>(ClientBuilder.class, bcr).build();
+
+	public String getJaxrsEndpoint() {
+		Object endpointsObj = jsrr.getServiceReference().getProperty(
 			JaxrsServiceRuntimeConstants.JAX_RS_SERVICE_ENDPOINT);
 
 		if (endpointsObj instanceof String) {
@@ -47,50 +46,5 @@ public abstract class JaxrsBaseTestCase extends SlimTestCase {
 
 		return null;
 	}
-
-	@Before
-	@Override
-	public void setUp() throws Exception {
-		hsrTracker = new ServiceTracker<>(bundleContext, HttpServiceRuntime.class, null);
-
-		hsrTracker.open();
-
-		hsr = hsrTracker.waitForService(timeout);
-
-		jsrTracker = new ServiceTracker<>(bundleContext, JaxrsServiceRuntime.class, null);
-
-		jsrTracker.open();
-
-		jsr = jsrTracker.waitForService(timeout);
-
-		jsrReference = jsrTracker.getServiceReference();
-
-		cbTracker = new ServiceTracker<>(bundleContext, ClientBuilder.class, null);
-
-		cbTracker.open();
-
-		cb = cbTracker.waitForService(timeout);
-
-		cbSO = bundleContext.getServiceObjects(cbTracker.getServiceReference());
-
-		assertThat(cb).isNotNull();
-	}
-
-	@After
-	@Override
-	public void tearDown() throws Exception {
-		hsrTracker.close();
-		jsrTracker.close();
-		cbTracker.close();
-	}
-
-	protected ClientBuilder cb;
-	protected ServiceObjects<ClientBuilder> cbSO;
-	protected ServiceTracker<ClientBuilder, ClientBuilder> cbTracker;
-	protected HttpServiceRuntime hsr;
-	protected ServiceTracker<HttpServiceRuntime, HttpServiceRuntime> hsrTracker = new ServiceTracker<>(bundleContext, HttpServiceRuntime.class, null);
-	protected JaxrsServiceRuntime jsr;
-	protected ServiceReference<JaxrsServiceRuntime> jsrReference;
-	protected ServiceTracker<JaxrsServiceRuntime, JaxrsServiceRuntime> jsrTracker;
 
 }

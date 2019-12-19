@@ -124,6 +124,7 @@
 			<groupId>biz.aQute.bnd</groupId>
 			<artifactId>biz.aQute.bndlib</artifactId>
 			<version>${bnd.version}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>
