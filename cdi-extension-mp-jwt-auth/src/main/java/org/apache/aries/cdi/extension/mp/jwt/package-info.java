@@ -28,6 +28,7 @@
 )
 @JSONRequired
 @RequireCDIExtension("aries.cdi.http")
+@RequireCDIExtension("aries.cdi.jaxrs")
 @RequireCDIExtender
 @RequireJaxrsWhiteboard
 package org.apache.aries.cdi.extension.mp.jwt;

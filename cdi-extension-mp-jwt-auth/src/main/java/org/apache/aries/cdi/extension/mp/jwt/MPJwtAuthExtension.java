@@ -20,6 +20,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.apache.aries.cdi.extension.mp.jwt.MPJwtAuthExtension.EXTENSION_NAME;
 import static org.apache.aries.cdi.extension.mp.jwt.MPJwtAuthExtension.EXTENSION_VERSION;
 import static org.osgi.framework.Constants.SCOPE_PROTOTYPE;
+import static org.osgi.framework.Constants.SERVICE_BUNDLEID;
 import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
 import static org.osgi.framework.Constants.SERVICE_SCOPE;
 import static org.osgi.framework.Constants.SERVICE_VENDOR;
@@ -27,16 +28,15 @@ import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_ASYNC_SUPPORTED;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_NAME;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_PATTERN;
-import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_APPLICATION_BASE;
 import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_APPLICATION_SELECT;
 import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_EXTENSION;
-import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT;
 import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_MEDIA_TYPE;
 import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_NAME;
-import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_WHITEBOARD_TARGET;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
@@ -52,10 +52,10 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.BeforeShutdown;
-import javax.enterprise.inject.spi.DeploymentException;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
+import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -70,6 +70,7 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 
+import org.apache.aries.cdi.extra.propertytypes.JaxrsExtensionSelect;
 import org.apache.aries.cdi.spi.configuration.Configuration;
 import org.apache.geronimo.microprofile.impl.jwtauth.cdi.GeronimoJwtAuthExtension;
 import org.apache.geronimo.microprofile.impl.jwtauth.config.GeronimoJwtAuthConfig;
@@ -94,6 +95,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
 
 import aQute.bnd.annotation.spi.ServiceProvider;
 
@@ -111,6 +113,15 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 
 	public final static String EXTENSION_NAME = "eclipse.microprofile.jwt-auth";
 	public final static String EXTENSION_VERSION = "1.1.1";
+
+	@SuppressWarnings("serial")
+	private final static Set<String> defaultSelects = new HashSet<String>() {{
+		add(format("(%s=%s)", JAX_RS_NAME, "jwt.roles.allowed"));
+		add(format("(%s=%s)", JAX_RS_NAME, "jwt.request.forwarder"));
+		add(format("(%s=%s)", JAX_RS_NAME, "jwt.exception.mapper"));
+		add(format("(&(objectClass=%s)(%s=%s))", MessageBodyReader.class.getName(), JAX_RS_MEDIA_TYPE, APPLICATION_JSON));
+		add(format("(&(objectClass=%s)(%s=%s))", MessageBodyWriter.class.getName(), JAX_RS_MEDIA_TYPE, APPLICATION_JSON));
+	}};
 
 	private volatile BundleContext bundleContext;
 	private volatile Configuration configuration;
@@ -149,10 +160,31 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 	final List<AnnotatedType<? extends Application>> applications = new CopyOnWriteArrayList<>();
 
 	void addLoginConfigs(@Observes @WithAnnotations(LoginConfig.class) ProcessAnnotatedType<? extends Application> pat) {
-		LoginConfig loginConfig = pat.getAnnotatedType().getAnnotation(LoginConfig.class);
+		AnnotatedType<? extends Application> annotatedType = pat.getAnnotatedType();
+
+		LoginConfig loginConfig = annotatedType.getAnnotation(LoginConfig.class);
 
 		if ("MP-JWT".equalsIgnoreCase(loginConfig.authMethod())) {
 			applications.add(pat.getAnnotatedType());
+
+			AnnotatedTypeConfigurator<? extends Application> configurator = pat.configureAnnotatedType();
+
+			Set<String> selectSet = ofNullable((String[])configuration.get(JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT)).map(selects -> {
+				Set<String> mergedSelects = new HashSet<>(defaultSelects);
+				if (selects.length > 0) {
+					mergedSelects.addAll(Arrays.asList(selects));
+				}
+				return mergedSelects;
+			}).orElse(defaultSelects);
+
+			JaxrsExtensionSelect jaxrsExtensionSelect = annotatedType.getAnnotation(JaxrsExtensionSelect.class);
+
+			if (jaxrsExtensionSelect != null) {
+				Arrays.asList(jaxrsExtensionSelect.value()).forEach(selectSet::add);
+				configurator.remove(jaxrsExtensionSelect::equals);
+			}
+
+			configurator.add(JaxrsExtensionSelect.Literal.of(selectSet.toArray(new String[0])));
 		}
 	}
 
@@ -166,7 +198,7 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 		});
 	}
 
-	void registerMetricsEndpoint(
+	void registerSecurityExtensions(
 		@Observes AfterDeploymentValidation adv, BeanManager beanManager) {
 
 		try {
@@ -184,54 +216,19 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 		unregister(_exceptionMapperRegistration);
 		unregister(_requestForwarderRegistration);
 		unregister(_rolesAllowedRegistration);
-		unregister(_applicationRegistration);
 		unregister(_jwtAuthFilterRegistration);
 		_cccs.forEach(CreationalContext::release);
 	}
 
 	void registerHttpWhiteboardJwtAuthFilter(BeanManager beanManager) {
-		if (applications.size() > 1) {
-			// TODO If and when we have a real JAX-RS extension we should handle this issue there as well, or maybe instead.
-			throw new DeploymentException(
-				"More than one javax.ws.rs.core.Application annotated types were found in the CDI bundle.");
-		}
-
 		final GeronimoJwtAuthConfig config = GeronimoJwtAuthConfig.create();
 		final boolean forceSetup = "true".equalsIgnoreCase(config.read("filter.active", "false"));
-		if (forceSetup) {
+		if (forceSetup || !applications.isEmpty()) {
 			registerJwtAuthFilter(config, beanManager);
 		}
-
-		applications.stream().forEach(app -> {
-			registerJwtAuthFilter(config, beanManager);
-
-			Dictionary<String, Object> properties = new Hashtable<>();
-
-			properties.put(SERVICE_DESCRIPTION, "Aries CDI - MP JWT Enabled Application");
-			properties.put(SERVICE_VENDOR, "Apache Software Foundation");
-			properties.put(JAX_RS_APPLICATION_BASE, ofNullable(configuration.get(JAX_RS_APPLICATION_BASE)).orElse("/"));
-			properties.put(JAX_RS_WHITEBOARD_TARGET, ofNullable(configuration.get(JAX_RS_WHITEBOARD_TARGET)).orElse("(!(geronimo.mp.jwt.app=false))"));
-			properties.put(JAX_RS_NAME, ofNullable(configuration.get(JAX_RS_NAME)).orElse(".default"));
-			properties.put(JAX_RS_EXTENSION_SELECT, new String[] {
-				format("(%s=%s)", JAX_RS_NAME, "jwt.roles.allowed"),
-				format("(%s=%s)", JAX_RS_NAME, "jwt.request.forwarder"),
-				format("(%s=%s)", JAX_RS_NAME, "jwt.exception.mapper"),
-				format("(&(objectClass=%s)(%s=%s))", MessageBodyReader.class.getName(), JAX_RS_MEDIA_TYPE, APPLICATION_JSON),
-				format("(&(objectClass=%s)(%s=%s))", MessageBodyWriter.class.getName(), JAX_RS_MEDIA_TYPE, APPLICATION_JSON)
-			});
-
-			Application application = get(Application.class, beanManager);
-
-			_applicationRegistration = bundleContext.registerService(
-				Application.class, application, properties);
-		});
 	}
 
 	void registerJwtAuthFilter(GeronimoJwtAuthConfig config, BeanManager beanManager) {
-		if (_jwtAuthFilterRegistration != null) {
-			return;
-		}
-
 		Dictionary<String, Object> properties = new Hashtable<>();
 
 		properties.put(SERVICE_DESCRIPTION, "Aries CDI - MP JWT Auth Servlet Filter");
@@ -343,21 +340,11 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 
 	String applicationSelectFilter(String defaultValue) {
 		return ofNullable(
-			_applicationRegistration
+			configuration.get(JAX_RS_APPLICATION_SELECT)
 		).map(
-			ServiceRegistration::getReference
-		).map(
-			sr -> (Long)sr.getProperty(Constants.SERVICE_ID)
-		).map(
-			id ->  String.format("(service.id=%d)", id)
-		).orElseGet(
-			() -> ofNullable(
-				configuration.get(JAX_RS_APPLICATION_SELECT)
-			).map(
-				String.class::cast
-			).orElse(
-				defaultValue
-			)
+			String.class::cast
+		).orElse(
+			format("(&(%s=%s)%s)", SERVICE_BUNDLEID, bundleContext.getBundle().getBundleId(), defaultValue)
 		);
 	}
 
@@ -389,7 +376,6 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 
 	private final List<CreationalContext<?>> _cccs = new CopyOnWriteArrayList<>();
 
-	private volatile ServiceRegistration<?> _applicationRegistration;
 	private volatile ServiceRegistration<?> _exceptionMapperRegistration;
 	private volatile ServiceRegistration<?> _jwtAuthFilterRegistration;
 	private volatile ServiceRegistration<?> _requestForwarderRegistration;

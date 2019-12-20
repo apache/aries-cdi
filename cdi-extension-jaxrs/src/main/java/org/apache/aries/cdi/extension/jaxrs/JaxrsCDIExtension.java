@@ -19,11 +19,15 @@ import static java.util.Optional.ofNullable;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
+import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
+import javax.enterprise.inject.spi.DeploymentException;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
@@ -67,6 +71,8 @@ import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
 public class JaxrsCDIExtension implements Extension {
 
 	private volatile Configuration configuration;
+	private final List<AnnotatedType<? extends Application>> applications = new CopyOnWriteArrayList<>();
+
 
 	void getConfiguration(@Observes Configuration configuration) {
 		this.configuration = configuration;
@@ -77,6 +83,8 @@ public class JaxrsCDIExtension implements Extension {
 		ProcessAnnotatedType<? extends Application> pat) {
 
 		AnnotatedType<? extends Application> annotatedType = pat.getAnnotatedType();
+
+		applications.add(annotatedType);
 
 		AnnotatedTypeConfigurator<? extends Application> configurator = pat.configureAnnotatedType();
 
@@ -313,9 +321,18 @@ public class JaxrsCDIExtension implements Extension {
 			AdaptedService.Literal.of(serviceTypes.toArray(new Class<?>[0])));
 
 		if (!annotatedType.isAnnotationPresent(JaxrsName.class)) {
-			configurator.add(
-				JaxrsName.Literal.of(
-					annotatedType.getJavaClass().getSimpleName()));
+			if (application) {
+				configurator.add(
+					JaxrsName.Literal.of(
+						ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_NAME)).orElse(
+							JaxrsWhiteboardConstants.JAX_RS_DEFAULT_APPLICATION
+						)
+					)
+				);
+			}
+			else {
+				configurator.add(JaxrsName.Literal.of(annotatedType.getJavaClass().getSimpleName()));
+			}
 		}
 
 		if (!application && !annotatedType.isAnnotationPresent(JaxrsApplicationSelect.class)) {
@@ -347,6 +364,14 @@ public class JaxrsCDIExtension implements Extension {
 		}
 
 		return true;
+	}
+
+	void afterDeploymentValidation(@Observes AfterDeploymentValidation adv) {
+		if (applications.size() > 1) {
+			adv.addDeploymentProblem(
+				new DeploymentException(
+					"More than one javax.ws.rs.core.Application annotated types were found in the CDI bundle."));
+		}
 	}
 
 }

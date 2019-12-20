@@ -38,16 +38,18 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.site.skip>true</maven.site.skip>
+		<maven.site.deploy.skip>true</maven.site.deploy.skip>
 
 		<!-- Versions -->
 		<bnd.version>4.3.1</bnd.version>
-		<byte.buddy.version>1.10.3</byte.buddy.version>
-		<johnzon.version>1.2.3-SNAPSHOT</johnzon.version>
+		<byte.buddy.version>1.10.6</byte.buddy.version>
+		<jax.rs.whiteboard.version>1.0.6</jax.rs.whiteboard.version>
 		<jsp.version>2.0</jsp.version>
 		<mp.config.version>1.3</mp.config.version>
 		<mp.jwt.auth.version>1.1.1</mp.jwt.auth.version>
 		<mp.metrics.version>1.1.1</mp.metrics.version>
-		<owb.version>2.0.14-SNAPSHOT</owb.version>
+		<owb.version>2.0.13</owb.version>
 		<slf4j.version>1.7.28</slf4j.version>
 		<surefire.version>2.12</surefire.version>
 		<weld.version>3.0.5.Final</weld.version>
@@ -79,13 +81,9 @@
 		<module>cdi-extension-servlet-common</module>
 		<module>cdi-extension-servlet-owb</module>
 		<module>cdi-extension-servlet-weld</module>
-		<module>cdi-extension-mp-config</module>
-		<module>cdi-extension-mp-jwt-auth</module>
-		<module>cdi-extension-mp-metrics</module>
 		<module>cdi-owb</module>
 		<module>cdi-weld</module>
 		<module>cdi-bom</module>
-		<module>cdi-itests</module>
 		<module>cdi-executable</module>
 	</modules>
 
@@ -219,6 +217,49 @@
 	</dependencyManagement>
 
 	<profiles>
+		<profile>
+			<id>itests</id>
+			<modules>
+				<module>cdi-itests</module>
+			</modules>
+		</profile>
+
+		<profile>
+			<id>experimental</id>
+			<properties>
+				<experimental>true</experimental>
+				<bnd.version>5.1.0-SNAPSHOT</bnd.version>
+				<johnzon.version>1.2.3-SNAPSHOT</johnzon.version>
+			</properties>
+			<modules>
+				<module>cdi-extension-mp-config</module>
+				<module>cdi-extension-mp-jwt-auth</module>
+				<module>cdi-extension-mp-metrics</module>
+			</modules>
+
+			<repositories>
+				<repository>
+					<id>Apache Snapshots</id>
+					<layout>default</layout>
+					<url>https://repository.apache.org/content/repositories/snapshots/</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+
+			<pluginRepositories>
+				<pluginRepository>
+					<id>bnd-snapshots</id>
+					<url>https://bndtools.jfrog.io/bndtools/libs-snapshot/</url>
+					<layout>default</layout>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+
 		<profile>
 			<id>apache-release</id>
 			<build>
@@ -440,6 +481,42 @@
 				<groupId>biz.aQute.bnd</groupId>
 				<artifactId>bnd-run-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-testResources</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-site-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-descriptor</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -452,15 +529,4 @@
 			</plugin>
 		</plugins>
 	</reporting>
-
-	<repositories>
-		<repository>
-			<id>Apache Snapshots</id>
-			<layout>default</layout>
-			<url>https://repository.apache.org/content/repositories/snapshots/</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-	</repositories>
 </project>

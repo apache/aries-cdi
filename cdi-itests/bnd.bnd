@@ -13,16 +13,6 @@
 Bundle-Description: Integration Test bundle for the CDI Extender
 Export-Package: ${p}.cases.*,${p}.interfaces.*
 Test-Cases: ${classes;CONCRETE;ANNOTATED;org.junit.Test}
-Import-Package:	\
-	!net.jcip.annotations.*,\
-	!org.testng.*,\
-	!org.bouncycastle.*,\
-	*
-Private-Package: \
-	com.nimbusds.*,\
-	net.minidev.json.*,\
-	org.eclipse.microprofile.jwt.tck.util
--fixupmessages: "Split package...";is:=ignore
 
 ##
 ## All of remainder is to make bnd's `-make` function work in our maven project.
@@ -37,8 +27,6 @@ p = org.apache.aries.cdi.test
 # Finally, include the `-make'd` jars in the test bundle. This also happens to trigger the make function
 # so don't forget to list new jars here as new bnd files are added into the recipe dir.
 -includeresource:\
-	@microprofile-jwt-auth-tck-[0-9.]*-tests.jar!/privateKey.pem,\
-	@microprofile-jwt-auth-tck-[0-9.]*-tests.jar!/Token2.json,\
 	basic-beans.jar,\
 	services-one.jar,\
 	tb1.jar,\
@@ -70,14 +58,11 @@ p = org.apache.aries.cdi.test
 	tb12.jar,\
 	tb13.jar,\
 	tb14.jar,\
-	tb16.jar,\
 	tb17.jar,\
 	tb18.jar,\
 	tb19.jar,\
 	tb20.jar,\
 	tb21.jar,\
-	tb22.jar,\
-	tb23.jar,\
 	tb24.jar
 
 # Don't forget that we had to coax the `maven-jar-plugin` NOT to include the `sub-bundle` packages in

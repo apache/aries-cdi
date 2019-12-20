@@ -31,42 +31,26 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 
-import org.apache.aries.cdi.extra.RequireCDIExtension;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-import org.osgi.annotation.bundle.Requirement;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.namespace.extender.ExtenderNamespace;
-import org.osgi.namespace.service.ServiceNamespace;
 import org.osgi.service.cdi.CDIConstants;
 import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.service.configurator.annotations.RequireConfigurator;
 import org.osgi.test.junit4.context.BundleContextRule;
 import org.osgi.test.junit4.service.ServiceUseRule;
 import org.osgi.util.promise.PromiseFactory;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-@Requirement(
-	effective = "active",
-	filter = "(objectClass=org.osgi.service.cm.ConfigurationAdmin)",
-	namespace = ServiceNamespace.SERVICE_NAMESPACE
-)
-@RequireCDIExtension("aries.cdi.http")
-@RequireCDIExtension("aries.cdi.jaxrs")
-@RequireCDIExtension("aries.cdi.jndi")
-@RequireCDIExtension("eclipse.microprofile.config")
-@RequireCDIExtension("eclipse.microprofile.jwt-auth")
-@RequireCDIExtension("eclipse.microprofile.metrics")
-@RequireConfigurator
 public abstract class BaseTestCase {
 
 	public static final long timeout = 500;

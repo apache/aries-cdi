@@ -20,7 +20,6 @@
 	logback.configurationFile=file:${.}/logback.xml,\
 	org.osgi.service.http.port=0,\
 	osgi.console=,\
-	tck.config.test.javaconfig.converter.stringvalues=foo,\
 	test.property.a=blah,\
 	test.property.b=,\
 	org.apache.felix.http.host=localhost
