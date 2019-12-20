@@ -14,9 +14,16 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
+import static aQute.lib.exceptions.FunctionWithException.asFunction;
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.ofNullable;
+import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -40,6 +47,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceObjects;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.resource.Capability;
 import org.osgi.service.cdi.runtime.dto.ExtensionDTO;
 import org.osgi.service.log.Logger;
 import org.osgi.util.tracker.ServiceTracker;
@@ -188,16 +198,39 @@ public class ContainerBootstrap extends Phase {
 		for (ExtensionDTO extensionDTO : containerState.containerDTO().extensions) {
 			ExtendedExtensionDTO extendedExtensionDTO = (ExtendedExtensionDTO)extensionDTO;
 
+			Dictionary<String,Object> properties = extendedExtensionDTO.extension.getServiceReference().getProperties();
+
 			initializer.addExtension(
-				extendedExtensionDTO.extension.getService(),
-				Maps.of(extendedExtensionDTO.extension.getServiceReference().getProperties()));
+				extendedExtensionDTO.extension.getService(), Maps.of(properties));
 
 			Bundle extensionBundle = extendedExtensionDTO.extension.getServiceReference().getBundle();
+
+			getClassesFromExtensionCapability(properties, extensionBundle, initializer);
 
 			if (!loader.getBundles().contains(extensionBundle)) {
 				loader.getBundles().add(extensionBundle);
 			}
 		}
+	}
+
+	private void getClassesFromExtensionCapability(Dictionary<String,Object> properties, Bundle extensionBundle, CDIContainerInitializer initializer) {
+		List<BundleCapability> capabilities = extensionBundle.adapt(BundleWiring.class).getCapabilities(CDI_EXTENSION_PROPERTY);
+
+		if (capabilities.isEmpty()) {
+			return;
+		}
+
+		Map<String, Object> attributes = capabilities.stream().map(Capability::getAttributes).filter(
+			map -> map.get(CDI_EXTENSION_PROPERTY).equals(properties.get(CDI_EXTENSION_PROPERTY))
+		).findFirst().orElseGet(Collections::emptyMap);
+
+		ofNullable(
+			attributes.get("aries.cdi.extension.bean.classes")
+		).map(List.class::cast).map(List<String>::stream).orElseGet(Stream::empty).map(
+			asFunction(extensionBundle::loadClass)
+		).forEach(
+			initializer::addBeanClasses
+		);
 	}
 
 	private void withListeners(final Consumer<ContainerListener> action) {

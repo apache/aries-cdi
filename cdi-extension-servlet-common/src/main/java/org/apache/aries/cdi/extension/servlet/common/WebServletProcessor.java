@@ -14,18 +14,17 @@
 
 package org.apache.aries.cdi.extension.servlet.common;
 
+import static java.util.Optional.ofNullable;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT;
-
-import java.lang.annotation.Annotation;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
+import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.servlet.Servlet;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 
+import org.apache.aries.cdi.extension.spi.adapt.Adapted;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardContextSelect;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletAsyncSupported;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletMultipart;
@@ -34,7 +33,6 @@ import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletPattern;
 import org.apache.aries.cdi.extra.propertytypes.ServiceDescription;
 import org.apache.aries.cdi.extra.propertytypes.ServiceRanking;
 import org.apache.aries.cdi.spi.configuration.Configuration;
-import org.osgi.service.cdi.annotations.Service;
 
 public class WebServletProcessor {
 
@@ -53,50 +51,56 @@ public class WebServletProcessor {
 
 		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
+		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
+
+		if (!Adapted.withServiceTypes(configurator, Servlet.class)) {
+			return;
+		}
+
 		WebServlet webServlet = annotatedType.getAnnotation(WebServlet.class);
 
-		final Set<Annotation> annotationsToAdd = new HashSet<>();
-
-		if (!annotatedType.isAnnotationPresent(Service.class)) {
-			annotationsToAdd.add(Service.Literal.of(new Class[] {Servlet.class}));
-		}
-
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)));
+			ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+				select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+			);
 		}
 
-		if (!webServlet.name().isEmpty()) {
-			annotationsToAdd.add(HttpWhiteboardServletName.Literal.of(webServlet.name()));
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletName.class) && !webServlet.name().isEmpty()) {
+			configurator.add(HttpWhiteboardServletName.Literal.of(webServlet.name()));
 		}
 
-		if (webServlet.value().length > 0) {
-			annotationsToAdd.add(HttpWhiteboardServletPattern.Literal.of(webServlet.value()));
-		}
-		else if (webServlet.urlPatterns().length > 0) {
-			annotationsToAdd.add(HttpWhiteboardServletPattern.Literal.of(webServlet.urlPatterns()));
+		if(!annotatedType.isAnnotationPresent(HttpWhiteboardServletPattern.class)) {
+			if (webServlet.value().length > 0) {
+				configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.value()));
+			}
+			else if (webServlet.urlPatterns().length > 0) {
+				configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.urlPatterns()));
+			}
 		}
 
-		annotationsToAdd.add(ServiceRanking.Literal.of(webServlet.loadOnStartup()));
+		if (!annotatedType.isAnnotationPresent(ServiceRanking.class)) {
+			configurator.add(ServiceRanking.Literal.of(webServlet.loadOnStartup()));
+		}
 
 		// TODO Howto: INIT PARAMS ???
 
-		annotationsToAdd.add(HttpWhiteboardServletAsyncSupported.Literal.of(webServlet.asyncSupported()));
-
-		if (!webServlet.description().isEmpty()) {
-			annotationsToAdd.add(ServiceDescription.Literal.of(webServlet.description()));
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletAsyncSupported.class)) {
+			configurator.add(HttpWhiteboardServletAsyncSupported.Literal.of(webServlet.asyncSupported()));
 		}
 
-		MultipartConfig multipartConfig = annotatedType.getAnnotation(MultipartConfig.class);
+		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webServlet.description().isEmpty()) {
+			configurator.add(ServiceDescription.Literal.of(webServlet.description()));
+		}
 
-		if (multipartConfig != null) {
-			annotationsToAdd.add(HttpWhiteboardServletMultipart.Literal.of(true, multipartConfig.fileSizeThreshold(), multipartConfig.location(), multipartConfig.maxFileSize(), multipartConfig.maxRequestSize()));
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletMultipart.class)) {
+			MultipartConfig multipartConfig = annotatedType.getAnnotation(MultipartConfig.class);
+
+			if (multipartConfig != null) {
+				configurator.add(HttpWhiteboardServletMultipart.Literal.of(true, multipartConfig.fileSizeThreshold(), multipartConfig.location(), multipartConfig.maxFileSize(), multipartConfig.maxRequestSize()));
+			}
 		}
 
 		// TODO HowTo: ServletSecurity ???
-
-		if (!annotationsToAdd.isEmpty()) {
-			annotationsToAdd.forEach(pat.configureAnnotatedType()::add);
-		}
 	}
 
 }

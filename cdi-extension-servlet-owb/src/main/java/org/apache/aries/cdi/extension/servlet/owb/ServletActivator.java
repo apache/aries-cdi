@@ -32,10 +32,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
-@Header(
-	name = BUNDLE_ACTIVATOR,
-	value = "${@class}"
-)
+@Header(name = BUNDLE_ACTIVATOR, value = "${@class}")
 public class ServletActivator implements BundleActivator {
 
 	@Override

@@ -14,44 +14,35 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import org.apache.aries.cdi.test.cases.base.BaseTestCase;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 
-public class Test152_2 extends AbstractTestCase {
+public class Test152_2 extends BaseTestCase {
 
 	@Test
 	public void checkUniqueComponentNames() throws Exception {
-		Bundle tb152_2Bundle = installBundle("tb152_2.jar");
+		Bundle tb = bcr.installBundle("tb152_2.jar");
 
-		try {
-			getBeanManager(tb152_2Bundle);
+		getBeanManager(tb);
 
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb152_2Bundle);
-			assertThat(containerDTO).isNotNull();
-			assertThat(containerDTO.errors).isNotNull().asList().isNotEmpty();
-		}
-		finally {
-			tb152_2Bundle.uninstall();
-		}
+		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+		assertThat(containerDTO).isNotNull();
+		assertThat(containerDTO.errors).isNotNull().asList().isNotEmpty();
 	}
 
 	@Test
 	public void checkUniqueComponentNames_b() throws Exception {
-		Bundle tb152_2bBundle = installBundle("tb152_2b.jar");
+		Bundle tb = bcr.installBundle("tb152_2b.jar");
 
-		try {
-			getBeanManager(tb152_2bBundle);
+		getBeanManager(tb);
 
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb152_2bBundle);
-			assertThat(containerDTO).isNotNull();
-			assertThat(containerDTO.errors).isNotNull().asList().isNotEmpty();
-		}
-		finally {
-			tb152_2bBundle.uninstall();
-		}
+		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+		assertThat(containerDTO).isNotNull();
+		assertThat(containerDTO.errors).isNotNull().asList().isNotEmpty();
 	}
 
 }

@@ -47,12 +47,6 @@
 		<url>https://github.com/apache/aries-cdi</url>
 	</scm>
 
-	<properties>
-		<gpg.skip>true</gpg.skip>
-		<maven.deploy.skip>true</maven.deploy.skip>
-		<maven.install.skip>true</maven.install.skip>
-	</properties>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -153,6 +147,43 @@
 						<configuration>
 							<bndrun>weld-executable.bndrun</bndrun>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>biz.aQute.bnd</groupId>
+				<artifactId>bnd-baseline-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>baseline</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-install-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-install</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>none</phase>
 					</execution>
 				</executions>
 			</plugin>

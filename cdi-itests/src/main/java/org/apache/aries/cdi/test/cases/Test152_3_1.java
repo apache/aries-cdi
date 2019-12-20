@@ -23,8 +23,9 @@ import java.util.function.Function;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.EventMetadata;
 
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.BeanService;
-import org.junit.After;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
@@ -32,28 +33,13 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cdi.annotations.ComponentScoped;
 import org.osgi.service.cdi.annotations.Service;
 import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class Test152_3_1 extends SlimTestCase {
-
-	@Override
-	public void setUp() throws Exception {
-		adminTracker = new ServiceTracker<>(bundleContext, ConfigurationAdmin.class, null);
-		adminTracker.open();
-		configurationAdmin = adminTracker.getService();
-	}
-
-	@After
-	@Override
-	public void tearDown() throws Exception {
-		adminTracker.close();
-	}
+public class Test152_3_1 extends SlimBaseTestCase {
 
 	@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 	@Test
 	public void checkSingleComponentContextEvents() throws Exception {
-		Bundle tb152_3_1Bundle = installBundle("tb152_3_1.jar");
+		Bundle tb152_3_1Bundle = bcr.installBundle("tb152_3_1.jar");
 
 		AtomicReference<Object[]> a = new AtomicReference<>();
 		AtomicReference<Object[]> b = new AtomicReference<>();
@@ -78,21 +64,19 @@ public class Test152_3_1 extends SlimTestCase {
 			return null;
 		};
 
-		ServiceRegistration<Function> onInitializedReg = bundleContext.registerService(
+		bcr.getBundleContext().registerService(
 			Function.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		ServiceRegistration<Function> onBeforeDestroyedReg = bundleContext.registerService(
+		bcr.getBundleContext().registerService(
 			Function.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		ServiceRegistration<Function> onDestroyedReg = bundleContext.registerService(
+		bcr.getBundleContext().registerService(
 			Function.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		ServiceTracker<Object, Object> twoTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "two");
-
-		try {
+		try (CloseableTracker<Object, Object> twoTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "two")) {
 			getBeanManager(tb152_3_1Bundle);
 
 			assertThat(a.get()).isNull();
@@ -102,7 +86,7 @@ public class Test152_3_1 extends SlimTestCase {
 			twoTracker.open();
 			int trackingCount = twoTracker.getTrackingCount();
 
-			ServiceRegistration<Integer> integerReg = bundleContext.registerService(
+			ServiceRegistration<Integer> integerReg = bcr.getBundleContext().registerService(
 				Integer.class, new Integer(45),
 				new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "two");}});
 
@@ -146,19 +130,12 @@ public class Test152_3_1 extends SlimTestCase {
 			eventMetadata = (EventMetadata)objects[2];
 			assertThat(eventMetadata.getQualifiers()).contains(Service.Literal.of(new Class<?>[0]));
 		}
-		finally {
-			twoTracker.close();
-			onInitializedReg.unregister();
-			onBeforeDestroyedReg.unregister();
-			onDestroyedReg.unregister();
-			tb152_3_1Bundle.uninstall();
-		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 	@Test
 	public void checkFactoryComponentContextEvents() throws Exception {
-		Bundle tb152_3_1Bundle = installBundle("tb152_3_1.jar");
+		Bundle tb152_3_1Bundle = bcr.installBundle("tb152_3_1.jar");
 
 		AtomicReference<Object[]> a = new AtomicReference<>();
 		AtomicReference<Object[]> b = new AtomicReference<>();
@@ -183,22 +160,21 @@ public class Test152_3_1 extends SlimTestCase {
 			return null;
 		};
 
-		ServiceRegistration<Function> onInitializedReg = bundleContext.registerService(
+		bcr.getBundleContext().registerService(
 			Function.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		ServiceRegistration<Function> onBeforeDestroyedReg = bundleContext.registerService(
+		bcr.getBundleContext().registerService(
 			Function.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		ServiceRegistration<Function> onDestroyedReg = bundleContext.registerService(
+		bcr.getBundleContext().registerService(
 			Function.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
 		Configuration configuration = null;
-		ServiceTracker<Object, Object> threeTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "three");
 
-		try {
+		try (CloseableTracker<Object, Object> threeTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "three")) {
 			getBeanManager(tb152_3_1Bundle);
 
 			assertThat(a.get()).isNull();
@@ -208,7 +184,7 @@ public class Test152_3_1 extends SlimTestCase {
 			threeTracker.open();
 			int trackingCount = threeTracker.getTrackingCount();
 
-			ServiceRegistration<Integer> integerReg = bundleContext.registerService(
+			ServiceRegistration<Integer> integerReg = bcr.getBundleContext().registerService(
 				Integer.class, new Integer(45),
 				new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "three");}});
 
@@ -220,7 +196,7 @@ public class Test152_3_1 extends SlimTestCase {
 			assertThat(b.get()).isNull();
 			assertThat(c.get()).isNull();
 
-			configuration = configurationAdmin.createFactoryConfiguration("three");
+			configuration = car.getService().createFactoryConfiguration("three");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			count = 10;
@@ -265,16 +241,8 @@ public class Test152_3_1 extends SlimTestCase {
 			assertThat(eventMetadata.getQualifiers()).contains(Service.Literal.of(new Class<?>[0]));
 		}
 		finally {
-			threeTracker.close();
 			configuration.delete();
-			onInitializedReg.unregister();
-			onBeforeDestroyedReg.unregister();
-			onDestroyedReg.unregister();
-			tb152_3_1Bundle.uninstall();
 		}
 	}
-
-	private ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> adminTracker;
-	private ConfigurationAdmin configurationAdmin;
 
 }

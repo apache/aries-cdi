@@ -20,7 +20,6 @@
 	logback.configurationFile=file:${.}/logback.xml,\
 	org.osgi.service.http.port=0,\
 	osgi.console=,\
-	tck.config.test.javaconfig.converter.stringvalues=foo,\
 	test.property.a=blah,\
 	test.property.b=,\
 	org.apache.felix.http.host=localhost
@@ -38,6 +37,7 @@
 	org.slf4j.event;version=1.7.25,\
 	org.slf4j.helpers;version=1.7.25,\
 	org.slf4j.spi;version=1.7.25,\
+	sun.invoke,\
 	sun.misc
 
 -runrequires.base: \
@@ -45,3 +45,6 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.itests)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.jndi.core)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
+
+-runblacklist.base: \
+	osgi.identity;filter:='(osgi.identity=biz.aQute.bndlib)'

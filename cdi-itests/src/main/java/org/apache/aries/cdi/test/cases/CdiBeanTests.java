@@ -27,6 +27,8 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.AnnotationLiteral;
 
+import org.apache.aries.cdi.test.cases.base.BaseTestCase;
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.interfaces.BeanService;
 import org.apache.aries.cdi.test.interfaces.BundleContextBeanQualifier;
 import org.apache.aries.cdi.test.interfaces.FieldInjectedReference;
@@ -39,7 +41,7 @@ import org.osgi.service.cdi.runtime.dto.ComponentInstanceDTO;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 
 @SuppressWarnings("rawtypes")
-public class CdiBeanTests extends AbstractTestCase {
+public class CdiBeanTests extends BaseTestCase {
 
 	@Test
 	public void testConstructorInjectedService() throws Exception {
@@ -121,7 +123,7 @@ public class CdiBeanTests extends AbstractTestCase {
 			assertNotNull(beanService);
 			assertEquals("PREFIXMETHOD", beanService.doSomething());
 
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, cdiBundle);
+			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), cdiBundle);
 			assertNotNull(containerDTO);
 
 			ComponentDTO containerComponentDTO = containerDTO.components.stream().filter(

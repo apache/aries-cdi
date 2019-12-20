@@ -14,9 +14,13 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
+import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.Extension;
+import javax.interceptor.Interceptor;
 
 import org.osgi.framework.BundleContext;
 
@@ -24,6 +28,13 @@ public class BundleContextExtension implements Extension {
 
 	public BundleContextExtension(BundleContext bundleContext) {
 		_bundleContext = bundleContext;
+	}
+
+	void init(
+		@Priority(Interceptor.Priority.PLATFORM_BEFORE)
+		@Observes BeforeBeanDiscovery bbd, BeanManager beanManager) {
+
+		beanManager.fireEvent(_bundleContext);
 	}
 
 	void afterBeanDiscovery(@Observes AfterBeanDiscovery abd) {

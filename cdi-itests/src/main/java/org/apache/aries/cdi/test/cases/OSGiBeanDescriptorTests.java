@@ -24,53 +24,40 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.TypeLiteral;
 
+import org.apache.aries.cdi.test.cases.base.BaseTestCase;
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.interfaces.BeanService;
 import org.apache.aries.cdi.test.interfaces.Pojo;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class OSGiBeanDescriptorTests extends AbstractTestCase {
+public class OSGiBeanDescriptorTests extends BaseTestCase {
 
 	@Test
 	public void testServices() throws Exception {
-		Bundle tb2Bundle = installBundle("tb2.jar");
+		bcr.installBundle("tb2.jar");
 
-		ServiceTracker<Pojo, Pojo> st = new ServiceTracker<Pojo, Pojo>(
-			bundleContext, Pojo.class, null);
-		st.open(true);
-
-		try {
-			Pojo pojo = st.waitForService(timeout);
+		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
+			Pojo pojo = tracker.waitForService(timeout);
 			assertNotNull(pojo);
-		}
-		finally {
-			st.close();
-			tb2Bundle.uninstall();
 		}
 	}
 
 	@SuppressWarnings("serial")
 	@Test
 	public void testReferences() throws Exception {
-		Bundle tb1Bundle = installBundle("tb1.jar");
-		Bundle tb2Bundle = installBundle("tb2.jar");
+		Bundle tb1Bundle = bcr.installBundle("tb1.jar");
+		bcr.installBundle("tb2.jar");
 
-		try {
-			BeanManager beanManager = getBeanManager(tb1Bundle);
-			Set<Bean<?>> beans = beanManager.getBeans("beanimpl");
-			Bean<?> bean = beanManager.resolve(beans);
-			CreationalContext<?> ctx = beanManager.createCreationalContext(bean);
-			BeanService<?> beanService = (BeanService<?>)beanManager.getReference(
-				bean, new TypeLiteral<BeanService<?>>() {}.getType(), ctx);
+		BeanManager beanManager = getBeanManager(tb1Bundle);
+		Set<Bean<?>> beans = beanManager.getBeans("beanimpl");
+		Bean<?> bean = beanManager.resolve(beans);
+		CreationalContext<?> ctx = beanManager.createCreationalContext(bean);
+		BeanService<?> beanService = (BeanService<?>)beanManager.getReference(
+			bean, new TypeLiteral<BeanService<?>>() {}.getType(), ctx);
 
-			assertNotNull(beanService);
-			assertEquals("POJO-IMPLBEAN-IMPL", beanService.doSomething());
-		}
-		finally {
-			tb2Bundle.uninstall();
-			tb1Bundle.uninstall();
-		}
+		assertNotNull(beanService);
+		assertEquals("POJO-IMPLBEAN-IMPL", beanService.doSomething());
 	}
 
 }

@@ -19,35 +19,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
-import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.template.ContainerTemplateDTO;
 
-public class Test_discoverByBeansXml extends SlimTestCase {
+public class Test_discoverByBeansXml extends SlimBaseTestCase {
 
 	@Test
 	public void componentScopeContext() throws Exception {
-		Bundle tbBundle = installBundle("tb14.jar");
+		Bundle tbBundle = bcr.installBundle("tb14.jar");
 
 		getBeanManager(tbBundle);
 
-		try (CloseableTracker<CDIComponentRuntime, CDIComponentRuntime> ccrTracker = track(
-				"(objectClass=%s)", CDIComponentRuntime.class.getName())) {
+		ContainerTemplateDTO containerTemplateDTO = ccrr.getService().getContainerTemplateDTO(tbBundle);
 
-			CDIComponentRuntime ccr = ccrTracker.waitForService(timeout);
+		assertThat(containerTemplateDTO).isNotNull();
 
-			ContainerTemplateDTO containerTemplateDTO = ccr.getContainerTemplateDTO(tbBundle);
+		List<String> beans = containerTemplateDTO.components.stream().flatMap(c -> c.beans.stream()).collect(Collectors.toList());
 
-			assertThat(containerTemplateDTO).isNotNull();
-
-			List<String> beans = containerTemplateDTO.components.stream().flatMap(c -> c.beans.stream()).collect(Collectors.toList());
-
-			assertThat(beans).isNotEmpty().contains("org.apache.aries.cdi.test.tb14.ABean");
-		}
-		finally {
-			tbBundle.uninstall();
-		}
+		assertThat(beans).isNotEmpty().contains("org.apache.aries.cdi.test.tb14.ABean");
 	}
 
 }

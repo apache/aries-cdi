@@ -14,14 +14,24 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
 import static org.apache.aries.cdi.container.internal.util.Filters.asFilter;
+import static org.apache.aries.cdi.container.internal.util.Throw.asString;
+import static org.apache.aries.cdi.container.internal.util.Throw.exception;
+import static org.osgi.framework.Constants.SERVICE_BUNDLEID;
 import static org.osgi.namespace.extender.ExtenderNamespace.EXTENDER_NAMESPACE;
+import static org.osgi.resource.Namespace.REQUIREMENT_FILTER_DIRECTIVE;
 import static org.osgi.service.cdi.CDIConstants.CDI_CAPABILITY_NAME;
 import static org.osgi.service.cdi.CDIConstants.CDI_CONTAINER_ID;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
+import static org.osgi.service.cdi.ComponentType.CONTAINER;
+import static org.osgi.service.cdi.ConfigurationPolicy.OPTIONAL;
+import static org.osgi.service.cdi.MaximumCardinality.ONE;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,16 +54,11 @@ import org.apache.aries.cdi.container.internal.util.Logs;
 import org.apache.aries.cdi.container.internal.util.Throw;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.dto.BundleDTO;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
-import org.osgi.resource.Namespace;
-import org.osgi.service.cdi.ComponentType;
-import org.osgi.service.cdi.ConfigurationPolicy;
-import org.osgi.service.cdi.MaximumCardinality;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 import org.osgi.service.cdi.runtime.dto.template.ComponentTemplateDTO;
 import org.osgi.service.cdi.runtime.dto.template.ContainerTemplateDTO;
@@ -90,7 +95,7 @@ public class ContainerState {
 
 		BundleWiring bundleWiring = _bundle.adapt(BundleWiring.class);
 
-		Map<String, Object> cdiAttributes = Collections.emptyMap();
+		Map<String, Object> cdiAttributes = emptyMap();
 
 		for (BundleWire wire : bundleWiring.getRequiredWires(EXTENDER_NAMESPACE)) {
 			BundleCapability capability = wire.getCapability();
@@ -104,7 +109,7 @@ public class ContainerState {
 			}
 		}
 
-		_cdiAttributes = Collections.unmodifiableMap(cdiAttributes);
+		_cdiAttributes = unmodifiableMap(cdiAttributes);
 
 		Set<String> extensionRequirements = new HashSet<>();
 
@@ -119,7 +124,7 @@ public class ContainerState {
 		_containerDTO.template = new ContainerTemplateDTO();
 		_containerDTO.template.components = new CopyOnWriteArrayList<>();
 		_containerDTO.template.extensions = new CopyOnWriteArrayList<>();
-		_containerDTO.template.id = Optional.ofNullable(
+		_containerDTO.template.id = ofNullable(
 			(String)_cdiAttributes.get(CDI_CONTAINER_ID)
 		).orElse(
 			_bundle.getSymbolicName()
@@ -136,7 +141,7 @@ public class ContainerState {
 					_containerDTO.template.extensions.add(extensionTemplateDTO);
 				}
 				catch (Exception e) {
-					_containerDTO.errors.add(Throw.asString(e));
+					_containerDTO.errors.add(asString(e));
 				}
 			}
 		);
@@ -146,20 +151,20 @@ public class ContainerState {
 		_containerComponentTemplateDTO.beans = new CopyOnWriteArrayList<>();
 		_containerComponentTemplateDTO.configurations = new CopyOnWriteArrayList<>();
 		_containerComponentTemplateDTO.name = _containerDTO.template.id;
-		_containerComponentTemplateDTO.properties = Collections.emptyMap();
+		_containerComponentTemplateDTO.properties = emptyMap();
 		_containerComponentTemplateDTO.references = new CopyOnWriteArrayList<>();
-		_containerComponentTemplateDTO.type = ComponentType.CONTAINER;
+		_containerComponentTemplateDTO.type = CONTAINER;
 
 		ExtendedConfigurationTemplateDTO configurationTemplate = new ExtendedConfigurationTemplateDTO();
-		configurationTemplate.maximumCardinality = MaximumCardinality.ONE;
-		configurationTemplate.pid = Optional.ofNullable(
+		configurationTemplate.maximumCardinality = ONE;
+		configurationTemplate.pid = ofNullable(
 			(String)_cdiAttributes.get(CDI_CONTAINER_ID)
 		).map(
 			s -> s.replaceAll("-", ".")
 		).orElse(
 			"osgi.cdi." + _bundle.getSymbolicName().replaceAll("-", ".")
 		);
-		configurationTemplate.policy = ConfigurationPolicy.OPTIONAL;
+		configurationTemplate.policy = OPTIONAL;
 
 		_containerComponentTemplateDTO.configurations.add(configurationTemplate);
 
@@ -175,7 +180,7 @@ public class ContainerState {
 		catch (Exception e) {
 			_log.error(l -> l.error("CCR Discovery resulted in errors on {}", bundle, e));
 
-			_containerDTO.errors.add(Throw.asString(e));
+			_containerDTO.errors.add(asString(e));
 		}
 
 		_beanManagerDeferred = _promiseFactory.deferred();
@@ -191,7 +196,7 @@ public class ContainerState {
 		try {
 			return _beanManagerDeferred.getPromise().timeout(5000).getValue();
 		} catch (InvocationTargetException | InterruptedException e) {
-			return Throw.exception(e);
+			return exception(e);
 		}
 	}
 
@@ -280,15 +285,15 @@ public class ContainerState {
 			if (cm == null) {
 				_log.error(l -> l.error("CCR unexpected error fetching configuration admin for {}", pid));
 
-				return Optional.empty();
+				return empty();
 			}
 
-			return Optional.ofNullable(cm.listConfigurations(query));
+			return ofNullable(cm.listConfigurations(query));
 		}
 		catch (Exception e) {
 			_log.warn(l -> l.warn("CCR unexpected error fetching configuration for {}", pid, e));
 
-			return Optional.empty();
+			return empty();
 		}
 	}
 
@@ -353,7 +358,7 @@ public class ContainerState {
 	private void collectExtensionRequirements(BundleWiring bundleWiring, Set<String> extensionRequirements) {
 		for (BundleWire wire : bundleWiring.getRequiredWires(CDI_EXTENSION_PROPERTY)) {
 			String filter = wire.getRequirement().getDirectives().get(
-				Namespace.REQUIREMENT_FILTER_DIRECTIVE);
+				REQUIREMENT_FILTER_DIRECTIVE);
 			Bundle extensionProvider = wire.getProvider().getBundle();
 
 			StringBuilder sb = new StringBuilder();
@@ -361,7 +366,7 @@ public class ContainerState {
 			sb.append("(&");
 			sb.append(filter);
 			sb.append("(");
-			sb.append(Constants.SERVICE_BUNDLEID);
+			sb.append(SERVICE_BUNDLEID);
 			sb.append("=");
 			sb.append(extensionProvider.getBundleId());
 			sb.append("))");

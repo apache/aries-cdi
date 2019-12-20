@@ -56,6 +56,9 @@
 						-cdiannotations:
 						-noclassforname: true
 						-fixupmessages: "Split package...";is:=ignore
+						-bundleannotations: \
+							!org.eclipse.microprofile.metrics.*,\
+							org.apache.aries.cdi.extension.mp.metrics.*
 					]]></bnd>
 				</configuration>
 			</plugin>
@@ -109,20 +112,18 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.apache.aries.cdi</groupId>
-			<artifactId>org.apache.aries.cdi.extra</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.aries.cdi</groupId>
-			<artifactId>org.apache.aries.cdi.spi</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>biz.aQute.bnd</groupId>
 			<artifactId>biz.aQute.bnd.annotation</artifactId>
 			<version>${bnd.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.aries.cdi</groupId>
+			<artifactId>org.apache.aries.cdi.extra</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.aries.cdi</groupId>
+			<artifactId>org.apache.aries.cdi.spi</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>
@@ -145,24 +146,6 @@
 			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-jsonb_1.0_spec</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-json_1.1_spec</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.johnzon</groupId>
-			<artifactId>johnzon-core</artifactId>
-			<version>1.2.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.johnzon</groupId>
-			<artifactId>johnzon-jsonb</artifactId>
-			<version>1.2.2</version>
-		</dependency>
-		<dependency>
 			<groupId>org.eclipse.microprofile.metrics</groupId>
 			<artifactId>microprofile-metrics-api</artifactId>
 			<version>${mp.metrics.version}</version>
@@ -173,6 +156,14 @@
 			<artifactId>geronimo-metrics</artifactId>
 			<version>1.0.3</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.namespace.extender</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.namespace.implementation</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
@@ -196,4 +187,266 @@
 		</dependency>
 	</dependencies>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.aries.cdi</groupId>
+				<artifactId>org.apache.aries.cdi.bom</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>org.apache.felix.gogo.bom</artifactId>
+				<version>1.0.2</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<profiles>
+		<profile>
+			<id>experimental</id>
+
+			<properties>
+				<maven.test.skip>false</maven.test.skip>
+				<johnzon.version>1.2.3-SNAPSHOT</johnzon.version>
+				<jax.rs.whiteboard.version>1.0.7-SNAPSHOT</jax.rs.whiteboard.version>
+			</properties>
+
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.johnzon</groupId>
+					<artifactId>johnzon-osgi</artifactId>
+					<version>${johnzon.version}</version>
+					<scope>runtime</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.aries.jax.rs</groupId>
+					<artifactId>org.apache.aries.jax.rs.whiteboard</artifactId>
+					<version>${jax.rs.whiteboard.version}</version><!--$NO-MVN-MAN-VER$-->
+					<scope>runtime</scope>
+				</dependency>
+
+				<dependency>
+					<groupId>org.osgi</groupId>
+					<artifactId>org.osgi.service.http.whiteboard</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>org.osgi</groupId>
+					<artifactId>org.osgi.test.assertj</artifactId>
+					<version>1.0.0-SNAPSHOT</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.osgi</groupId>
+					<artifactId>org.osgi.test.junit4</artifactId>
+					<version>1.0.0-SNAPSHOT</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpclient-osgi</artifactId>
+					<version>4.5.3</version>
+					<scope>test</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpcore-osgi</artifactId>
+					<version>4.4.6</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>biz.aQute.bnd</groupId>
+						<artifactId>bnd-maven-plugin</artifactId>
+						<executions>
+							<!-- Integration Test Configuration -->
+							<execution>
+								<id>bnd-process-test</id>
+								<goals>
+									<goal>bnd-process-test</goal>
+								</goals>
+								<configuration>
+									<bnd><![CDATA[
+										p = org.apache.aries.cdi.extension.mp.metrics.test
+										Export-Package: !${p}.tb*,${p}.*
+										-make: (*).(jar); type=bnd; recipe="${.}/bnd/$1.bnd"
+										-includeresource: \
+											tb01.jar
+										-fixupmessages: "Split package...";is:=ignore
+									]]></bnd>
+									<testCases>junit4</testCases>
+									<includeClassesDir>false</includeClassesDir>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- This dynamically calculates all the things we need to run our code. -->
+					<plugin>
+						<groupId>biz.aQute.bnd</groupId>
+						<artifactId>bnd-resolver-maven-plugin</artifactId>
+						<configuration>
+							<bundles>
+								<bundle>target/${project.build.finalName}-tests.jar</bundle>
+							</bundles>
+							<failOnChanges>false</failOnChanges>
+							<includeDependencyManagement>true</includeDependencyManagement>
+							<reportOptional>false</reportOptional>
+							<scopes>
+								<scope>compile</scope>
+								<scope>runtime</scope>
+								<scope>test</scope>
+							</scopes>
+						</configuration>
+						<executions>
+							<execution>
+								<id>resolve-test-owb</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>resolve</goal>
+								</goals>
+								<configuration>
+									<bndruns>
+										<bndrun>owb-itest.bndrun</bndrun>
+									</bndruns>
+								</configuration>
+							</execution>
+							<execution>
+								<id>resolve-test-weld</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>resolve</goal>
+								</goals>
+								<configuration>
+									<bndruns>
+										<bndrun>weld-itest.bndrun</bndrun>
+									</bndruns>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- This is the plugin runs the OSGi integration tests. -->
+					<plugin>
+						<groupId>biz.aQute.bnd</groupId>
+						<artifactId>bnd-testing-maven-plugin</artifactId>
+						<configuration>
+							<bundles>
+								<bundle>target/${project.build.finalName}-tests.jar</bundle>
+							</bundles>
+							<failOnChanges>false</failOnChanges>
+							<includeDependencyManagement>true</includeDependencyManagement>
+							<resolve>false</resolve>
+							<scopes>
+								<scope>compile</scope>
+								<scope>runtime</scope>
+								<scope>test</scope>
+							</scopes>
+						</configuration>
+						<executions>
+							<execution>
+								<id>testing-owb</id>
+								<goals>
+									<goal>testing</goal>
+								</goals>
+								<configuration>
+									<bndruns>
+										<bndrun>owb-itest.bndrun</bndrun>
+									</bndruns>
+								</configuration>
+							</execution>
+							<execution>
+								<id>testing-weld</id>
+								<goals>
+									<goal>testing</goal>
+								</goals>
+								<configuration>
+									<bndruns>
+										<bndrun>weld-itest.bndrun</bndrun>
+									</bndruns>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- <plugin>
+						<groupId>biz.aQute.bnd</groupId>
+						<artifactId>bnd-run-maven-plugin</artifactId>
+						<configuration>
+							<bundles>
+								<bundle>target/${project.build.finalName}-tests.jar</bundle>
+							</bundles>
+							<includeDependencyManagement>true</includeDependencyManagement>
+							<scopes>
+								<scope>compile</scope>
+								<scope>runtime</scope>
+								<scope>test</scope>
+							</scopes>
+						</configuration>
+						<executions>
+							<execution>
+								<id>run-owb</id>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<bndrun>owb-itest.bndrun</bndrun>
+								</configuration>
+							</execution>
+							<execution>
+								<id>run-weld</id>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<bndrun>weld-itest.bndrun</bndrun>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin> -->
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>default-testResources</id>
+								<phase>process-test-resources</phase>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>default-testCompile</id>
+								<phase>test-compile</phase>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-jar-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>test-jar</id>
+								<goals>
+									<goal>test-jar</goal>
+								</goals>
+								<configuration>
+									<archive>
+										<manifestFile>${project.build.testOutputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+									</archive>
+									<excludes>
+										<exclude>org/apache/aries/cdi/extension/mp/metrics/test/tb*/**</exclude>
+									</excludes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

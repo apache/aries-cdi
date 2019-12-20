@@ -14,34 +14,23 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Dictionary;
 
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 
-public class EventsTests extends AbstractTestCase {
-
-	@Override
-	@Before
-	public void setUp() throws Exception {
-		cdiRuntime = runtimeTracker.waitForService(timeout);
-	}
-
-	@Override
-	@After
-	public void tearDown() throws Exception {
-	}
+public class EventsTests extends SlimBaseTestCase {
 
 	@Test
 	public void testContainerComponentReferenceEventHandler() throws Exception {
-		Bundle tb = installBundle("tb9.jar");
+		Bundle tb = bcr.installBundle("tb9.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -49,14 +38,14 @@ public class EventsTests extends AbstractTestCase {
 			assertEquals(0, pojo.getCount());
 			assertEquals("[]", pojo.foo(null));
 
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb);
+			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
 
 			long changeCount = containerDTO.changeCount;
 
-			ServiceRegistration<Integer> int1 = bundleContext.registerService(Integer.class, new Integer(12), null);
+			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(Integer.class, new Integer(12), null);
 
 			try {
-				for (long i = 10; i > 0 && (getContainerDTO(cdiRuntime, tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -65,11 +54,11 @@ public class EventsTests extends AbstractTestCase {
 
 				changeCount = containerDTO.changeCount;
 
-				Dictionary<String, Object> properties = getProperties(int1.getReference());
+				Dictionary<String, Object> properties = int1.getReference().getProperties();
 				properties.put("foo", "bar");
 				int1.setProperties(properties);
 
-				for (long i = 10; i > 0 && (getContainerDTO(cdiRuntime, tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -80,22 +69,19 @@ public class EventsTests extends AbstractTestCase {
 
 				int1.unregister();
 
-				for (long i = 10; i > 0 && (getContainerDTO(cdiRuntime, tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
 				assertEquals(0, pojo.getCount());
 				assertEquals("[]", pojo.foo(null));
 			}
-		}
-		finally {
-			tb.uninstall();
 		}
 	}
 
 	@Test
 	public void testSingleComponentReferenceEventHandler() throws Exception {
-		Bundle tb = installBundle("tb10.jar");
+		Bundle tb = bcr.installBundle("tb10.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -103,14 +89,14 @@ public class EventsTests extends AbstractTestCase {
 			assertEquals(0, pojo.getCount());
 			assertEquals("[]", pojo.foo(null));
 
-			ContainerDTO containerDTO = getContainerDTO(cdiRuntime, tb);
+			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
 
 			long changeCount = containerDTO.changeCount;
 
-			ServiceRegistration<Integer> int1 = bundleContext.registerService(Integer.class, new Integer(12), null);
+			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(Integer.class, new Integer(12), null);
 
 			try {
-				for (long i = 10; i > 0 && (getContainerDTO(cdiRuntime, tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -119,11 +105,11 @@ public class EventsTests extends AbstractTestCase {
 
 				changeCount = containerDTO.changeCount;
 
-				Dictionary<String, Object> properties = getProperties(int1.getReference());
+				Dictionary<String, Object> properties = int1.getReference().getProperties();
 				properties.put("foo", "bar");
 				int1.setProperties(properties);
 
-				for (long i = 10; i > 0 && (getContainerDTO(cdiRuntime, tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -134,16 +120,13 @@ public class EventsTests extends AbstractTestCase {
 
 				int1.unregister();
 
-				for (long i = 10; i > 0 && (getContainerDTO(cdiRuntime, tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
 				assertEquals(0, pojo.getCount());
 				assertEquals("[]", pojo.foo(null));
 			}
-		}
-		finally {
-			tb.uninstall();
 		}
 	}
 

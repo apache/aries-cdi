@@ -31,6 +31,8 @@ import java.lang.annotation.Target;
 
 import org.osgi.annotation.bundle.Requirement;
 
+import aQute.bnd.annotation.Resolution;
+
 @Retention(CLASS)
 @Target({
 	PACKAGE, TYPE
@@ -45,7 +47,7 @@ public @interface RequireCDIExtension {
 
 	public static final String	EFFECTIVE_MACRO		= "${if;${size;${#effective}};effective:=${#effective}}";
 
-	public static final String	RESOLUTION_MACRO	= "${if;${is;${#resolution};DEFAULT};;resolution:=${#resolution}}";
+	public static final String	RESOLUTION_MACRO	= "${if;${is;${#resolution};default};;resolution:=${#resolution}}";
 
 	public static final String	VERSION_MACRO	= "${if;${size;${#version}};version=${#version}}";
 
@@ -87,36 +89,5 @@ public @interface RequireCDIExtension {
 	 * requirement clause.
 	 */
 	Resolution resolution() default Resolution.DEFAULT;
-
-	public enum Resolution {
-		/**
-		 * A mandatory requirement forbids the bundle to resolve when the
-		 * requirement is not satisfied.
-		 */
-		MANDATORY("mandatory"), // Namespace.RESOLUTION_MANDATORY
-
-		/**
-		 * An optional requirement allows a bundle to resolve even if the
-		 * requirement is not satisfied.
-		 */
-		OPTIONAL("optional"), // Namespace.RESOLUTION_OPTIONAL
-
-		/**
-		 * Default element value for annotation. This is used to distinguish the
-		 * default value for an element and should not otherwise be used.
-		 */
-		DEFAULT("<<default>>");
-
-		private final String value;
-
-		Resolution(String value) {
-			this.value = value;
-		}
-
-		@Override
-		public String toString() {
-			return value;
-		}
-	}
 
 }

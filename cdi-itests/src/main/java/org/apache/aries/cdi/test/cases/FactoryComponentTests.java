@@ -14,40 +14,25 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.apache.aries.cdi.test.cases.base.CloseableTracker;
+import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.BeanService;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.osgi.framework.Bundle;
 import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class FactoryComponentTests extends AbstractTestCase {
-
-	@Before
-	@Override
-	public void setUp() throws Exception {
-		adminTracker = new ServiceTracker<>(bundleContext, ConfigurationAdmin.class, null);
-		adminTracker.open();
-		configurationAdmin = adminTracker.getService();
-	}
-
-	@After
-	@Override
-	public void tearDown() throws Exception {
-		adminTracker.close();
-	}
+public class FactoryComponentTests extends SlimBaseTestCase {
 
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testFactoryComponent() throws Exception {
-		Bundle tb7Bundle = installBundle("tb7.jar");
+		bcr.installBundle("tb7.jar");
 
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
@@ -59,36 +44,33 @@ public class FactoryComponentTests extends AbstractTestCase {
 			assertNull(beanService);
 
 			Configuration configurationA = null, configurationB = null;
-			ServiceTracker<BeanService, BeanService> trackerA = null, trackerB = null;
 
-			try {
-				configurationA = configurationAdmin.getFactoryConfiguration("configurationBeanF", "one");
+			try (CloseableTracker<BeanService, BeanService> trackerA = track(
+					"(&(objectClass=%s)(objectClass=*.%s)(instance=A))",
+					BeanService.class.getName(),
+					"ConfigurationBeanF");
+				CloseableTracker<BeanService, BeanService> trackerB = track(
+					"(&(objectClass=%s)(objectClass=*.%s)(instance=B))",
+					BeanService.class.getName(),
+					"ConfigurationBeanF")) {
+
+				configurationA = car.getService().getFactoryConfiguration("configurationBeanF", "one");
 
 				Dictionary<String, Object> p1 = new Hashtable<>();
 				p1.put("ports", new int[] {12, 4567});
 				p1.put("instance", "A");
 				configurationA.update(p1);
 
-				trackerA = track(
-					"(&(objectClass=%s)(objectClass=*.%s)(instance=A))",
-					BeanService.class.getName(),
-					"ConfigurationBeanF");
-
 				BeanService beanServiceA = trackerA.waitForService(timeout);
 
 				assertNotNull(beanServiceA);
 
-				configurationB = configurationAdmin.getFactoryConfiguration("configurationBeanF", "two");
+				configurationB = car.getService().getFactoryConfiguration("configurationBeanF", "two");
 
 				p1 = new Hashtable<>();
 				p1.put("ports", new int[] {45689, 1065});
 				p1.put("instance", "B");
 				configurationB.update(p1);
-
-				trackerB = track(
-					"(&(objectClass=%s)(objectClass=*.%s)(instance=B))",
-					BeanService.class.getName(),
-					"ConfigurationBeanF");
 
 				BeanService beanServiceB = trackerB.waitForService(timeout);
 
@@ -137,18 +119,8 @@ public class FactoryComponentTests extends AbstractTestCase {
 						// ignore
 					}
 				}
-				if (trackerA != null) {
-					trackerA.close();
-				}
-				if (trackerB != null) {
-					trackerB.close();
-				}
-				tb7Bundle.uninstall();
 			}
 		}
 	}
-
-	private ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> adminTracker;
-	private ConfigurationAdmin configurationAdmin;
 
 }

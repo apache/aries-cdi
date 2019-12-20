@@ -14,23 +14,22 @@
 
 package org.apache.aries.cdi.extension.servlet.common;
 
+import static java.util.Optional.ofNullable;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
+import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.servlet.annotation.WebListener;
 
+import org.apache.aries.cdi.extension.spi.adapt.Adapted;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardContextSelect;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardListener;
 import org.apache.aries.cdi.extra.propertytypes.ServiceDescription;
 import org.apache.aries.cdi.spi.configuration.Configuration;
-import org.osgi.service.cdi.annotations.Service;
 
 public class WebListenerProcessor {
 
@@ -49,52 +48,52 @@ public class WebListenerProcessor {
 
 		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
+		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
+
+		Set<Class<?>> serviceTypes = new HashSet<>();
+
+		Class<X> javaClass = annotatedType.getJavaClass();
+
+		if (javax.servlet.ServletContextListener.class.isAssignableFrom(javaClass)) {
+			serviceTypes.add(javax.servlet.ServletContextListener.class);
+		}
+		if (javax.servlet.ServletContextAttributeListener.class.isAssignableFrom(javaClass)) {
+			serviceTypes.add(javax.servlet.ServletContextAttributeListener.class);
+		}
+		if (javax.servlet.ServletRequestListener.class.isAssignableFrom(javaClass)) {
+			serviceTypes.add(javax.servlet.ServletRequestListener.class);
+		}
+		if (javax.servlet.ServletRequestAttributeListener.class.isAssignableFrom(javaClass)) {
+			serviceTypes.add(javax.servlet.ServletRequestAttributeListener.class);
+		}
+		if (javax.servlet.http.HttpSessionListener.class.isAssignableFrom(javaClass)) {
+			serviceTypes.add(javax.servlet.http.HttpSessionListener.class);
+		}
+		if (javax.servlet.http.HttpSessionAttributeListener.class.isAssignableFrom(javaClass)) {
+			serviceTypes.add(javax.servlet.http.HttpSessionAttributeListener.class);
+		}
+		if (javax.servlet.http.HttpSessionIdListener.class.isAssignableFrom(javaClass)) {
+			serviceTypes.add(javax.servlet.http.HttpSessionIdListener.class);
+		}
+
+		if (!Adapted.withServiceTypes(configurator, serviceTypes)) {
+			return;
+		}
+
 		WebListener webListener = annotatedType.getAnnotation(WebListener.class);
 
-		final Set<Annotation> annotationsToAdd = new HashSet<>();
-
-		if (!annotatedType.isAnnotationPresent(Service.class)) {
-			List<Class<?>> listenerTypes = new ArrayList<>();
-
-			Class<X> javaClass = annotatedType.getJavaClass();
-
-			if (javax.servlet.ServletContextListener.class.isAssignableFrom(javaClass)) {
-				listenerTypes.add(javax.servlet.ServletContextListener.class);
-			}
-			if (javax.servlet.ServletContextAttributeListener.class.isAssignableFrom(javaClass)) {
-				listenerTypes.add(javax.servlet.ServletContextAttributeListener.class);
-			}
-			if (javax.servlet.ServletRequestListener.class.isAssignableFrom(javaClass)) {
-				listenerTypes.add(javax.servlet.ServletRequestListener.class);
-			}
-			if (javax.servlet.ServletRequestAttributeListener.class.isAssignableFrom(javaClass)) {
-				listenerTypes.add(javax.servlet.ServletRequestAttributeListener.class);
-			}
-			if (javax.servlet.http.HttpSessionListener.class.isAssignableFrom(javaClass)) {
-				listenerTypes.add(javax.servlet.http.HttpSessionListener.class);
-			}
-			if (javax.servlet.http.HttpSessionAttributeListener.class.isAssignableFrom(javaClass)) {
-				listenerTypes.add(javax.servlet.http.HttpSessionAttributeListener.class);
-			}
-			if (javax.servlet.http.HttpSessionIdListener.class.isAssignableFrom(javaClass)) {
-				listenerTypes.add(javax.servlet.http.HttpSessionIdListener.class);
-			}
-
-			annotationsToAdd.add(Service.Literal.of(listenerTypes.toArray(new Class<?>[0])));
-		}
-
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			annotationsToAdd.add(HttpWhiteboardContextSelect.Literal.of((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)));
+			ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+				select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+			);
 		}
 
-		annotationsToAdd.add(HttpWhiteboardListener.Literal.INSTANCE);
-
-		if (!webListener.value().isEmpty()) {
-			annotationsToAdd.add(ServiceDescription.Literal.of(webListener.value()));
+		if(!annotatedType.isAnnotationPresent(HttpWhiteboardListener.class)) {
+			configurator.add(HttpWhiteboardListener.Literal.INSTANCE);
 		}
 
-		if (!annotationsToAdd.isEmpty()) {
-			annotationsToAdd.forEach(pat.configureAnnotatedType()::add);
+		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webListener.value().isEmpty()) {
+			configurator.add(ServiceDescription.Literal.of(webListener.value()));
 		}
 	}
 
