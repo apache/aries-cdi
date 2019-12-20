@@ -24,7 +24,13 @@
 		javax.enterprise.event.Observes.class,
 		javax.enterprise.inject.spi.Extension.class
 	},
-	version = EXTENSION_VERSION
+	version = EXTENSION_VERSION,
+	attribute = {
+		"aries.cdi.extension.bean.classes:List<String>='"
+			+ "org.apache.geronimo.microprofile.metrics.cdi.CountedInterceptor,"
+			+ "org.apache.geronimo.microprofile.metrics.cdi.MeteredInterceptor,"
+			+ "org.apache.geronimo.microprofile.metrics.cdi.TimedInterceptor'"
+	}
 )
 @JSONRequired
 @RequireCDIExtender

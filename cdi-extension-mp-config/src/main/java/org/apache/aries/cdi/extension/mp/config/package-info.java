@@ -24,7 +24,10 @@
 		javax.enterprise.event.Observes.class,
 		Extension.class
 	},
-	version = EXTENSION_VERSION
+	version = EXTENSION_VERSION,
+	attribute = {
+		"aries.cdi.extension.bean.classes:List<String>='org.apache.geronimo.config.cdi.ConfigInjectionProducer'"
+	}
 )
 @RequireCDIExtender
 package org.apache.aries.cdi.extension.mp.config;

@@ -17,10 +17,6 @@ package org.apache.aries.cdi.extension.servlet.common;
 import static java.util.Optional.ofNullable;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
@@ -28,7 +24,7 @@ import javax.servlet.Servlet;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 
-import org.apache.aries.cdi.extension.spi.annotation.AdaptedService;
+import org.apache.aries.cdi.extension.spi.adapt.Adapted;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardContextSelect;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletAsyncSupported;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletMultipart;
@@ -37,7 +33,6 @@ import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletPattern;
 import org.apache.aries.cdi.extra.propertytypes.ServiceDescription;
 import org.apache.aries.cdi.extra.propertytypes.ServiceRanking;
 import org.apache.aries.cdi.spi.configuration.Configuration;
-import org.osgi.service.cdi.annotations.Service;
 
 public class WebServletProcessor {
 
@@ -56,26 +51,13 @@ public class WebServletProcessor {
 
 		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
-		if (annotatedType.isAnnotationPresent(Service.class)) {
+		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
+
+		if (!Adapted.withServiceTypes(configurator, Servlet.class)) {
 			return;
 		}
 
 		WebServlet webServlet = annotatedType.getAnnotation(WebServlet.class);
-
-		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
-
-		Set<Class<?>> serviceTypes = new HashSet<>();
-		serviceTypes.add(Servlet.class);
-
-		AdaptedService adaptedService = annotatedType.getAnnotation(AdaptedService.class);
-
-		if (adaptedService != null) {
-			configurator.remove(adaptedService::equals);
-			serviceTypes.addAll(Arrays.asList(adaptedService.value()));
-		}
-
-		configurator.add(
-			AdaptedService.Literal.of(serviceTypes.toArray(new Class<?>[0])));
 
 		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
 			ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(

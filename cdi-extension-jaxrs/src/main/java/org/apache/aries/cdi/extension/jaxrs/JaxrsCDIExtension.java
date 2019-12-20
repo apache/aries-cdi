@@ -17,10 +17,7 @@ package org.apache.aries.cdi.extension.jaxrs;
 import static java.util.Optional.ofNullable;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.enterprise.context.Dependent;
@@ -54,7 +51,7 @@ import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.ReaderInterceptor;
 import javax.ws.rs.ext.WriterInterceptor;
 
-import org.apache.aries.cdi.extension.spi.annotation.AdaptedService;
+import org.apache.aries.cdi.extension.spi.adapt.Adapted;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsApplicationBase;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsApplicationSelect;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsExtension;
@@ -64,7 +61,6 @@ import org.apache.aries.cdi.extra.propertytypes.JaxrsResource;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsWhiteboardTarget;
 import org.apache.aries.cdi.spi.configuration.Configuration;
 import org.osgi.service.cdi.ServiceScope;
-import org.osgi.service.cdi.annotations.Service;
 import org.osgi.service.cdi.annotations.ServiceInstance;
 import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
 
@@ -303,22 +299,9 @@ public class JaxrsCDIExtension implements Extension {
 		AnnotatedType<?> annotatedType, AnnotatedTypeConfigurator<?> configurator,
 		Class<?> serviceType, boolean application) {
 
-		if (annotatedType.isAnnotationPresent(Service.class)) {
+		if (!Adapted.withServiceTypes(configurator, serviceType)) {
 			return false;
 		}
-
-		Set<Class<?>> serviceTypes = new HashSet<>();
-		serviceTypes.add(serviceType);
-
-		AdaptedService adaptedService = annotatedType.getAnnotation(AdaptedService.class);
-
-		if (adaptedService != null) {
-			configurator.remove(adaptedService::equals);
-			serviceTypes.addAll(Arrays.asList(adaptedService.value()));
-		}
-
-		configurator.add(
-			AdaptedService.Literal.of(serviceTypes.toArray(new Class<?>[0])));
 
 		if (!annotatedType.isAnnotationPresent(JaxrsName.class)) {
 			if (application) {

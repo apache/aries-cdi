@@ -24,6 +24,11 @@ import javax.enterprise.util.AnnotationLiteral;
 /**
  * Annotation used to hold the service types when an extension is adapting
  * annotated types for publication as OSGi CDI services.
+ * <p>
+ * The types in question should be those already known to the CDI bundle.
+ * <p>
+ * Services to be published from annotated types provided by the extension
+ * should be created manually.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

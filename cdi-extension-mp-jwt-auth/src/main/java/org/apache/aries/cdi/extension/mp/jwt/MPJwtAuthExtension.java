@@ -50,7 +50,6 @@ import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
@@ -75,22 +74,10 @@ import org.apache.aries.cdi.spi.configuration.Configuration;
 import org.apache.geronimo.microprofile.impl.jwtauth.cdi.GeronimoJwtAuthExtension;
 import org.apache.geronimo.microprofile.impl.jwtauth.config.GeronimoJwtAuthConfig;
 import org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.GeronimoJwtAuthExceptionMapper;
-import org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.GroupMapper;
 import org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.JAXRSRequestForwarder;
-import org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.ResponseBuilder;
 import org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.RolesAllowedFeature;
-import org.apache.geronimo.microprofile.impl.jwtauth.jwt.ContextualJsonWebToken;
-import org.apache.geronimo.microprofile.impl.jwtauth.jwt.DateValidator;
-import org.apache.geronimo.microprofile.impl.jwtauth.jwt.JwtParser;
-import org.apache.geronimo.microprofile.impl.jwtauth.jwt.KidMapper;
-import org.apache.geronimo.microprofile.impl.jwtauth.jwt.SignatureValidator;
 import org.apache.geronimo.microprofile.impl.jwtauth.servlet.GeronimoJwtAuthFilter;
-import org.apache.geronimo.microprofile.impl.jwtauth.servlet.JwtRequest;
-import org.apache.geronimo.microprofile.impl.jwtauth.servlet.TokenAccessor;
 import org.eclipse.microprofile.auth.LoginConfig;
-import org.eclipse.microprofile.jwt.ClaimValue;
-import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.eclipse.microprofile.jwt.config.Names;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -132,29 +119,6 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 
 	void getConfiguration(@Observes Configuration configuration) {
 		this.configuration = configuration;
-	}
-
-	void addBeans(@Observes BeforeBeanDiscovery bbd, BeanManager bm) {
-		// MP
-		bbd.addAnnotatedType(bm.createAnnotatedType(ClaimValue.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(JsonWebToken.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(Names.class));
-
-		// Geronimo
-		bbd.addAnnotatedType(bm.createAnnotatedType(ContextualJsonWebToken.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(DateValidator.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(GeronimoJwtAuthConfig.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(GeronimoJwtAuthExceptionMapper.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(GeronimoJwtAuthFilter.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(GroupMapper.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(JAXRSRequestForwarder.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(JwtParser.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(JwtRequest.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(KidMapper.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(ResponseBuilder.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(RolesAllowedFeature.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(SignatureValidator.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(TokenAccessor.class));
 	}
 
 	final List<AnnotatedType<? extends Application>> applications = new CopyOnWriteArrayList<>();

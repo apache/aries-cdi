@@ -21,13 +21,9 @@ import static org.osgi.framework.Constants.SERVICE_SCOPE;
 import static org.osgi.framework.Constants.SERVICE_VENDOR;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.Extension;
 
 import org.apache.geronimo.config.cdi.ConfigExtension;
-import org.apache.geronimo.config.cdi.ConfigInjectionProducer;
 
 import aQute.bnd.annotation.spi.ServiceProvider;
 
@@ -45,9 +41,5 @@ public class MPConfigExtension extends ConfigExtension {
 
 	public final static String EXTENSION_NAME = "eclipse.microprofile.config";
 	public final static String EXTENSION_VERSION = "1.3.0";
-
-	public void addBeans(@Observes BeforeBeanDiscovery bbd, BeanManager bm) {
-		bbd.addAnnotatedType(bm.createAnnotatedType(ConfigInjectionProducer.class));
-	}
 
 }

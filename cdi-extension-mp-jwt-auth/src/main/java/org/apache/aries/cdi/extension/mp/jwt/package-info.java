@@ -24,7 +24,24 @@
 		javax.enterprise.event.Observes.class,
 		javax.enterprise.inject.spi.Extension.class
 	},
-	version = EXTENSION_VERSION
+	version = EXTENSION_VERSION,
+	attribute = {
+		"aries.cdi.extension.bean.classes:List<String>='"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jwt.ContextualJsonWebToken,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jwt.DateValidator,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.config.GeronimoJwtAuthConfig,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.GeronimoJwtAuthExceptionMapper,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.servlet.GeronimoJwtAuthFilter,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.GroupMapper,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.JAXRSRequestForwarder,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jwt.JwtParser,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.servlet.JwtRequest,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jwt.KidMapper,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.ResponseBuilder,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jaxrs.RolesAllowedFeature,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.jwt.SignatureValidator,"
+			+ "org.apache.geronimo.microprofile.impl.jwtauth.servlet.TokenAccessor'"
+	}
 )
 @JSONRequired
 @RequireCDIExtension("aries.cdi.http")

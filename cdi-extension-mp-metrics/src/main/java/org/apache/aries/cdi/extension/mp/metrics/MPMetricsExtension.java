@@ -39,7 +39,6 @@ import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
@@ -47,10 +46,7 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 
 import org.apache.aries.cdi.spi.configuration.Configuration;
-import org.apache.geronimo.microprofile.metrics.cdi.CountedInterceptor;
-import org.apache.geronimo.microprofile.metrics.cdi.MeteredInterceptor;
 import org.apache.geronimo.microprofile.metrics.cdi.MetricsExtension;
-import org.apache.geronimo.microprofile.metrics.cdi.TimedInterceptor;
 import org.apache.geronimo.microprofile.metrics.jaxrs.CdiMetricsEndpoints;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -81,13 +77,6 @@ public class MPMetricsExtension extends MetricsExtension {
 
 	void getConfiguration(@Observes Configuration configuration) {
 		this.configuration = configuration;
-	}
-
-	public void addBeans(@Observes BeforeBeanDiscovery bbd, BeanManager bm) {
-		bbd.addAnnotatedType(bm.createAnnotatedType(CountedInterceptor.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(MeteredInterceptor.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(TimedInterceptor.class));
-		bbd.addAnnotatedType(bm.createAnnotatedType(CdiMetricsEndpoints.class));
 	}
 
 	void registerMetricsEndpoint(
