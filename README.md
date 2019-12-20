@@ -193,3 +193,66 @@ The requirements to satisfy this SPI are quite simple:
   - The behaviour of this container should be to start the `@ApplicationScoped` context immediately. This allows for services from the container component to be published right away.
 
 Check out the many questions and answers in the [FAQ](faq.md).
+
+## Aries CDI Extension SPI
+
+Aries CDI enables a number of custom features for [OSGi CDI Portable Extensions](https://osgi.org/specification/osgi.enterprise/7.0.0/service.cdi.html#service.cdi-portable.extensions) (further referred to as Extensions).
+
+#### Implicit Extensions
+
+**Implicit Extensions** declare the custom service property `aries.cdi.extension.mode` whose value is `implicit`. When deployed into a framework, such extensions will bind to all CDI Bundles automatically.
+
+#### Transitive Extensions
+
+Extensions that define requirements on other extensions (using the same `osgi.cdi.extension` requirement a CDI Bundle would), will cause Aries CDI to bind those to the CDI Bundle automatically in a transitive fashion.
+
+#### Annotated Types provided by Extensions
+
+There are two ways an extension can load annotated types:
+
+1. it can use the CDI SPI (this is the standard way.)
+For example:
+
+   ```java
+   public void addBeans(@Observes BeforeBeanDiscovery bbd, BeanManager bm) {
+      bbd.addAnnotatedType(bm.createAnnotatedType(Foo.class));
+   }
+   ```
+
+2. it can use the custom attribute `aries.cdi.extension.bean.classes` on the `osgi.cdi.extension`  capability provided by the extension.
+   For example:
+
+   ```properties
+   Provide-Capability: \
+      osgi.cdi.extension;\
+         osgi.cdi.extension='foo';\
+         version:Version='1.3.0';\
+         aries.cdi.extension.bean.classes:List<String>='org.acme.Foo'
+   ```
+
+#### Adapting Annotated Types as Services
+
+A common scenario with OSGi CDI Portable Extensions is for extensions to adapt annotated types originating in the CDI Bundle as OSGi services (or with more service types).
+
+Aries CDI's Extension SPI provides a convenience mechanism in the form of a carrier annotation `@AdaptedService` and a helper utility `Adapted.withServiceTypes(AnnotatedTypeConfigurator<X>, Class<?>...)`.
+
+The following will make the annotated type produce a service of type `javax.servlet.Servlet`:
+
+```java
+if (!Adapted.withServiceTypes(configurator, javax.servlet.Servlet.class)) {
+   // was not adapted because it was already marked with @Service
+   return;
+}
+```
+
+
+
+The dependency for the Extension SPI is:
+
+```xml
+<dependency>
+   <groupId>org.apache.aries.cdi</groupId>
+   <artifactId>org.apache.aries.cdi.extension.spi</artifactId>
+   <version>...</version>
+</dependency>
+```
