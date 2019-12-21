@@ -16,19 +16,26 @@ package org.apache.aries.cdi.extension.mp.config.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import javax.enterprise.inject.spi.BeanManager;
+
 import org.apache.aries.cdi.extension.mp.config.test.interfaces.Pojo;
 import org.junit.Test;
+import org.osgi.framework.Bundle;
 
 public class MpConfigTests extends BaseTestCase {
 
 	@Test
 	public void testConfigIsSet() throws Exception {
-		bcr.installBundle("tb01.jar");
+		Bundle bundle = bcr.installBundle("tb01.jar");
 
-		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
-			Pojo pojo = tracker.waitForService(timeout);
+		try (CloseableTracker<BeanManager, BeanManager> bmt = track(BeanManager.class, "(service.bundleid=%d)", bundle.getBundleId())) {
+			assertThat(bmt.waitForService(timeout)).isNotNull();
 
-			assertThat(pojo).extracting(it -> it.foo(null)).isEqualTo("[foo]");
+			try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
+				Pojo pojo = tracker.waitForService(timeout);
+
+				assertThat(pojo).isNotNull().extracting(it -> it.foo(null)).isEqualTo("[foo]");
+			}
 		}
 	}
 

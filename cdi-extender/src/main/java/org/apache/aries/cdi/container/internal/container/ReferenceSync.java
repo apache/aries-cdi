@@ -140,7 +140,7 @@ public class ReferenceSync implements ServiceTrackerCustomizer<Object, Object> {
 		}
 
 		try (Syncro open = _syncro.open()) {
-			_referenceDTO.matches.removeIf(d -> d.id == SRs.id(reference));
+			_referenceDTO.matches.removeIf(d -> SRs.id(reference) == d.id);
 
 			if (collectionType == CollectionType.BINDER_SERVICE ||
 				collectionType == CollectionType.BINDER_REFERENCE ||

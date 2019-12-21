@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Arrays;
+
 import javax.enterprise.inject.spi.BeanManager;
 import javax.naming.InitialContext;
 
@@ -34,9 +36,7 @@ public class JndiExtensionTests extends SlimBaseTestCase {
 
 	@Test
 	public void testGetBeanManagerThroughJNDI() throws Exception {
-		Bundle testBundle = bcr.installBundle("tb21.jar", false);
-
-		testBundle.start();
+		Bundle testBundle = bcr.installBundle("tb21.jar");
 
 		assertNotNull(getBeanManager(testBundle));
 
@@ -68,26 +68,40 @@ public class JndiExtensionTests extends SlimBaseTestCase {
 			}
 		};
 		bundleTracker.open();
+		assertFalse(bundleTracker.isEmpty());
 
-		Bundle testBundle = bcr.installBundle("tb21.jar", false);
-
-		testBundle.start();
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
-			assertFalse(bundleTracker.isEmpty());
-
 			Bundle extensionBundle = bundleTracker.getBundles()[0];
 
-			try (CloseableTracker<BeanManager, BeanManager> bmTracker = trackBM(testBundle);) {
-				assertNotNull(bmTracker.waitForService(timeout));
+			Bundle testBundle = bcr.installBundle("tb21.jar", false);
+
+			try (CloseableTracker<BeanManager, BeanManager> bmTracker = trackBM(testBundle.getBundleId());) {
+				assertThat(bmTracker).matches(CloseableTracker::isEmpty, "BeanManager tracker is empty");
+
+				int trackingCount = bmTracker.getTrackingCount();
+
+				testBundle.start();
+
+				for (int i = 1000; (i > 0) && bmTracker.getTrackingCount() == trackingCount; i--) {
+					Thread.sleep(20);
+				}
+
+				assertThat(bmTracker).matches(t -> !t.isEmpty(), "BeanManager tracker is not empty");
+
+				trackingCount = bmTracker.getTrackingCount();
 
 				extensionBundle.stop();
 
-				for (int i = 100; (i > 0) && !bmTracker.isEmpty(); i--) {
-					Thread.sleep(100);
+				for (int i = 1000; (i > 0) && bmTracker.getTrackingCount() == trackingCount; i--) {
+					Thread.sleep(20);
 				}
 
-				assertThat(bmTracker).matches(CloseableTracker::isEmpty, "Is empty");
+				assertThat(extensionBundle).matches(b -> (b.getState() & Bundle.ACTIVE) == 0, "JNDI Extension Bundle is not Active");
+
+				assertThat(bmTracker).matches(
+					CloseableTracker::isEmpty, String.format("Is empty: <%s>", Arrays.toString(bmTracker.getServiceReferences()))
+				);
 
 				extensionBundle.start();
 

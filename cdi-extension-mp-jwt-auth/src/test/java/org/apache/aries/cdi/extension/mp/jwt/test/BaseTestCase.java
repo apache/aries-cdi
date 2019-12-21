@@ -33,7 +33,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 public abstract class BaseTestCase {
 
-	public static final long timeout = 500;
+	public static final long timeout = 5000;
 
 	@Rule
 	public BundleContextRule bcr = new BundleContextRule();
