@@ -40,12 +40,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>javax.ejb</groupId>
-				<artifactId>javax.ejb-api</artifactId>
-				<version>3.2</version>
-				<scope>runtime</scope>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.aries.cdi</groupId>
 				<artifactId>org.apache.aries.cdi.extender</artifactId>
 				<version>${project.version}</version>

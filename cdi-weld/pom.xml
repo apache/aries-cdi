@@ -98,12 +98,12 @@
 			<version>${weld.version}</version>
 			<exclusions>
 				<exclusion>
-					<groupId>javax.annotation</groupId>
-					<artifactId>javax.annotation-api</artifactId>
+					<groupId>jakarta.enterprise</groupId>
+					<artifactId>jakarta.enterprise.cdi-api</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>javax.enterprise</groupId>
-					<artifactId>cdi-api</artifactId>
+					<groupId>javax.annotation</groupId>
+					<artifactId>javax.annotation-api</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>javax.inject</groupId>
@@ -112,10 +112,6 @@
 				<exclusion>
 					<groupId>org.jboss.spec.javax.annotation</groupId>
 					<artifactId>jboss-annotations-api_1.3_spec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.ejb</groupId>
-					<artifactId>jboss-ejb-api_3.2_spec</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>org.jboss.spec.javax.el</groupId>
