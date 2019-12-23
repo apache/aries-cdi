@@ -14,6 +14,8 @@
 
 package org.apache.aries.cdi.container.internal.model;
 
+import static java.util.Objects.requireNonNull;
+
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Map;
@@ -69,13 +71,14 @@ public class FactoryActivator extends InstanceActivator {
 				serviceRegistration = null;
 			}
 
-			_instance.activations.removeIf(
+			_instance.activations.forEach(
 				a -> {
 					ExtendedActivationDTO extended = (ExtendedActivationDTO)a;
-					extended.onClose.accept(extended);
-					return true;
+					requireNonNull(extended.onClose).accept(extended);
 				}
 			);
+
+			_instance.activations.clear();
 
 			_instance.active = false;
 

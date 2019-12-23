@@ -30,7 +30,7 @@ public class CdiExtenderTests extends BaseTestCase {
 	public void testStopExtender() throws Exception {
 		Bundle cdiExtenderBundle = getCdiExtenderBundle();
 
-		try (CloseableTracker<BeanManager, BeanManager> tracker = trackBM(cdiBundle);) {
+		try (CloseableTracker<BeanManager, BeanManager> tracker = trackBM(cdiBundle.getBundleId());) {
 			BeanManager beanManager = tracker.waitForService(timeout);
 
 			assertNotNull(beanManager);

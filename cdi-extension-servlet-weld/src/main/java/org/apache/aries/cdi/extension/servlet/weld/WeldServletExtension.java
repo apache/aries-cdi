@@ -23,6 +23,8 @@ import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHIT
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Priority;
@@ -135,6 +137,7 @@ public class WeldServletExtension implements Extension {
 		implements HttpSessionListener, ServletContextListener, ServletRequestListener {
 
 		private final T delegate;
+		private final CountDownLatch latch = new CountDownLatch(1);
 
 		public ListenerWrapper(T delegate) {
 			this.delegate = delegate;
@@ -143,7 +146,9 @@ public class WeldServletExtension implements Extension {
 		@Override
 		public void contextDestroyed(ServletContextEvent sce) {
 			try {
+				latch.await(20, TimeUnit.SECONDS);
 				delegate.contextDestroyed(sce);
+			} catch (InterruptedException e) {
 			}
 			finally {
 				destroyed.set(true);
@@ -153,26 +158,43 @@ public class WeldServletExtension implements Extension {
 		@Override
 		public void contextInitialized(ServletContextEvent sce) {
 			delegate.contextInitialized(sce);
+			latch.countDown();
 		}
 
 		@Override
 		public void requestDestroyed(ServletRequestEvent sre) {
-			delegate.requestDestroyed(sre);
+			try {
+				latch.await(20, TimeUnit.SECONDS);
+				delegate.requestDestroyed(sre);
+			} catch (InterruptedException e) {
+			}
 		}
 
 		@Override
 		public void requestInitialized(ServletRequestEvent sre) {
-			delegate.requestInitialized(sre);
+			try {
+				latch.await(20, TimeUnit.SECONDS);
+				delegate.requestInitialized(sre);
+			} catch (InterruptedException e) {
+			}
 		}
 
 		@Override
 		public void sessionCreated(HttpSessionEvent se) {
-			delegate.sessionCreated(se);
+			try {
+				latch.await(20, TimeUnit.SECONDS);
+				delegate.sessionCreated(se);
+			} catch (InterruptedException e) {
+			}
 		}
 
 		@Override
 		public void sessionDestroyed(HttpSessionEvent se) {
-			delegate.sessionDestroyed(se);
+			try {
+				latch.await(20, TimeUnit.SECONDS);
+				delegate.sessionDestroyed(se);
+			} catch (InterruptedException e) {
+			}
 		}
 
 	}

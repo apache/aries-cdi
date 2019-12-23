@@ -365,7 +365,7 @@
 							<execution>
 								<id>bnd-process-test</id>
 								<goals>
-									<goal>bnd-process-test</goal>
+									<goal>bnd-process-tests</goal>
 								</goals>
 								<configuration>
 									<bnd><![CDATA[

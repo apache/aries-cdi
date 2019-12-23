@@ -209,6 +209,12 @@
 					<artifactId>org.osgi.test.assertj</artifactId>
 					<version>1.0.0-SNAPSHOT</version>
 					<scope>test</scope>
+					<exclusions>
+						<exclusion>
+							<groupId>org.osgi</groupId>
+							<artifactId>osgi.promise</artifactId>
+						</exclusion>
+					</exclusions>
 				</dependency>
 				<dependency>
 					<groupId>org.osgi</groupId>
@@ -228,7 +234,7 @@
 							<execution>
 								<id>bnd-process-test</id>
 								<goals>
-									<goal>bnd-process-test</goal>
+									<goal>bnd-process-tests</goal>
 								</goals>
 								<configuration>
 									<bnd><![CDATA[

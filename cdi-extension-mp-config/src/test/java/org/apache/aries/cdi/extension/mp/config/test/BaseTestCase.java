@@ -35,7 +35,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 @RequireCDIExtension("eclipse.microprofile.config")
 public abstract class BaseTestCase {
 
-	public static final long timeout = 500;
+	public static final long timeout = 5000;
 
 	@Rule
 	public BundleContextRule bcr = new BundleContextRule();
@@ -54,6 +54,18 @@ public abstract class BaseTestCase {
 			System.out.printf("--------- TEST: %s#%s [%s]%n", description.getTestClass(), description.getMethodName(), "PASSED");
 		}
 	};
+
+	public <S,T> CloseableTracker<S, T> track(Class<S> typeToTrack) {
+		CloseableTracker<S, T> tracker = new CloseableTracker<>(bcr.getBundleContext(), typeToTrack);
+		tracker.open();
+		return tracker;
+	}
+
+	public <S,T> CloseableTracker<S, T> track(Class<S> typeToTrack, String pattern, Object... objects) {
+		CloseableTracker<S, T> tracker = new CloseableTracker<>(bcr.getBundleContext(), format("(&(objectClass=%s)%s)", typeToTrack.getName(), format(pattern, objects)));
+		tracker.open();
+		return tracker;
+	}
 
 	public <S,T> CloseableTracker<S, T> track(Filter filter) {
 		CloseableTracker<S, T> tracker = new CloseableTracker<>(bcr.getBundleContext(), filter);
@@ -113,6 +125,10 @@ public abstract class BaseTestCase {
 	}
 
 	public static class CloseableTracker<S, T> extends ServiceTracker<S, T> implements AutoCloseable {
+
+		public CloseableTracker(BundleContext context, Class<S> typeToTrack) {
+			super(context, typeToTrack, null);
+		}
 
 		public CloseableTracker(BundleContext context, Filter filter) {
 			super(context, filter, null);

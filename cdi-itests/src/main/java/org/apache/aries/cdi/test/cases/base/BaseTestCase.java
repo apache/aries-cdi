@@ -182,16 +182,20 @@ public abstract class BaseTestCase {
 	}
 
 	public BeanManager getBeanManager(Bundle bundle) throws Exception {
-		return trackBM(bundle).waitForService(timeout);
+		return trackBM(bundle.getBundleId()).waitForService(timeout);
 	}
 
-	public CloseableTracker<BeanManager, BeanManager> trackBM(Bundle bundle) throws Exception {
+	public BeanManager getBeanManager(long bundleId) throws Exception {
+		return trackBM(bundleId).waitForService(timeout);
+	}
+
+	public CloseableTracker<BeanManager, BeanManager> trackBM(long bundleId) throws Exception {
 		CloseableTracker<BeanManager, BeanManager> serviceTracker = new CloseableTracker<>(
-			bundle.getBundleContext(),
+			bcr.getBundleContext(),
 			format(
 				"(&(objectClass=%s)(service.bundleid=%d))",
 				BeanManager.class.getName(),
-				bundle.getBundleId()),
+				bundleId),
 			null);
 		serviceTracker.open();
 		return serviceTracker;

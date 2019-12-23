@@ -14,45 +14,68 @@
 
 package org.apache.aries.cdi.extension.mp.metrics.test;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants.JAX_RS_MEDIA_TYPE;
 
+import javax.enterprise.inject.spi.BeanManager;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.MessageBodyReader;
 
 import org.apache.aries.cdi.extension.mp.metrics.test.interfaces.Pojo;
 import org.assertj.core.api.Assertions;
+import org.junit.Rule;
 import org.junit.Test;
+import org.osgi.framework.Bundle;
+import org.osgi.test.junit4.service.ServiceUseRule;
 
 public class MpMetricsTests extends JaxrsBaseTestCase {
 
+	@Rule
+	@SuppressWarnings("rawtypes")
+	public ServiceUseRule<MessageBodyReader> mbr = new ServiceUseRule.Builder<>(MessageBodyReader.class) //
+		.filter("(%s=%s)", JAX_RS_MEDIA_TYPE, APPLICATION_JSON)
+		.build();
+
 	@Test
 	public void testMetrics() throws Exception {
-		bcr.installBundle("tb01.jar");
+		Bundle bundle = bcr.installBundle("tb01.jar");
 
-		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
-			Pojo pojo = tracker.waitForService(timeout);
-			assertNotNull(pojo);
+		try (CloseableTracker<BeanManager, BeanManager> bmt = track(BeanManager.class, "(service.bundleid=%d)", bundle.getBundleId())) {
+			assertThat(bmt.waitForService(timeout)).isNotNull();
 
-			WebTarget webTarget = cbr.getService().build().target(getJaxrsEndpoint()).path("/metrics/application");
+			try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
+				Pojo pojo = tracker.waitForService(timeout);
+				assertNotNull(pojo);
 
-			Response response = webTarget.request().get();
+				final ClientBuilder cb = cbr.getService();
+				cb.register(mbr.getService());
 
-			assertEquals(response.readEntity(String.class),200, response.getStatus());
+				WebTarget webTarget = cb.build().target(getJaxrsEndpoint()).path("/metrics/application");
 
-			String result = response.readEntity(String.class);
+				Response response = webTarget.request(APPLICATION_JSON_TYPE).get();
 
-			assertEquals("{\"org.apache.aries.cdi.extension.mp.metrics.test.tb01.A.applicationCount\":0}", result);
+				assertEquals(response.readEntity(String.class),200, response.getStatus());
 
-			Assertions.assertThat(pojo.foo("Count: ")).isEqualTo("Count: 1");
+				String result = response.readEntity(String.class);
 
-			response = webTarget.request().get();
+				assertEquals("{\"org.apache.aries.cdi.extension.mp.metrics.test.tb01.A.applicationCount\":0}", result);
 
-			assertEquals(200, response.getStatus());
+				Assertions.assertThat(pojo.foo("Count: ")).isEqualTo("Count: 1");
 
-			result = response.readEntity(String.class);
+				response = webTarget.request(APPLICATION_JSON_TYPE).get();
 
-			assertEquals("{\"org.apache.aries.cdi.extension.mp.metrics.test.tb01.A.applicationCount\":1}", result);
+				assertEquals(200, response.getStatus());
+
+				result = response.readEntity(String.class);
+
+				assertEquals("{\"org.apache.aries.cdi.extension.mp.metrics.test.tb01.A.applicationCount\":1}", result);
+			}
 		}
 	}
 
