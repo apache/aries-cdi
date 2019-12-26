@@ -20,6 +20,7 @@ import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHIT
 import java.util.stream.Stream;
 
 import javax.enterprise.inject.spi.AnnotatedType;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.servlet.ServletContextAttributeListener;
@@ -31,11 +32,12 @@ import javax.servlet.http.HttpSessionAttributeListener;
 import javax.servlet.http.HttpSessionIdListener;
 import javax.servlet.http.HttpSessionListener;
 
-import org.apache.aries.cdi.extension.spi.adapt.IfNotAService;
+import org.apache.aries.cdi.extension.spi.adapt.MergeServiceTypes;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardContextSelect;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardListener;
 import org.apache.aries.cdi.extra.propertytypes.ServiceDescription;
 import org.apache.aries.cdi.spi.configuration.Configuration;
+import org.osgi.service.cdi.annotations.Service;
 
 public class WebListenerProcessor {
 
@@ -50,40 +52,43 @@ public class WebListenerProcessor {
 	 * @param pat
 	 */
 	public <X> void process(
-		Configuration configuration, ProcessAnnotatedType<X> pat) {
+			Configuration configuration, ProcessAnnotatedType<X> pat, BeanManager beanManager) {
+		if (pat.getAnnotatedType().isAnnotationPresent(Service.class)) {
+			return;
+		}
 
 		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
-		IfNotAService.run(pat, mgr -> {
-			final Class<X> javaClass = annotatedType.getJavaClass();
-			final Class<?>[] serviceTypes = Stream.of(
-					ServletContextListener.class,
-					ServletContextAttributeListener.class,
-					ServletRequestListener.class,
-					ServletRequestAttributeListener.class,
-					HttpSessionListener.class,
-					HttpSessionAttributeListener.class,
-					HttpSessionIdListener.class)
-					.filter(c -> c.isAssignableFrom(javaClass))
-					.toArray(Class[]::new);
+		final Class<X> javaClass = annotatedType.getJavaClass();
+		final Class<?>[] serviceTypes = Stream.of(
+				ServletContextListener.class,
+				ServletContextAttributeListener.class,
+				ServletRequestListener.class,
+				ServletRequestAttributeListener.class,
+				HttpSessionListener.class,
+				HttpSessionAttributeListener.class,
+				HttpSessionIdListener.class)
+				.filter(c -> c.isAssignableFrom(javaClass))
+				.toArray(Class[]::new);
 
-			AnnotatedTypeConfigurator<X> configurator = mgr.mergeWith(serviceTypes);
+		beanManager.fireEvent(new MergeServiceTypes<>(pat, serviceTypes));
 
-			WebListener webListener = annotatedType.getAnnotation(WebListener.class);
+		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
 
-			if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-				ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-						select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
-				);
-			}
+		WebListener webListener = annotatedType.getAnnotation(WebListener.class);
 
-			if(!annotatedType.isAnnotationPresent(HttpWhiteboardListener.class)) {
-				configurator.add(HttpWhiteboardListener.Literal.INSTANCE);
-			}
+		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
+			ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+					select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+			);
+		}
 
-			if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webListener.value().isEmpty()) {
-				configurator.add(ServiceDescription.Literal.of(webListener.value()));
-			}
-		});
+		if(!annotatedType.isAnnotationPresent(HttpWhiteboardListener.class)) {
+			configurator.add(HttpWhiteboardListener.Literal.INSTANCE);
+		}
+
+		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webListener.value().isEmpty()) {
+			configurator.add(ServiceDescription.Literal.of(webListener.value()));
+		}
 	}
 
 }

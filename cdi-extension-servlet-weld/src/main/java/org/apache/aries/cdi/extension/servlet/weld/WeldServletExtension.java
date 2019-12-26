@@ -71,16 +71,19 @@ public class WeldServletExtension implements Extension {
 		this.configuration = configuration;
 	}
 
-	<X> void webFilter(@Observes @WithAnnotations(WebFilter.class) ProcessAnnotatedType<X> pat) {
-		new WebFilterProcessor().process(configuration, pat);
+	<X> void webFilter(@Observes @WithAnnotations(WebFilter.class) ProcessAnnotatedType<X> pat,
+					   BeanManager beanManager) {
+		new WebFilterProcessor().process(configuration, pat, beanManager);
 	}
 
-	<X> void webListener(@Observes @WithAnnotations(WebListener.class) ProcessAnnotatedType<X> pat) {
-		new WebListenerProcessor().process(configuration, pat);
+	<X> void webListener(@Observes @WithAnnotations(WebListener.class) ProcessAnnotatedType<X> pat,
+						 BeanManager beanManager) {
+		new WebListenerProcessor().process(configuration, pat, beanManager);
 	}
 
-	<X> void webServlet(@Observes @WithAnnotations(WebServlet.class) ProcessAnnotatedType<X> pat) {
-		new WebServletProcessor().process(configuration, pat);
+	<X> void webServlet(@Observes @WithAnnotations(WebServlet.class) ProcessAnnotatedType<X> pat,
+						BeanManager beanManager) {
+		new WebServletProcessor().process(configuration, pat, beanManager);
 	}
 
 	void afterDeploymentValidation(
