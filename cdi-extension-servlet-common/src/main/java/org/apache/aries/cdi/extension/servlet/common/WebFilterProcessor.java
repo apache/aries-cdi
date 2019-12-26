@@ -23,7 +23,7 @@ import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.servlet.Filter;
 import javax.servlet.annotation.WebFilter;
 
-import org.apache.aries.cdi.extension.spi.adapt.Adapted;
+import org.apache.aries.cdi.extension.spi.adapt.IfNotAService;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardContextSelect;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardFilterAsyncSupported;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardFilterDispatcher;
@@ -48,50 +48,47 @@ public class WebFilterProcessor {
 	public <X> void process(
 		Configuration configuration, ProcessAnnotatedType<X> pat) {
 
-		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
+		IfNotAService.run(pat, mgr -> {
+			final AnnotatedTypeConfigurator<X> configurator = mgr.mergeWith(Filter.class);
+			final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
+			WebFilter webFilter = annotatedType.getAnnotation(WebFilter.class);
 
-		if (!Adapted.withServiceTypes(configurator, Filter.class)) {
-			return;
-		}
-
-		WebFilter webFilter = annotatedType.getAnnotation(WebFilter.class);
-
-		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-				select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
-			);
-		}
-
-		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webFilter.description().isEmpty()) {
-			configurator.add(ServiceDescription.Literal.of(webFilter.description()));
-		}
-
-		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterName.class) && !webFilter.filterName().isEmpty()) {
-			configurator.add(HttpWhiteboardFilterName.Literal.of(webFilter.filterName()));
-		}
-
-		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterServlet.class) && webFilter.servletNames().length > 0) {
-			configurator.add(HttpWhiteboardFilterServlet.Literal.of(webFilter.servletNames()));
-		}
-
-		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterPattern.class)) {
-			if (webFilter.value().length > 0) {
-				configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.value()));
+			if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
+				ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+						select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+				);
 			}
-			else if (webFilter.urlPatterns().length > 0) {
-				configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.urlPatterns()));
+
+			if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webFilter.description().isEmpty()) {
+				configurator.add(ServiceDescription.Literal.of(webFilter.description()));
 			}
-		}
 
-		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterDispatcher.class) && webFilter.dispatcherTypes().length > 0) {
-			configurator.add(HttpWhiteboardFilterDispatcher.Literal.of(webFilter.dispatcherTypes()));
-		}
+			if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterName.class) && !webFilter.filterName().isEmpty()) {
+				configurator.add(HttpWhiteboardFilterName.Literal.of(webFilter.filterName()));
+			}
 
-		if(!annotatedType.isAnnotationPresent(HttpWhiteboardFilterAsyncSupported.class)) {
-			configurator.add(HttpWhiteboardFilterAsyncSupported.Literal.of(webFilter.asyncSupported()));
-		}
+			if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterServlet.class) && webFilter.servletNames().length > 0) {
+				configurator.add(HttpWhiteboardFilterServlet.Literal.of(webFilter.servletNames()));
+			}
+
+			if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterPattern.class)) {
+				if (webFilter.value().length > 0) {
+					configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.value()));
+				}
+				else if (webFilter.urlPatterns().length > 0) {
+					configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.urlPatterns()));
+				}
+			}
+
+			if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterDispatcher.class) && webFilter.dispatcherTypes().length > 0) {
+				configurator.add(HttpWhiteboardFilterDispatcher.Literal.of(webFilter.dispatcherTypes()));
+			}
+
+			if(!annotatedType.isAnnotationPresent(HttpWhiteboardFilterAsyncSupported.class)) {
+				configurator.add(HttpWhiteboardFilterAsyncSupported.Literal.of(webFilter.asyncSupported()));
+			}
+		});
 	}
 
 }

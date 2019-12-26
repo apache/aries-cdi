@@ -14,10 +14,12 @@
 
 package org.apache.aries.cdi.extension.jaxrs;
 
+import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.enterprise.context.Dependent;
@@ -51,7 +53,7 @@ import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.ReaderInterceptor;
 import javax.ws.rs.ext.WriterInterceptor;
 
-import org.apache.aries.cdi.extension.spi.adapt.Adapted;
+import org.apache.aries.cdi.extension.spi.adapt.IfNotAService;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsApplicationBase;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsApplicationSelect;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsExtension;
@@ -82,17 +84,13 @@ public class JaxrsCDIExtension implements Extension {
 
 		applications.add(annotatedType);
 
-		AnnotatedTypeConfigurator<? extends Application> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, Application.class, true)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsApplicationBase.class)) {
-			configurator.add(
-				JaxrsApplicationBase.Literal.of(
-					annotatedType.getAnnotation(ApplicationPath.class).value()));
-		}
+		commonProperties(pat, Application.class, true).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsApplicationBase.class)) {
+				configurator.add(
+						JaxrsApplicationBase.Literal.of(
+								annotatedType.getAnnotation(ApplicationPath.class).value()));
+			}
+		});
 	}
 
 	<X> void resource(
@@ -101,15 +99,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<X> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, Object.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsResource.class)) {
-			configurator.add(JaxrsResource.Literal.INSTANCE);
-		}
+		commonProperties(pat, Object.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsResource.class)) {
+				configurator.add(JaxrsResource.Literal.INSTANCE);
+			}
+		});
 	}
 
 	void containerRequestFilter(
@@ -117,15 +111,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends ContainerRequestFilter> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends ContainerRequestFilter> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ContainerRequestFilter.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ContainerRequestFilter.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	void containerResponseFilter(
@@ -133,15 +123,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends ContainerResponseFilter> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends ContainerResponseFilter> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ContainerResponseFilter.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ContainerResponseFilter.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	void readerInterceptor(
@@ -149,15 +135,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends ReaderInterceptor> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends ReaderInterceptor> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ReaderInterceptor.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ReaderInterceptor.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	void writerInterceptor(
@@ -165,15 +147,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends WriterInterceptor> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends WriterInterceptor> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, WriterInterceptor.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, WriterInterceptor.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -182,15 +160,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends MessageBodyReader> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends MessageBodyReader> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, MessageBodyReader.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, MessageBodyReader.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -199,15 +173,12 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends MessageBodyWriter> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends MessageBodyWriter> configurator = pat.configureAnnotatedType();
+		commonProperties(pat, MessageBodyWriter.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
 
-		if (!commonProperties(annotatedType, configurator, MessageBodyWriter.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		});
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -216,15 +187,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends ContextResolver> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends ContextResolver> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ContextResolver.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ContextResolver.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -233,15 +200,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends ExceptionMapper> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends ExceptionMapper> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ExceptionMapper.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ExceptionMapper.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	void paramConverterProvider(
@@ -249,15 +212,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends ParamConverterProvider> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends ParamConverterProvider> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ParamConverterProvider.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ParamConverterProvider.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	void feature(
@@ -265,15 +224,11 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends Feature> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends Feature> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, Feature.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, Feature.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	void dynamicFeature(
@@ -281,72 +236,65 @@ public class JaxrsCDIExtension implements Extension {
 
 		AnnotatedType<? extends DynamicFeature> annotatedType = pat.getAnnotatedType();
 
-		AnnotatedTypeConfigurator<? extends DynamicFeature> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, DynamicFeature.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, DynamicFeature.class, false).ifPresent(configurator -> {
+			if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
+				configurator.add(JaxrsExtension.Literal.INSTANCE);
+			}
+		});
 	}
 
 	/*
 	 * @return true if common properties were added (i.e. if no @Service was found)
 	 */
-	boolean commonProperties(
-		AnnotatedType<?> annotatedType, AnnotatedTypeConfigurator<?> configurator,
-		Class<?> serviceType, boolean application) {
+	private <X> Optional<AnnotatedTypeConfigurator<X>> commonProperties(
+		ProcessAnnotatedType<X> pat, Class<?> serviceType, boolean application) {
+		return IfNotAService.run(pat, mgr -> {
+			final AnnotatedTypeConfigurator<X> configurator = mgr.mergeWith(serviceType);
+			final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
+			if (!annotatedType.isAnnotationPresent(JaxrsName.class)) {
+				if (application) {
+					configurator.add(
+							JaxrsName.Literal.of(
+									ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_NAME)).orElse(
+											JaxrsWhiteboardConstants.JAX_RS_DEFAULT_APPLICATION
+									)
+							)
+					);
+				}
+				else {
+					configurator.add(JaxrsName.Literal.of(annotatedType.getJavaClass().getSimpleName()));
+				}
+			}
 
-		if (!Adapted.withServiceTypes(configurator, serviceType)) {
-			return false;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsName.class)) {
-			if (application) {
-				configurator.add(
-					JaxrsName.Literal.of(
-						ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_NAME)).orElse(
-							JaxrsWhiteboardConstants.JAX_RS_DEFAULT_APPLICATION
-						)
-					)
+			if (!application && !annotatedType.isAnnotationPresent(JaxrsApplicationSelect.class)) {
+				ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_APPLICATION_SELECT)).ifPresent(
+						select -> configurator.add(JaxrsApplicationSelect.Literal.of(select))
 				);
 			}
-			else {
-				configurator.add(JaxrsName.Literal.of(annotatedType.getJavaClass().getSimpleName()));
+
+			if (!annotatedType.isAnnotationPresent(JaxrsExtensionSelect.class)) {
+				ofNullable((String[])configuration.get(JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT)).ifPresent(selects -> {
+					if (selects.length > 0) {
+						configurator.add(JaxrsExtensionSelect.Literal.of(selects));
+					}
+				});
 			}
-		}
 
-		if (!application && !annotatedType.isAnnotationPresent(JaxrsApplicationSelect.class)) {
-			ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_APPLICATION_SELECT)).ifPresent(
-				select -> configurator.add(JaxrsApplicationSelect.Literal.of(select))
-			);
-		}
+			if (!annotatedType.isAnnotationPresent(JaxrsWhiteboardTarget.class)) {
+				ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_WHITEBOARD_TARGET)).ifPresent(
+						target -> configurator.add(JaxrsWhiteboardTarget.Literal.of(target))
+				);
+			}
 
-		if (!annotatedType.isAnnotationPresent(JaxrsExtensionSelect.class)) {
-			ofNullable((String[])configuration.get(JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT)).ifPresent(selects -> {
-				if (selects.length > 0) {
-					configurator.add(JaxrsExtensionSelect.Literal.of(selects));
+			if (!annotatedType.isAnnotationPresent(ServiceInstance.class)) {
+				Class<? extends Annotation> beanScope = Util.beanScope(annotatedType, Dependent.class);
+
+				if (Dependent.class.equals(beanScope)) {
+					configurator.add(ServiceInstance.Literal.of(ServiceScope.PROTOTYPE));
 				}
-			});
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsWhiteboardTarget.class)) {
-			ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_WHITEBOARD_TARGET)).ifPresent(
-				target -> configurator.add(JaxrsWhiteboardTarget.Literal.of(target))
-			);
-		}
-
-		if (!annotatedType.isAnnotationPresent(ServiceInstance.class)) {
-			Class<? extends Annotation> beanScope = Util.beanScope(annotatedType, Dependent.class);
-
-			if (Dependent.class.equals(beanScope)) {
-				configurator.add(ServiceInstance.Literal.of(ServiceScope.PROTOTYPE));
 			}
-		}
-
-		return true;
+			return of(configurator);
+		}, Optional::empty);
 	}
 
 	void afterDeploymentValidation(@Observes AfterDeploymentValidation adv) {

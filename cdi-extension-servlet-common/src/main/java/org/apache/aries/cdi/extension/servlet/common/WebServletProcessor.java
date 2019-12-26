@@ -24,7 +24,7 @@ import javax.servlet.Servlet;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 
-import org.apache.aries.cdi.extension.spi.adapt.Adapted;
+import org.apache.aries.cdi.extension.spi.adapt.IfNotAService;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardContextSelect;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletAsyncSupported;
 import org.apache.aries.cdi.extra.propertytypes.HttpWhiteboardServletMultipart;
@@ -49,58 +49,54 @@ public class WebServletProcessor {
 	public <X> void process(
 		Configuration configuration, ProcessAnnotatedType<X> pat) {
 
-		final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
+		IfNotAService.run(pat, mgr -> {
+			final AnnotatedTypeConfigurator<X> configurator = mgr.mergeWith(Servlet.class);
+			final AnnotatedType<X> annotatedType = pat.getAnnotatedType();
+			WebServlet webServlet = annotatedType.getAnnotation(WebServlet.class);
 
-		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
-
-		if (!Adapted.withServiceTypes(configurator, Servlet.class)) {
-			return;
-		}
-
-		WebServlet webServlet = annotatedType.getAnnotation(WebServlet.class);
-
-		if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-			ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-				select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
-			);
-		}
-
-		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletName.class) && !webServlet.name().isEmpty()) {
-			configurator.add(HttpWhiteboardServletName.Literal.of(webServlet.name()));
-		}
-
-		if(!annotatedType.isAnnotationPresent(HttpWhiteboardServletPattern.class)) {
-			if (webServlet.value().length > 0) {
-				configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.value()));
+			if(!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
+				ofNullable((String)configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+						select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+				);
 			}
-			else if (webServlet.urlPatterns().length > 0) {
-				configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.urlPatterns()));
+
+			if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletName.class) && !webServlet.name().isEmpty()) {
+				configurator.add(HttpWhiteboardServletName.Literal.of(webServlet.name()));
 			}
-		}
 
-		if (!annotatedType.isAnnotationPresent(ServiceRanking.class)) {
-			configurator.add(ServiceRanking.Literal.of(webServlet.loadOnStartup()));
-		}
-
-		// TODO Howto: INIT PARAMS ???
-
-		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletAsyncSupported.class)) {
-			configurator.add(HttpWhiteboardServletAsyncSupported.Literal.of(webServlet.asyncSupported()));
-		}
-
-		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webServlet.description().isEmpty()) {
-			configurator.add(ServiceDescription.Literal.of(webServlet.description()));
-		}
-
-		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletMultipart.class)) {
-			MultipartConfig multipartConfig = annotatedType.getAnnotation(MultipartConfig.class);
-
-			if (multipartConfig != null) {
-				configurator.add(HttpWhiteboardServletMultipart.Literal.of(true, multipartConfig.fileSizeThreshold(), multipartConfig.location(), multipartConfig.maxFileSize(), multipartConfig.maxRequestSize()));
+			if(!annotatedType.isAnnotationPresent(HttpWhiteboardServletPattern.class)) {
+				if (webServlet.value().length > 0) {
+					configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.value()));
+				}
+				else if (webServlet.urlPatterns().length > 0) {
+					configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.urlPatterns()));
+				}
 			}
-		}
 
-		// TODO HowTo: ServletSecurity ???
+			if (!annotatedType.isAnnotationPresent(ServiceRanking.class)) {
+				configurator.add(ServiceRanking.Literal.of(webServlet.loadOnStartup()));
+			}
+
+			// TODO Howto: INIT PARAMS ???
+
+			if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletAsyncSupported.class)) {
+				configurator.add(HttpWhiteboardServletAsyncSupported.Literal.of(webServlet.asyncSupported()));
+			}
+
+			if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webServlet.description().isEmpty()) {
+				configurator.add(ServiceDescription.Literal.of(webServlet.description()));
+			}
+
+			if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletMultipart.class)) {
+				MultipartConfig multipartConfig = annotatedType.getAnnotation(MultipartConfig.class);
+
+				if (multipartConfig != null) {
+					configurator.add(HttpWhiteboardServletMultipart.Literal.of(true, multipartConfig.fileSizeThreshold(), multipartConfig.location(), multipartConfig.maxFileSize(), multipartConfig.maxRequestSize()));
+				}
+			}
+
+			// TODO HowTo: ServletSecurity ???
+		});
 	}
 
 }
