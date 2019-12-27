@@ -17,11 +17,16 @@ import java.util.Arrays;
 
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 
-public class MergeServiceTypes<T> {
+/**
+ * If fired (using the {@link javax.enterprise.inject.spi.BeanManager}) during a {@link ProcessAnnotatedType} event,
+ * it will configure the annotated type to add {@link org.apache.aries.cdi.extension.spi.annotation.AdaptedService}
+ * with the referenced types - potentially merged with already existing ones.
+ */
+public class MergeServiceTypes {
     private final Class<?>[] types;
-    private final ProcessAnnotatedType<T> processAnnotatedType;
+    private final ProcessAnnotatedType<?> processAnnotatedType;
 
-    public MergeServiceTypes(final ProcessAnnotatedType<T> processAnnotatedType,
+    private MergeServiceTypes(final ProcessAnnotatedType<?> processAnnotatedType,
                              final Class<?>... types) {
         this.types = types;
         this.processAnnotatedType = processAnnotatedType;
@@ -31,12 +36,44 @@ public class MergeServiceTypes<T> {
         return types;
     }
 
-    public ProcessAnnotatedType<T> getProcessAnnotatedType() {
+    public ProcessAnnotatedType<?> getProcessAnnotatedType() {
         return processAnnotatedType;
     }
 
     @Override
     public String toString() {
         return "MergeServiceTypes{types=" + Arrays.toString(types) + '}';
+    }
+
+    public static Builder forEvent(final ProcessAnnotatedType<?> pat) {
+        return new Builder(pat);
+    }
+
+    public static Builder forEvent(final ProcessPotentialService pat) {
+        return new Builder(pat.getProcessAnnotatedType());
+    }
+
+    public static final class Builder {
+        private final ProcessAnnotatedType<?> processAnnotatedType;
+        private Class<?>[] types;
+
+        private Builder(final ProcessAnnotatedType<?> processAnnotatedType) {
+            if (processAnnotatedType == null) {
+                throw new IllegalArgumentException("processAnnotatedType can't be null");
+            }
+            this.processAnnotatedType = processAnnotatedType;
+        }
+
+        public Builder withTypes(final Class<?>... types) {
+            this.types = types;
+            return this;
+        }
+
+        public MergeServiceTypes build() {
+            if (types == null) {
+                throw new IllegalArgumentException("No types set");
+            }
+            return new MergeServiceTypes(processAnnotatedType, types);
+        }
     }
 }

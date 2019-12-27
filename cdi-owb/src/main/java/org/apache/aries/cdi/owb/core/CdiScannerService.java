@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.owb;
+package org.apache.aries.cdi.owb.core;
 
 import static java.util.Collections.emptySet;
 

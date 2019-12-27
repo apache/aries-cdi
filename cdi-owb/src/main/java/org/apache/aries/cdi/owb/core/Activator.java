@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.owb;
+package org.apache.aries.cdi.owb.core;
 
 import static org.osgi.framework.Constants.BUNDLE_ACTIVATOR;
 import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;

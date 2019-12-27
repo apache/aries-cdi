@@ -37,16 +37,16 @@ public @interface AdaptedService {
 	/**
 	 * Support inline instantiation of the {@link AdaptedService} annotation.
 	 */
-	public static final class Literal extends AnnotationLiteral<AdaptedService>
+	final class Literal extends AnnotationLiteral<AdaptedService>
 			implements AdaptedService {
 
 		private static final long serialVersionUID = 1L;
 
 		/**
-		 * @param interfaces
+		 * @param interfaces value.
 		 * @return instance of {@link AdaptedService}
 		 */
-		public static final Literal of(Class<?>[] interfaces) {
+		public static Literal of(Class<?>[] interfaces) {
 			return new Literal(interfaces);
 		}
 

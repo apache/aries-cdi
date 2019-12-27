@@ -26,6 +26,10 @@ import org.osgi.service.log.LoggerFactory;
 
 public class LoggerExtension implements Extension {
 
+	protected LoggerExtension() { // for proxy
+		this(null);
+	}
+
 	public LoggerExtension(ContainerState containerState) {
 		_containerState = containerState;
 	}

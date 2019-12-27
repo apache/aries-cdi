@@ -92,6 +92,15 @@ import org.osgi.util.promise.Promise;
 
 public class RuntimeExtension implements Extension {
 
+	protected RuntimeExtension() { // for extension proxy
+		_containerState = null;
+		_log = null;
+		_configurationBuilder = null;
+		_singleBuilder = null;
+		_factoryBuilder = null;
+		_containerTemplate = null;
+	}
+
 	public RuntimeExtension(
 		ContainerState containerState,
 		ConfigurationListener.Builder configurationBuilder,

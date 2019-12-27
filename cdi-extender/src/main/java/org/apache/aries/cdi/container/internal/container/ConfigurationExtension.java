@@ -37,6 +37,11 @@ import org.apache.aries.cdi.spi.configuration.Configuration;
 
 public class ConfigurationExtension  extends AbstractMap<String, Object> implements Configuration, Extension {
 
+	protected ConfigurationExtension() { // proxy
+		_containerState = null;
+		_configuration = null;
+	}
+
 	public ConfigurationExtension(ContainerState containerState) {
 		_containerState = containerState;
 

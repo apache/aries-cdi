@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.owb;
+package org.apache.aries.cdi.owb.core;
 
 import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.osgi.framework.Bundle;
