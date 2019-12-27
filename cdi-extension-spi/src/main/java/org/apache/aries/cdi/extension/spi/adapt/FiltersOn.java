@@ -3,7 +3,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+*     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,30 +28,30 @@ import javax.enterprise.util.AnnotationLiteral;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FiltersOn {
-    /**
-     * @return the annotations the {@link javax.enterprise.inject.spi.ProcessAnnotatedType} should get filtered for.
-     */
-    Class<? extends Annotation>[] annotations() default {FiltersOn.class};
+	/**
+	 * @return the annotations the {@link javax.enterprise.inject.spi.ProcessAnnotatedType} should get filtered for.
+	 */
+	Class<? extends Annotation>[] annotations() default {FiltersOn.class};
 
-    /**
-     * @return the types to filter the event on using {@link Class#isAssignableFrom(Class)}.
-     */
-    Class<?>[] types() default {FiltersOn.class};
+	/**
+	 * @return the types to filter the event on using {@link Class#isAssignableFrom(Class)}.
+	 */
+	Class<?>[] types() default {FiltersOn.class};
 
-    class Literal extends AnnotationLiteral<FiltersOn> implements FiltersOn {
-        public static final Literal INSTANCE = new Literal();
+	class Literal extends AnnotationLiteral<FiltersOn> implements FiltersOn {
+		public static final Literal INSTANCE = new Literal();
 
-        private final Class[] defaultArray = new Class[0];
+		private final Class[] defaultArray = new Class[0];
 
-        @Override
-        public Class<? extends Annotation>[] annotations() {
-            return defaultArray;
-        }
+		@Override
+		public Class<? extends Annotation>[] annotations() {
+			return defaultArray;
+		}
 
-        @Override
-        public Class<?>[] types() {
-            return defaultArray;
-        }
-    }
+		@Override
+		public Class<?>[] types() {
+			return defaultArray;
+		}
+	}
 }
 

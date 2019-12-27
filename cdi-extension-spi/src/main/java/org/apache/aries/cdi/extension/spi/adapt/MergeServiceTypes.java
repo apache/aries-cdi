@@ -3,7 +3,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+*     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,57 +23,57 @@ import javax.enterprise.inject.spi.ProcessAnnotatedType;
  * with the referenced types - potentially merged with already existing ones.
  */
 public class MergeServiceTypes {
-    private final Class<?>[] types;
-    private final ProcessAnnotatedType<?> processAnnotatedType;
+	private final Class<?>[] types;
+	private final ProcessAnnotatedType<?> processAnnotatedType;
 
-    private MergeServiceTypes(final ProcessAnnotatedType<?> processAnnotatedType,
-                             final Class<?>... types) {
-        this.types = types;
-        this.processAnnotatedType = processAnnotatedType;
-    }
+	private MergeServiceTypes(final ProcessAnnotatedType<?> processAnnotatedType,
+							 final Class<?>... types) {
+		this.types = types;
+		this.processAnnotatedType = processAnnotatedType;
+	}
 
-    public Class<?>[] getTypes() {
-        return types;
-    }
+	public Class<?>[] getTypes() {
+		return types;
+	}
 
-    public ProcessAnnotatedType<?> getProcessAnnotatedType() {
-        return processAnnotatedType;
-    }
+	public ProcessAnnotatedType<?> getProcessAnnotatedType() {
+		return processAnnotatedType;
+	}
 
-    @Override
-    public String toString() {
-        return "MergeServiceTypes{types=" + Arrays.toString(types) + '}';
-    }
+	@Override
+	public String toString() {
+		return "MergeServiceTypes{types=" + Arrays.toString(types) + '}';
+	}
 
-    public static Builder forEvent(final ProcessAnnotatedType<?> pat) {
-        return new Builder(pat);
-    }
+	public static Builder forEvent(final ProcessAnnotatedType<?> pat) {
+		return new Builder(pat);
+	}
 
-    public static Builder forEvent(final ProcessPotentialService pat) {
-        return new Builder(pat.getProcessAnnotatedType());
-    }
+	public static Builder forEvent(final ProcessPotentialService pat) {
+		return new Builder(pat.getProcessAnnotatedType());
+	}
 
-    public static final class Builder {
-        private final ProcessAnnotatedType<?> processAnnotatedType;
-        private Class<?>[] types;
+	public static final class Builder {
+		private final ProcessAnnotatedType<?> processAnnotatedType;
+		private Class<?>[] types;
 
-        private Builder(final ProcessAnnotatedType<?> processAnnotatedType) {
-            if (processAnnotatedType == null) {
-                throw new IllegalArgumentException("processAnnotatedType can't be null");
-            }
-            this.processAnnotatedType = processAnnotatedType;
-        }
+		private Builder(final ProcessAnnotatedType<?> processAnnotatedType) {
+			if (processAnnotatedType == null) {
+				throw new IllegalArgumentException("processAnnotatedType can't be null");
+			}
+			this.processAnnotatedType = processAnnotatedType;
+		}
 
-        public Builder withTypes(final Class<?>... types) {
-            this.types = types;
-            return this;
-        }
+		public Builder withTypes(final Class<?>... types) {
+			this.types = types;
+			return this;
+		}
 
-        public MergeServiceTypes build() {
-            if (types == null) {
-                throw new IllegalArgumentException("No types set");
-            }
-            return new MergeServiceTypes(processAnnotatedType, types);
-        }
-    }
+		public MergeServiceTypes build() {
+			if (types == null) {
+				throw new IllegalArgumentException("No types set");
+			}
+			return new MergeServiceTypes(processAnnotatedType, types);
+		}
+	}
 }

@@ -49,63 +49,63 @@ import org.osgi.framework.BundleContext;
 @SuppressWarnings("serial")
 public class OWBServletExtension extends BaseServletExtension implements StartObjectSupplier {
 
-    private final BundleContext bundleContext;
-    private final ServletContext proxyContext;
-    private final ServletContextEvent startEvent;
-    private volatile ServletContext delegateContext;
+	private final BundleContext bundleContext;
+	private final ServletContext proxyContext;
+	private final ServletContextEvent startEvent;
+	private volatile ServletContext delegateContext;
 
-    protected OWBServletExtension() { // proxy
-        bundleContext = null;
-        proxyContext = null;
-        startEvent = null;
-    }
+	protected OWBServletExtension() { // proxy
+		bundleContext = null;
+		proxyContext = null;
+		startEvent = null;
+	}
 
-    public OWBServletExtension(Bundle bundle) {
-        this.startEvent = new ServletContextEvent(new MockServletContext()) {
-            @Override
-            public ServletContext getServletContext() {
-                return proxyContext;
-            }
-        };
+	public OWBServletExtension(Bundle bundle) {
+		this.startEvent = new ServletContextEvent(new MockServletContext()) {
+			@Override
+			public ServletContext getServletContext() {
+				return proxyContext;
+			}
+		};
 
-        this.bundleContext = bundle.getBundleContext();
+		this.bundleContext = bundle.getBundleContext();
 
-        // ensure we can switch the impl and keep ServletContextBean working with an updated context
-        this.proxyContext = ServletContext.class.cast(Proxy.newProxyInstance(ServletContext.class.getClassLoader(),
-                new Class<?>[]{ServletContext.class},
-                (proxy, method, args) -> {
-                    try {
-                        return method.invoke(ofNullable(delegateContext).orElseGet(startEvent::getServletContext), args);
-                    } catch (final InvocationTargetException ite) {
-                        throw ite.getTargetException();
-                    }
-                }));
-    }
+		// ensure we can switch the impl and keep ServletContextBean working with an updated context
+		this.proxyContext = ServletContext.class.cast(Proxy.newProxyInstance(ServletContext.class.getClassLoader(),
+				new Class<?>[]{ServletContext.class},
+				(proxy, method, args) -> {
+					try {
+						return method.invoke(ofNullable(delegateContext).orElseGet(startEvent::getServletContext), args);
+					} catch (final InvocationTargetException ite) {
+						throw ite.getTargetException();
+					}
+				}));
+	}
 
-    public void setDelegate(final ServletContext delegateContext) {
-        this.delegateContext = delegateContext;
-    }
+	public void setDelegate(final ServletContext delegateContext) {
+		this.delegateContext = delegateContext;
+	}
 
-    void afterDeploymentValidation(
-            @Observes @Priority(LIBRARY_AFTER + 800)
-                    AfterDeploymentValidation adv, BeanManager beanManager) {
+	void afterDeploymentValidation(
+			@Observes @Priority(LIBRARY_AFTER + 800)
+					AfterDeploymentValidation adv, BeanManager beanManager) {
 
-        Dictionary<String, Object> properties = new Hashtable<>();
-        properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension for OpenWebBeans");
-        properties.put(SERVICE_VENDOR, "Apache Software Foundation");
-        properties.put(HTTP_WHITEBOARD_CONTEXT_SELECT, configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT));
-        properties.put(HTTP_WHITEBOARD_LISTENER, Boolean.TRUE.toString());
-        properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
+		Dictionary<String, Object> properties = new Hashtable<>();
+		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension for OpenWebBeans");
+		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
+		properties.put(HTTP_WHITEBOARD_CONTEXT_SELECT, configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT));
+		properties.put(HTTP_WHITEBOARD_LISTENER, Boolean.TRUE.toString());
+		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
 
-        _listenerRegistration = bundleContext.registerService(
-                LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
-    }
+		_listenerRegistration = bundleContext.registerService(
+				LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
+	}
 
-    private static final String[] LISTENER_CLASSES = new String[]{
-            ServletContextListener.class.getName(),
-            ServletRequestListener.class.getName(),
-            HttpSessionListener.class.getName()
-    };
+	private static final String[] LISTENER_CLASSES = new String[]{
+			ServletContextListener.class.getName(),
+			ServletRequestListener.class.getName(),
+			HttpSessionListener.class.getName()
+	};
 
 	@Override
 	public Object getStartObject() {
@@ -113,40 +113,40 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 	}
 
 	private class CdiListener extends org.apache.webbeans.servlet.WebBeansConfigurationListener {
-        private final WebBeansContext webBeansContext;
+		private final WebBeansContext webBeansContext;
 
-        private CdiListener(final WebBeansContext webBeansContext) {
-            this.webBeansContext = webBeansContext;
-        }
+		private CdiListener(final WebBeansContext webBeansContext) {
+			this.webBeansContext = webBeansContext;
+		}
 
-        @Override
-        public void contextInitialized(ServletContextEvent event) {
-            ServletContext realSC = event.getServletContext();
+		@Override
+		public void contextInitialized(ServletContextEvent event) {
+			ServletContext realSC = event.getServletContext();
 
-            // update the sce to have the real one in CDI
-            setDelegate(realSC);
+			// update the sce to have the real one in CDI
+			setDelegate(realSC);
 
-            // propagate attributes from the temporary sc
-            list(startEvent.getServletContext().getAttributeNames()).forEach(
-                    attr -> realSC.setAttribute(attr, startEvent.getServletContext().getAttribute(attr)));
+			// propagate attributes from the temporary sc
+			list(startEvent.getServletContext().getAttributeNames()).forEach(
+					attr -> realSC.setAttribute(attr, startEvent.getServletContext().getAttribute(attr)));
 
-            realSC.setAttribute(BundleContext.class.getName(), bundleContext);
-            realSC.setAttribute(WebBeansContext.class.getName(), webBeansContext);
+			realSC.setAttribute(BundleContext.class.getName(), bundleContext);
+			realSC.setAttribute(WebBeansContext.class.getName(), webBeansContext);
 
-            // already started in the activator so let's skip it, just ensure it is skipped if re-called
-            event.getServletContext().setAttribute(getClass().getName(), true);
-            if (lifeCycle == null) {
-                lifeCycle = webBeansContext.getService(ContainerLifecycle.class);
-            }
-        }
+			// already started in the activator so let's skip it, just ensure it is skipped if re-called
+			event.getServletContext().setAttribute(getClass().getName(), true);
+			if (lifeCycle == null) {
+				lifeCycle = webBeansContext.getService(ContainerLifecycle.class);
+			}
+		}
 
-        @Override
-        public void contextDestroyed(ServletContextEvent sce) {
-            try {
-                super.contextDestroyed(sce);
-            } finally {
-                destroyed.set(true);
-            }
-        }
-    }
+		@Override
+		public void contextDestroyed(ServletContextEvent sce) {
+			try {
+				super.contextDestroyed(sce);
+			} finally {
+				destroyed.set(true);
+			}
+		}
+	}
 }

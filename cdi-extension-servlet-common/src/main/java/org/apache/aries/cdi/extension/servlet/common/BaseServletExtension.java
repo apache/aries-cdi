@@ -61,155 +61,155 @@ import org.apache.aries.cdi.spi.configuration.Configuration;
 import org.osgi.framework.ServiceRegistration;
 
 public class BaseServletExtension implements Extension {
-    protected Configuration configuration;
-    protected volatile ServiceRegistration<?> _listenerRegistration;
-    protected final AtomicBoolean destroyed = new AtomicBoolean(false);
+	protected Configuration configuration;
+	protected volatile ServiceRegistration<?> _listenerRegistration;
+	protected final AtomicBoolean destroyed = new AtomicBoolean(false);
 
-    void register(@Observes final BeforeBeanDiscovery beforeBeanDiscovery, final BeanManager manager) {
-        manager.fireEvent(new RegisterExtension(this));
-    }
+	void register(@Observes final BeforeBeanDiscovery beforeBeanDiscovery, final BeanManager manager) {
+		manager.fireEvent(new RegisterExtension(this));
+	}
 
-    void setConfiguration(@Observes Configuration configuration) {
-        this.configuration = configuration;
-    }
+	void setConfiguration(@Observes Configuration configuration) {
+		this.configuration = configuration;
+	}
 
-    void webFilter(@Observes @FiltersOn(annotations = WebFilter.class) ProcessPotentialService pat,
-                   BeanManager beanManager) {
-        beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(Filter.class).build());
-        final AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
-        final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
+	void webFilter(@Observes @FiltersOn(annotations = WebFilter.class) ProcessPotentialService pat,
+				   BeanManager beanManager) {
+		beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(Filter.class).build());
+		final AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
+		final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
 
-        WebFilter webFilter = annotatedType.getAnnotation(WebFilter.class);
+		WebFilter webFilter = annotatedType.getAnnotation(WebFilter.class);
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-            ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-                    select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
-            );
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
+			ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+					select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+			);
+		}
 
-        if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webFilter.description().isEmpty()) {
-            configurator.add(ServiceDescription.Literal.of(webFilter.description()));
-        }
+		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webFilter.description().isEmpty()) {
+			configurator.add(ServiceDescription.Literal.of(webFilter.description()));
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterName.class) && !webFilter.filterName().isEmpty()) {
-            configurator.add(HttpWhiteboardFilterName.Literal.of(webFilter.filterName()));
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterName.class) && !webFilter.filterName().isEmpty()) {
+			configurator.add(HttpWhiteboardFilterName.Literal.of(webFilter.filterName()));
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterServlet.class) && webFilter.servletNames().length > 0) {
-            configurator.add(HttpWhiteboardFilterServlet.Literal.of(webFilter.servletNames()));
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterServlet.class) && webFilter.servletNames().length > 0) {
+			configurator.add(HttpWhiteboardFilterServlet.Literal.of(webFilter.servletNames()));
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterPattern.class)) {
-            if (webFilter.value().length > 0) {
-                configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.value()));
-            } else if (webFilter.urlPatterns().length > 0) {
-                configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.urlPatterns()));
-            }
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterPattern.class)) {
+			if (webFilter.value().length > 0) {
+				configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.value()));
+			} else if (webFilter.urlPatterns().length > 0) {
+				configurator.add(HttpWhiteboardFilterPattern.Literal.of(webFilter.urlPatterns()));
+			}
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterDispatcher.class) && webFilter.dispatcherTypes().length > 0) {
-            configurator.add(HttpWhiteboardFilterDispatcher.Literal.of(webFilter.dispatcherTypes()));
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterDispatcher.class) && webFilter.dispatcherTypes().length > 0) {
+			configurator.add(HttpWhiteboardFilterDispatcher.Literal.of(webFilter.dispatcherTypes()));
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterAsyncSupported.class)) {
-            configurator.add(HttpWhiteboardFilterAsyncSupported.Literal.of(webFilter.asyncSupported()));
-        }
-    }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardFilterAsyncSupported.class)) {
+			configurator.add(HttpWhiteboardFilterAsyncSupported.Literal.of(webFilter.asyncSupported()));
+		}
+	}
 
-    void webListener(@Observes @FiltersOn(annotations = WebListener.class) ProcessPotentialService pat,
-                         BeanManager beanManager) {
-        final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
-        final Class<?> javaClass = annotatedType.getJavaClass();
-        final Class<?>[] serviceTypes = Stream.of(
-                ServletContextListener.class,
-                ServletContextAttributeListener.class,
-                ServletRequestListener.class,
-                ServletRequestAttributeListener.class,
-                HttpSessionListener.class,
-                HttpSessionAttributeListener.class,
-                HttpSessionIdListener.class)
-                .filter(c -> c.isAssignableFrom(javaClass))
-                .toArray(Class[]::new);
+	void webListener(@Observes @FiltersOn(annotations = WebListener.class) ProcessPotentialService pat,
+						 BeanManager beanManager) {
+		final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
+		final Class<?> javaClass = annotatedType.getJavaClass();
+		final Class<?>[] serviceTypes = Stream.of(
+				ServletContextListener.class,
+				ServletContextAttributeListener.class,
+				ServletRequestListener.class,
+				ServletRequestAttributeListener.class,
+				HttpSessionListener.class,
+				HttpSessionAttributeListener.class,
+				HttpSessionIdListener.class)
+				.filter(c -> c.isAssignableFrom(javaClass))
+				.toArray(Class[]::new);
 
-        beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(serviceTypes).build());
+		beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(serviceTypes).build());
 
-        AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
+		AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
 
-        WebListener webListener = annotatedType.getAnnotation(WebListener.class);
+		WebListener webListener = annotatedType.getAnnotation(WebListener.class);
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-            ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-                    select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
-            );
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
+			ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+					select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+			);
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardListener.class)) {
-            configurator.add(HttpWhiteboardListener.Literal.INSTANCE);
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardListener.class)) {
+			configurator.add(HttpWhiteboardListener.Literal.INSTANCE);
+		}
 
-        if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webListener.value().isEmpty()) {
-            configurator.add(ServiceDescription.Literal.of(webListener.value()));
-        }
-    }
+		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webListener.value().isEmpty()) {
+			configurator.add(ServiceDescription.Literal.of(webListener.value()));
+		}
+	}
 
-    void webServlet(@Observes @FiltersOn(annotations = WebServlet.class) ProcessPotentialService pat,
-                        BeanManager beanManager) {
-        beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(Servlet.class).build());
+	void webServlet(@Observes @FiltersOn(annotations = WebServlet.class) ProcessPotentialService pat,
+						BeanManager beanManager) {
+		beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(Servlet.class).build());
 
-        final AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
-        final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
-        WebServlet webServlet = annotatedType.getAnnotation(WebServlet.class);
+		final AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
+		final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
+		WebServlet webServlet = annotatedType.getAnnotation(WebServlet.class);
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
-            ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-                    select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
-            );
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
+			ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
+					select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+			);
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletName.class) && !webServlet.name().isEmpty()) {
-            configurator.add(HttpWhiteboardServletName.Literal.of(webServlet.name()));
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletName.class) && !webServlet.name().isEmpty()) {
+			configurator.add(HttpWhiteboardServletName.Literal.of(webServlet.name()));
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletPattern.class)) {
-            if (webServlet.value().length > 0) {
-                configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.value()));
-            } else if (webServlet.urlPatterns().length > 0) {
-                configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.urlPatterns()));
-            }
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletPattern.class)) {
+			if (webServlet.value().length > 0) {
+				configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.value()));
+			} else if (webServlet.urlPatterns().length > 0) {
+				configurator.add(HttpWhiteboardServletPattern.Literal.of(webServlet.urlPatterns()));
+			}
+		}
 
-        if (!annotatedType.isAnnotationPresent(ServiceRanking.class)) {
-            configurator.add(ServiceRanking.Literal.of(webServlet.loadOnStartup()));
-        }
+		if (!annotatedType.isAnnotationPresent(ServiceRanking.class)) {
+			configurator.add(ServiceRanking.Literal.of(webServlet.loadOnStartup()));
+		}
 
-        // TODO Howto: INIT PARAMS ???
+		// TODO Howto: INIT PARAMS ???
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletAsyncSupported.class)) {
-            configurator.add(HttpWhiteboardServletAsyncSupported.Literal.of(webServlet.asyncSupported()));
-        }
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletAsyncSupported.class)) {
+			configurator.add(HttpWhiteboardServletAsyncSupported.Literal.of(webServlet.asyncSupported()));
+		}
 
-        if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webServlet.description().isEmpty()) {
-            configurator.add(ServiceDescription.Literal.of(webServlet.description()));
-        }
+		if (!annotatedType.isAnnotationPresent(ServiceDescription.class) && !webServlet.description().isEmpty()) {
+			configurator.add(ServiceDescription.Literal.of(webServlet.description()));
+		}
 
-        if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletMultipart.class)) {
-            MultipartConfig multipartConfig = annotatedType.getAnnotation(MultipartConfig.class);
+		if (!annotatedType.isAnnotationPresent(HttpWhiteboardServletMultipart.class)) {
+			MultipartConfig multipartConfig = annotatedType.getAnnotation(MultipartConfig.class);
 
-            if (multipartConfig != null) {
-                configurator.add(HttpWhiteboardServletMultipart.Literal.of(true, multipartConfig.fileSizeThreshold(), multipartConfig.location(), multipartConfig.maxFileSize(), multipartConfig.maxRequestSize()));
-            }
-        }
+			if (multipartConfig != null) {
+				configurator.add(HttpWhiteboardServletMultipart.Literal.of(true, multipartConfig.fileSizeThreshold(), multipartConfig.location(), multipartConfig.maxFileSize(), multipartConfig.maxRequestSize()));
+			}
+		}
 
-        // TODO HowTo: ServletSecurity ???
-    }
+		// TODO HowTo: ServletSecurity ???
+	}
 
-    void beforeShutdown(@Observes BeforeShutdown bs) {
-        if (_listenerRegistration != null && !destroyed.get()) {
-            try {
-                _listenerRegistration.unregister();
-            } catch (IllegalStateException ise) {
-                // the service was already unregistered.
-            }
-        }
-    }
+	void beforeShutdown(@Observes BeforeShutdown bs) {
+		if (_listenerRegistration != null && !destroyed.get()) {
+			try {
+				_listenerRegistration.unregister();
+			} catch (IllegalStateException ise) {
+				// the service was already unregistered.
+			}
+		}
+	}
 }

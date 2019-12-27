@@ -34,76 +34,76 @@ import javax.enterprise.inject.spi.ProcessAnnotatedType;
  * event with {@link FiltersOn} support.
  */
 public class RegisterExtension {
-    private final Extension extension;
-    private final Collection<ObserverBuilder> builders = new ArrayList<>();
+	private final Extension extension;
+	private final Collection<ObserverBuilder> builders = new ArrayList<>();
 
-    public RegisterExtension(final Extension extension) {
-        this.extension = extension;
-    }
+	public RegisterExtension(final Extension extension) {
+		this.extension = extension;
+	}
 
-    public Extension getExtension() {
-        return extension;
-    }
+	public Extension getExtension() {
+		return extension;
+	}
 
-    public Collection<ObserverBuilder> getBuilders() {
-        return builders;
-    }
+	public Collection<ObserverBuilder> getBuilders() {
+		return builders;
+	}
 
-    public ObserverBuilder registerObserver() {
-        return new ObserverBuilder(this);
-    }
+	public ObserverBuilder registerObserver() {
+		return new ObserverBuilder(this);
+	}
 
-    public static class ObserverBuilder {
-        private final RegisterExtension parent;
+	public static class ObserverBuilder {
+		private final RegisterExtension parent;
 
-        // defaults aligned on the annotation to have a single impl
-        private List<Class<?>> types = new ArrayList<>(singletonList(FiltersOn.class));
-        private List<Class<? extends Annotation>> annotations = new ArrayList<>(singletonList(FiltersOn.class));
-        private BiConsumer<BeanManager, ProcessPotentialService> consumer;
+		// defaults aligned on the annotation to have a single impl
+		private List<Class<?>> types = new ArrayList<>(singletonList(FiltersOn.class));
+		private List<Class<? extends Annotation>> annotations = new ArrayList<>(singletonList(FiltersOn.class));
+		private BiConsumer<BeanManager, ProcessPotentialService> consumer;
 
-        private ObserverBuilder(final RegisterExtension parent) {
-            this.parent = parent;
-        }
+		private ObserverBuilder(final RegisterExtension parent) {
+			this.parent = parent;
+		}
 
-        public ObserverBuilder forTypes(final Class<?>... types) {
-            if (types.length > 0) {
-                this.types.remove(FiltersOn.class);
-            }
-            this.types.addAll(asList(types));
-            return this;
-        }
+		public ObserverBuilder forTypes(final Class<?>... types) {
+			if (types.length > 0) {
+				this.types.remove(FiltersOn.class);
+			}
+			this.types.addAll(asList(types));
+			return this;
+		}
 
-        public ObserverBuilder forAnnotations(final Class<? extends Annotation>... annotations) {
-            if (annotations.length > 0) {
-                this.annotations.remove(FiltersOn.class);
-            }
-            this.annotations.addAll(asList(annotations));
-            return this;
-        }
+		public ObserverBuilder forAnnotations(final Class<? extends Annotation>... annotations) {
+			if (annotations.length > 0) {
+				this.annotations.remove(FiltersOn.class);
+			}
+			this.annotations.addAll(asList(annotations));
+			return this;
+		}
 
-        public ObserverBuilder execute(final BiConsumer<BeanManager, ProcessPotentialService> consumer) {
-            this.consumer = consumer;
-            return this;
-        }
+		public ObserverBuilder execute(final BiConsumer<BeanManager, ProcessPotentialService> consumer) {
+			this.consumer = consumer;
+			return this;
+		}
 
-        public Collection<Class<?>> getTypes() {
-            return unmodifiableList(types);
-        }
+		public Collection<Class<?>> getTypes() {
+			return unmodifiableList(types);
+		}
 
-        public Collection<Class<?>> getAnnotations() {
-            return unmodifiableList(annotations);
-        }
+		public Collection<Class<?>> getAnnotations() {
+			return unmodifiableList(annotations);
+		}
 
-        public BiConsumer<BeanManager, ProcessPotentialService> getConsumer() {
-            return consumer;
-        }
+		public BiConsumer<BeanManager, ProcessPotentialService> getConsumer() {
+			return consumer;
+		}
 
-        public RegisterExtension done() {
-            if (consumer == null) {
-                throw new IllegalArgumentException("No consumer registered on observer builder");
-            }
-            parent.builders.add(this);
-            return parent;
-        }
-    }
+		public RegisterExtension done() {
+			if (consumer == null) {
+				throw new IllegalArgumentException("No consumer registered on observer builder");
+			}
+			parent.builders.add(this);
+			return parent;
+		}
+	}
 }
