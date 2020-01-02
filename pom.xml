@@ -481,6 +481,10 @@
 					</configuration>
 				</plugin>
 				<plugin>
+					<artifactId>maven-scm-plugin</artifactId>
+					<version>1.11.2</version>
+				</plugin>
+				<plugin>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<configuration>
 						<failIfNoTests>false</failIfNoTests>
