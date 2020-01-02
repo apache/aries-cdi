@@ -56,11 +56,7 @@ import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
 import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.DynamicFeature;
@@ -103,6 +99,7 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 
 	@SuppressWarnings("serial")
 	private final static Set<String> defaultSelects = new HashSet<String>() {{
+		add(format("(%s=%s)", JAX_RS_NAME, "jwt.auth.filter"));
 		add(format("(%s=%s)", JAX_RS_NAME, "jwt.roles.allowed"));
 		add(format("(%s=%s)", JAX_RS_NAME, "jwt.request.forwarder"));
 		add(format("(%s=%s)", JAX_RS_NAME, "jwt.exception.mapper"));
@@ -201,60 +198,16 @@ public class MPJwtAuthExtension extends GeronimoJwtAuthExtension implements BiCo
 		properties.put(HTTP_WHITEBOARD_FILTER_PATTERN, config.read("filter.mapping.default", "/*"));
 		properties.put(HTTP_WHITEBOARD_FILTER_ASYNC_SUPPORTED, true);
 		properties.put(Constants.SERVICE_RANKING, Integer.MAX_VALUE - 1000);
+		properties.put(JAX_RS_APPLICATION_SELECT, applicationSelectFilter("(!(jwt.auth.filter=false))"));
+		properties.put(JAX_RS_EXTENSION, Boolean.TRUE);
+		properties.put(JAX_RS_NAME, "jwt.auth.filter");
 
 		final GeronimoJwtAuthFilter jwtAuthFilter = get(GeronimoJwtAuthFilter.class, beanManager);
 
 		_jwtAuthFilterRegistration = bundleContext.registerService(
-			Filter.class,
-			new Filter() {
-				final Filter delegate = jwtAuthFilter;
-				final ClassLoader loader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
-
-				@Override
-				public void init(FilterConfig arg0) throws ServletException {
-					Thread currentThread = Thread.currentThread();
-					ClassLoader current = currentThread.getContextClassLoader();
-
-					try {
-						currentThread.setContextClassLoader(loader);
-						delegate.init(arg0);
-					}
-					finally {
-						currentThread.setContextClassLoader(current);
-					}
-				}
-
-				@Override
-				public void doFilter(ServletRequest arg0, ServletResponse arg1, FilterChain arg2)
-						throws IOException, ServletException {
-
-					Thread currentThread = Thread.currentThread();
-					ClassLoader current = currentThread.getContextClassLoader();
-
-					try {
-						currentThread.setContextClassLoader(loader);
-						delegate.doFilter(arg0, arg1, arg2);
-					}
-					finally {
-						currentThread.setContextClassLoader(current);
-					}
-				}
-
-				@Override
-				public void destroy() {
-					Thread currentThread = Thread.currentThread();
-					ClassLoader current = currentThread.getContextClassLoader();
-
-					try {
-						currentThread.setContextClassLoader(loader);
-						delegate.destroy();
-					}
-					finally {
-						currentThread.setContextClassLoader(current);
-					}
-				}
-
-			}, properties);
+			new String[] {ContainerRequestFilter.class.getName(), Filter.class.getName()},
+			new JwtAuthFilter(jwtAuthFilter, bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader()),
+			properties);
 	}
 
 	void registerJaxrsRolesAllowed(BeanManager beanManager) {
