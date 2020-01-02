@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -76,7 +76,8 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 				(proxy, method, args) -> {
 					try {
 						return method.invoke(ofNullable(delegateContext).orElseGet(startEvent::getServletContext), args);
-					} catch (final InvocationTargetException ite) {
+					}
+					catch (final InvocationTargetException ite) {
 						throw ite.getTargetException();
 					}
 				}));
@@ -87,8 +88,8 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 	}
 
 	void afterDeploymentValidation(
-			@Observes @Priority(LIBRARY_AFTER + 800)
-					AfterDeploymentValidation adv, BeanManager beanManager) {
+		@Observes @Priority(LIBRARY_AFTER + 800)
+		AfterDeploymentValidation adv, BeanManager beanManager) {
 
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension for OpenWebBeans");
@@ -98,13 +99,13 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
 
 		_listenerRegistration = bundleContext.registerService(
-				LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
+			LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
 	}
 
 	private static final String[] LISTENER_CLASSES = new String[]{
-			ServletContextListener.class.getName(),
-			ServletRequestListener.class.getName(),
-			HttpSessionListener.class.getName()
+		ServletContextListener.class.getName(),
+		ServletRequestListener.class.getName(),
+		HttpSessionListener.class.getName()
 	};
 
 	@Override
@@ -128,7 +129,7 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 
 			// propagate attributes from the temporary sc
 			list(startEvent.getServletContext().getAttributeNames()).forEach(
-					attr -> realSC.setAttribute(attr, startEvent.getServletContext().getAttribute(attr)));
+				attr -> realSC.setAttribute(attr, startEvent.getServletContext().getAttribute(attr)));
 
 			realSC.setAttribute(BundleContext.class.getName(), bundleContext);
 			realSC.setAttribute(WebBeansContext.class.getName(), webBeansContext);
@@ -144,9 +145,11 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 		public void contextDestroyed(ServletContextEvent sce) {
 			try {
 				super.contextDestroyed(sce);
-			} finally {
+			}
+			finally {
 				destroyed.set(true);
 			}
 		}
 	}
 }
+

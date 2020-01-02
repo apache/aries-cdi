@@ -91,6 +91,11 @@
 			<version>${owb.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-spi</artifactId>
+			<version>${owb.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.xbean</groupId>
 			<artifactId>xbean-bundleutils</artifactId>
 			<version>4.15</version>

@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
-import javax.enterprise.event.ObservesAsync;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
@@ -62,12 +61,6 @@ public class WeldServletExtension extends BaseServletExtension {
 		@Observes @Priority(LIBRARY_AFTER + 800)
 		AfterDeploymentValidation adv, BeanManager beanManager) {
 
-		beanManager.getEvent().fireAsync(new Ready());
-	}
-
-	void ready(
-		@ObservesAsync Ready ready, BeanManager beanManager) {
-
 		Dictionary<String, Object> properties = new Hashtable<>();
 
 		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension for Weld");
@@ -91,8 +84,6 @@ public class WeldServletExtension extends BaseServletExtension {
 		ServletRequestListener.class.getName(),
 		HttpSessionListener.class.getName()
 	};
-
-	public static class Ready {}
 
 	private class ListenerWrapper<T extends HttpSessionListener & ServletContextListener & ServletRequestListener>
 		implements HttpSessionListener, ServletContextListener, ServletRequestListener {

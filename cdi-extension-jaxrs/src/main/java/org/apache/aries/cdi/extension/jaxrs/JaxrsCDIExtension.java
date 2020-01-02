@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -81,8 +81,8 @@ public class JaxrsCDIExtension implements Extension {
 	}
 
 	void application(
-			@Observes @FiltersOn(annotations = ApplicationPath.class)
-			ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(annotations = ApplicationPath.class)
+		ProcessPotentialService pat, BeanManager beanManager) {
 
 		AnnotatedType<?> annotatedType = pat.getAnnotatedType();
 
@@ -91,15 +91,15 @@ public class JaxrsCDIExtension implements Extension {
 		commonProperties(pat, Application.class, true, beanManager);
 		if (!annotatedType.isAnnotationPresent(JaxrsApplicationBase.class)) {
 			pat.configureAnnotatedType().add(
-					JaxrsApplicationBase.Literal.of(
-							annotatedType.getAnnotation(ApplicationPath.class).value()));
+				JaxrsApplicationBase.Literal.of(
+					annotatedType.getAnnotation(ApplicationPath.class).value()));
 		}
 	}
 
 	void resource(
-			@Observes
-			@FiltersOn(annotations = {Path.class, DELETE.class, GET.class, HEAD.class, OPTIONS.class, PATCH.class, POST.class, PUT.class})
-			ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes
+		@FiltersOn(annotations = {Path.class, DELETE.class, GET.class, HEAD.class, OPTIONS.class, PATCH.class, POST.class, PUT.class})
+		ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, Object.class, false, beanManager);
 		if (!pat.getAnnotatedType().isAnnotationPresent(JaxrsResource.class)) {
@@ -108,27 +108,28 @@ public class JaxrsCDIExtension implements Extension {
 	}
 
 	void containerRequestFilter(
-			@Observes @FiltersOn(types = ContainerRequestFilter.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = ContainerRequestFilter.class) ProcessPotentialService pat, BeanManager beanManager) {
+
 		commonProperties(pat, ContainerRequestFilter.class, false, beanManager);
 		addJaxRsExtension(pat);
 	}
 
 	void containerResponseFilter(
-			@Observes @FiltersOn(types = ContainerResponseFilter.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = ContainerResponseFilter.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, ContainerResponseFilter.class, false, beanManager);
 		addJaxRsExtension(pat);
 	}
 
 	void readerInterceptor(
-			@Observes @FiltersOn(types = ReaderInterceptor.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = ReaderInterceptor.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, ReaderInterceptor.class, false, beanManager);
 		addJaxRsExtension(pat);
 	}
 
 	void writerInterceptor(
-			@Observes @FiltersOn(types = WriterInterceptor.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = WriterInterceptor.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, WriterInterceptor.class, false, beanManager);
 		addJaxRsExtension(pat);
@@ -136,7 +137,7 @@ public class JaxrsCDIExtension implements Extension {
 
 	@SuppressWarnings("rawtypes")
 	void messageBodyReader(
-			@Observes @FiltersOn(types = MessageBodyReader.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = MessageBodyReader.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, MessageBodyReader.class, false, beanManager);
 		addJaxRsExtension(pat);
@@ -144,7 +145,7 @@ public class JaxrsCDIExtension implements Extension {
 
 	@SuppressWarnings("rawtypes")
 	void messageBodyWriter(
-			@Observes @FiltersOn(types = MessageBodyWriter.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = MessageBodyWriter.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, MessageBodyWriter.class, false, beanManager);
 		addJaxRsExtension(pat);
@@ -152,7 +153,7 @@ public class JaxrsCDIExtension implements Extension {
 
 	@SuppressWarnings("rawtypes")
 	void contextResolver(
-			@Observes @FiltersOn(types = ContextResolver.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = ContextResolver.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, ContextResolver.class, false, beanManager);
 		addJaxRsExtension(pat);
@@ -160,28 +161,28 @@ public class JaxrsCDIExtension implements Extension {
 
 	@SuppressWarnings("rawtypes")
 	void exceptionMapper(
-			@Observes @FiltersOn(types = ExceptionMapper.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = ExceptionMapper.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, ExceptionMapper.class, false, beanManager);
 		addJaxRsExtension(pat);
 	}
 
 	void paramConverterProvider(
-			@Observes @FiltersOn(types = ParamConverterProvider.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = ParamConverterProvider.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, ParamConverterProvider.class, false, beanManager);
 		addJaxRsExtension(pat);
 	}
 
 	void feature(
-			@Observes @FiltersOn(types = Feature.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = Feature.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, Feature.class, false, beanManager);
 		addJaxRsExtension(pat);
 	}
 
 	void dynamicFeature(
-			@Observes @FiltersOn(types = DynamicFeature.class) ProcessPotentialService pat, BeanManager beanManager) {
+		@Observes @FiltersOn(types = DynamicFeature.class) ProcessPotentialService pat, BeanManager beanManager) {
 
 		commonProperties(pat, DynamicFeature.class, false, beanManager);
 		addJaxRsExtension(pat);
@@ -197,32 +198,36 @@ public class JaxrsCDIExtension implements Extension {
 	 * @return true if common properties were added (i.e. if no @Service was found)
 	 */
 	private void commonProperties(
-			ProcessPotentialService pat, Class<?> serviceType, boolean application, BeanManager beanManager) {
+		ProcessPotentialService pat, Class<?> serviceType, boolean application, BeanManager beanManager) {
+
 		beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(serviceType).build());
+
 		final AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
 		final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
+
 		if (!annotatedType.isAnnotationPresent(JaxrsName.class)) {
 			if (application) {
 				configurator.add(
-						JaxrsName.Literal.of(
-								ofNullable((String) configuration.get(JaxrsWhiteboardConstants.JAX_RS_NAME)).orElse(
-										JaxrsWhiteboardConstants.JAX_RS_DEFAULT_APPLICATION
-								)
+					JaxrsName.Literal.of(
+						ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_NAME)).orElse(
+							JaxrsWhiteboardConstants.JAX_RS_DEFAULT_APPLICATION
 						)
+					)
 				);
-			} else {
+			}
+			else {
 				configurator.add(JaxrsName.Literal.of(annotatedType.getJavaClass().getSimpleName()));
 			}
 		}
 
 		if (!application && !annotatedType.isAnnotationPresent(JaxrsApplicationSelect.class)) {
-			ofNullable((String) configuration.get(JaxrsWhiteboardConstants.JAX_RS_APPLICATION_SELECT)).ifPresent(
-					select -> configurator.add(JaxrsApplicationSelect.Literal.of(select))
+			ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_APPLICATION_SELECT)).ifPresent(
+				select -> configurator.add(JaxrsApplicationSelect.Literal.of(select))
 			);
 		}
 
 		if (!annotatedType.isAnnotationPresent(JaxrsExtensionSelect.class)) {
-			ofNullable((String[]) configuration.get(JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT)).ifPresent(selects -> {
+			ofNullable((String[])configuration.get(JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT)).ifPresent(selects -> {
 				if (selects.length > 0) {
 					configurator.add(JaxrsExtensionSelect.Literal.of(selects));
 				}
@@ -230,8 +235,8 @@ public class JaxrsCDIExtension implements Extension {
 		}
 
 		if (!annotatedType.isAnnotationPresent(JaxrsWhiteboardTarget.class)) {
-			ofNullable((String) configuration.get(JaxrsWhiteboardConstants.JAX_RS_WHITEBOARD_TARGET)).ifPresent(
-					target -> configurator.add(JaxrsWhiteboardTarget.Literal.of(target))
+			ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_WHITEBOARD_TARGET)).ifPresent(
+				target -> configurator.add(JaxrsWhiteboardTarget.Literal.of(target))
 			);
 		}
 
@@ -245,10 +250,10 @@ public class JaxrsCDIExtension implements Extension {
 	}
 
 	void afterDeploymentValidation(@Observes AfterDeploymentValidation adv) {
-		if (applications.size() > 1) { // todo: revise that, it is not illegal and supported by cxf-cdi-extension
-			adv.addDeploymentProblem(
-					new DeploymentException(
-							"More than one javax.ws.rs.core.Application annotated types were found in the CDI bundle."));
+		if (applications.size() > 1) {
+			// adv.addDeploymentProblem(
+			//	new DeploymentException(
+			//		"More than one javax.ws.rs.core.Application annotated types were found in the CDI bundle."));
 		}
 	}
 
