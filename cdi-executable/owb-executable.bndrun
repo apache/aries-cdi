@@ -23,10 +23,10 @@
 -runbundles: \
 	openwebbeans-impl;version='[2.0.13,2.0.14)',\
 	openwebbeans-spi;version='[2.0.13,2.0.14)',\
-	org.apache.aries.cdi.extender;version='[1.1.0,1.1.1)',\
-	org.apache.aries.cdi.extension.spi;version='[1.1.0,1.1.1)',\
-	org.apache.aries.cdi.owb;version='[1.1.0,1.1.1)',\
-	org.apache.aries.cdi.spi;version='[1.1.0,1.1.1)',\
+	org.apache.aries.cdi.extender;version='[1.1.1,1.1.2)',\
+	org.apache.aries.cdi.extension.spi;version='[1.1.1,1.1.2)',\
+	org.apache.aries.cdi.owb;version='[1.1.1,1.1.2)',\
+	org.apache.aries.cdi.spi;version='[1.1.1,1.1.2)',\
 	org.apache.aries.spifly.dynamic.framework.extension;version='[1.2.3,1.2.4)',\
 	org.apache.felix.configadmin;version='[1.9.10,1.9.11)',\
 	org.apache.felix.converter;version='[1.0.12,1.0.13)',\
