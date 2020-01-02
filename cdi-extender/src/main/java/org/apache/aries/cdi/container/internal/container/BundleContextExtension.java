@@ -26,6 +26,10 @@ import org.osgi.framework.BundleContext;
 
 public class BundleContextExtension implements Extension {
 
+	protected BundleContextExtension() { // for proxy
+		this(null);
+	}
+
 	public BundleContextExtension(BundleContext bundleContext) {
 		_bundleContext = bundleContext;
 	}

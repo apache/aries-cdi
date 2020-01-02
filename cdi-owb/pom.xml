@@ -52,7 +52,6 @@
 				<configuration>
 					<bnd><![CDATA[
 						-cdiannotations:
-						-noclassforname: true
 					]]></bnd>
 				</configuration>
 			</plugin>

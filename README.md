@@ -233,19 +233,68 @@ For example:
 #### Adapting Annotated Types as Services
 
 A common scenario with OSGi CDI Portable Extensions is for extensions to adapt annotated types originating in the CDI Bundle as OSGi services (or with more service types).
+Common examples are the use cases relying on a whiteboard patterns. In such a case, services are deployed in the whiteboard at registration time.
+Using OSGi-CDI, you can fully use another programming model and hide OSGi service in a lot of cases.
+For instance, Aries-CDI uses that for servlet components where `@WebServlet` - and other servlet annotations - are translated to an OSGi service registration with the HTTP whiteboard properties on the fly through a CDI extension.
 
-Aries CDI's Extension SPI provides a convenience mechanism in the form of a carrier annotation `@AdaptedService` and a helper utility `Adapted.withServiceTypes(AnnotatedTypeConfigurator<X>, Class<?>...)`.
+Aries CDI's Extension SPI provides a convenience mechanism in the form of a carrier annotation `@AdaptedService` and a helper extensions utilities.
+It is composed of mainly two points:
 
-The following will make the annotated type produce a service of type `javax.servlet.Servlet`:
+1. `ProcessPotentialService` which is equivalent to `ProcessAnnotatedType` but it guarantees the underlying annotated type does not have `@Service` so that you can process the bean. If you do yourself the `@Service` presence check, you can ignore that event type. Note that you can use `org.apache.aries.cdi.extension.spi.adapt.FiltersOn` as the CDI `@WithAnnotations` to filter this event by annotations or type.
+2. `MergeServiceTypes` event which can be sent from the `BeanManager` to add service types to a bean.
+
+For `ProcessPotentialService` to be enabled, you must register the extension firing `RegisterExtension` event in `BeforeBeanDiscovery` event:
 
 ```java
-if (!Adapted.withServiceTypes(configurator, javax.servlet.Servlet.class)) {
-   // was not adapted because it was already marked with @Service
-   return;
+void register(@Observes final BeforeBeanDiscovery beforeBeanDiscovery, final BeanManager manager) {
+    manager.fireEvent(new RegisterExtension(this));
 }
 ```
 
+Assuming you have the following bean:
 
+```java
+@MyAutoRegistration
+public class MyService implements MyApi {
+    // ... MyApi impl
+}
+```
+
+You can write an extension grabbing all `@MyAutoRegistration` types to add them as services and register it in OSGi registry:
+
+```java
+public class MyComponentTypeExtension implements Extension {
+    void register(@Observes final BeforeBeanDiscovery beforeBeanDiscovery, final BeanManager manager) {
+        manager.fireEvent(new RegisterExtension(this));
+    }
+
+    void forceMyComponentTypeToBeAService(
+            @Observes @FilterOn(annotations = MyAutoRegistration.class, types = MyApi.class) ProcessPotentialService pps,
+            BeanManager beanManager) {
+        beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(MyApi.class).build());
+    }
+}
+```
+
+Alternatively you can use the funcitonal style for that extension:
+
+```java
+public class MyComponentTypeExtension implements Extension {
+    void register(@Observes final BeforeBeanDiscovery beforeBeanDiscovery, final BeanManager manager) {
+        manager.fireEvent(new RegisterExtension(this)
+            .registerObserver()
+                .forTypes(MyApi.class)
+                .forAnnotations(MyAutoRegistration.class)
+                .execute((beanManager, processPotentialService) ->
+                    beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(MyApi.class).build()))
+            .done());
+    }
+}
+```
+
+This is enough to let Aries-CDI registers the annotated type as a service (as if you would have `@Service(MyApi.class)`).
+
+IMPORTANT: only `BeanManager` injection is supported for this kind of lifecycle methods.
 
 The dependency for the Extension SPI is:
 

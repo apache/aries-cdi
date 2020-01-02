@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,10 +24,10 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.DeploymentException;
 import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.WithAnnotations;
 import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.DELETE;
@@ -51,7 +51,10 @@ import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.ReaderInterceptor;
 import javax.ws.rs.ext.WriterInterceptor;
 
-import org.apache.aries.cdi.extension.spi.adapt.Adapted;
+import org.apache.aries.cdi.extension.spi.adapt.FiltersOn;
+import org.apache.aries.cdi.extension.spi.adapt.MergeServiceTypes;
+import org.apache.aries.cdi.extension.spi.adapt.ProcessPotentialService;
+import org.apache.aries.cdi.extension.spi.adapt.RegisterExtension;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsApplicationBase;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsApplicationSelect;
 import org.apache.aries.cdi.extra.propertytypes.JaxrsExtension;
@@ -67,265 +70,159 @@ import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
 public class JaxrsCDIExtension implements Extension {
 
 	private volatile Configuration configuration;
-	private final List<AnnotatedType<? extends Application>> applications = new CopyOnWriteArrayList<>();
+	private final List<AnnotatedType<?>> applications = new CopyOnWriteArrayList<>();
 
+	void register(@Observes final BeforeBeanDiscovery beforeBeanDiscovery, final BeanManager manager) {
+		manager.fireEvent(new RegisterExtension(this));
+	}
 
 	void getConfiguration(@Observes Configuration configuration) {
 		this.configuration = configuration;
 	}
 
 	void application(
-		@Observes @WithAnnotations(ApplicationPath.class)
-		ProcessAnnotatedType<? extends Application> pat) {
+			@Observes @FiltersOn(annotations = ApplicationPath.class)
+			ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends Application> annotatedType = pat.getAnnotatedType();
+		AnnotatedType<?> annotatedType = pat.getAnnotatedType();
 
 		applications.add(annotatedType);
 
-		AnnotatedTypeConfigurator<? extends Application> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, Application.class, true)) {
-			return;
-		}
-
+		commonProperties(pat, Application.class, true, beanManager);
 		if (!annotatedType.isAnnotationPresent(JaxrsApplicationBase.class)) {
-			configurator.add(
-				JaxrsApplicationBase.Literal.of(
-					annotatedType.getAnnotation(ApplicationPath.class).value()));
+			pat.configureAnnotatedType().add(
+					JaxrsApplicationBase.Literal.of(
+							annotatedType.getAnnotation(ApplicationPath.class).value()));
 		}
 	}
 
-	<X> void resource(
-		@Observes @WithAnnotations({Path.class, DELETE.class, GET.class, HEAD.class, OPTIONS.class, PATCH.class, POST.class, PUT.class})
-		ProcessAnnotatedType<X> pat) {
+	void resource(
+			@Observes
+			@FiltersOn(annotations = {Path.class, DELETE.class, GET.class, HEAD.class, OPTIONS.class, PATCH.class, POST.class, PUT.class})
+			ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<X> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<X> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, Object.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsResource.class)) {
-			configurator.add(JaxrsResource.Literal.INSTANCE);
+		commonProperties(pat, Object.class, false, beanManager);
+		if (!pat.getAnnotatedType().isAnnotationPresent(JaxrsResource.class)) {
+			pat.configureAnnotatedType().add(JaxrsResource.Literal.INSTANCE);
 		}
 	}
 
 	void containerRequestFilter(
-		@Observes ProcessAnnotatedType<? extends ContainerRequestFilter> pat) {
-
-		AnnotatedType<? extends ContainerRequestFilter> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends ContainerRequestFilter> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ContainerRequestFilter.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+			@Observes @FiltersOn(types = ContainerRequestFilter.class) ProcessPotentialService pat, BeanManager beanManager) {
+		commonProperties(pat, ContainerRequestFilter.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	void containerResponseFilter(
-		@Observes ProcessAnnotatedType<? extends ContainerResponseFilter> pat) {
+			@Observes @FiltersOn(types = ContainerResponseFilter.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends ContainerResponseFilter> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends ContainerResponseFilter> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ContainerResponseFilter.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ContainerResponseFilter.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	void readerInterceptor(
-		@Observes ProcessAnnotatedType<? extends ReaderInterceptor> pat) {
+			@Observes @FiltersOn(types = ReaderInterceptor.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends ReaderInterceptor> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends ReaderInterceptor> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ReaderInterceptor.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ReaderInterceptor.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	void writerInterceptor(
-		@Observes ProcessAnnotatedType<? extends WriterInterceptor> pat) {
+			@Observes @FiltersOn(types = WriterInterceptor.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends WriterInterceptor> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends WriterInterceptor> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, WriterInterceptor.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, WriterInterceptor.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	@SuppressWarnings("rawtypes")
 	void messageBodyReader(
-		@Observes ProcessAnnotatedType<? extends MessageBodyReader> pat) {
+			@Observes @FiltersOn(types = MessageBodyReader.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends MessageBodyReader> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends MessageBodyReader> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, MessageBodyReader.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, MessageBodyReader.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	@SuppressWarnings("rawtypes")
 	void messageBodyWriter(
-		@Observes ProcessAnnotatedType<? extends MessageBodyWriter> pat) {
+			@Observes @FiltersOn(types = MessageBodyWriter.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends MessageBodyWriter> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends MessageBodyWriter> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, MessageBodyWriter.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, MessageBodyWriter.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	@SuppressWarnings("rawtypes")
 	void contextResolver(
-		@Observes ProcessAnnotatedType<? extends ContextResolver> pat) {
+			@Observes @FiltersOn(types = ContextResolver.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends ContextResolver> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends ContextResolver> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ContextResolver.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ContextResolver.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	@SuppressWarnings("rawtypes")
 	void exceptionMapper(
-		@Observes ProcessAnnotatedType<? extends ExceptionMapper> pat) {
+			@Observes @FiltersOn(types = ExceptionMapper.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends ExceptionMapper> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends ExceptionMapper> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ExceptionMapper.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ExceptionMapper.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	void paramConverterProvider(
-		@Observes ProcessAnnotatedType<? extends ParamConverterProvider> pat) {
+			@Observes @FiltersOn(types = ParamConverterProvider.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends ParamConverterProvider> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends ParamConverterProvider> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, ParamConverterProvider.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, ParamConverterProvider.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	void feature(
-		@Observes ProcessAnnotatedType<? extends Feature> pat) {
+			@Observes @FiltersOn(types = Feature.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends Feature> annotatedType = pat.getAnnotatedType();
-
-		AnnotatedTypeConfigurator<? extends Feature> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, Feature.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
-		}
+		commonProperties(pat, Feature.class, false, beanManager);
+		addJaxRsExtension(pat);
 	}
 
 	void dynamicFeature(
-		@Observes ProcessAnnotatedType<? extends DynamicFeature> pat) {
+			@Observes @FiltersOn(types = DynamicFeature.class) ProcessPotentialService pat, BeanManager beanManager) {
 
-		AnnotatedType<? extends DynamicFeature> annotatedType = pat.getAnnotatedType();
+		commonProperties(pat, DynamicFeature.class, false, beanManager);
+		addJaxRsExtension(pat);
+	}
 
-		AnnotatedTypeConfigurator<? extends DynamicFeature> configurator = pat.configureAnnotatedType();
-
-		if (!commonProperties(annotatedType, configurator, DynamicFeature.class, false)) {
-			return;
-		}
-
-		if (!annotatedType.isAnnotationPresent(JaxrsExtension.class)) {
-			configurator.add(JaxrsExtension.Literal.INSTANCE);
+	private void addJaxRsExtension(final ProcessPotentialService pat) {
+		if (!pat.getAnnotatedType().isAnnotationPresent(JaxrsExtension.class)) {
+			pat.configureAnnotatedType().add(JaxrsExtension.Literal.INSTANCE);
 		}
 	}
 
 	/*
 	 * @return true if common properties were added (i.e. if no @Service was found)
 	 */
-	boolean commonProperties(
-		AnnotatedType<?> annotatedType, AnnotatedTypeConfigurator<?> configurator,
-		Class<?> serviceType, boolean application) {
-
-		if (!Adapted.withServiceTypes(configurator, serviceType)) {
-			return false;
-		}
-
+	private void commonProperties(
+			ProcessPotentialService pat, Class<?> serviceType, boolean application, BeanManager beanManager) {
+		beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(serviceType).build());
+		final AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
+		final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
 		if (!annotatedType.isAnnotationPresent(JaxrsName.class)) {
 			if (application) {
 				configurator.add(
-					JaxrsName.Literal.of(
-						ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_NAME)).orElse(
-							JaxrsWhiteboardConstants.JAX_RS_DEFAULT_APPLICATION
+						JaxrsName.Literal.of(
+								ofNullable((String) configuration.get(JaxrsWhiteboardConstants.JAX_RS_NAME)).orElse(
+										JaxrsWhiteboardConstants.JAX_RS_DEFAULT_APPLICATION
+								)
 						)
-					)
 				);
-			}
-			else {
+			} else {
 				configurator.add(JaxrsName.Literal.of(annotatedType.getJavaClass().getSimpleName()));
 			}
 		}
 
 		if (!application && !annotatedType.isAnnotationPresent(JaxrsApplicationSelect.class)) {
-			ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_APPLICATION_SELECT)).ifPresent(
-				select -> configurator.add(JaxrsApplicationSelect.Literal.of(select))
+			ofNullable((String) configuration.get(JaxrsWhiteboardConstants.JAX_RS_APPLICATION_SELECT)).ifPresent(
+					select -> configurator.add(JaxrsApplicationSelect.Literal.of(select))
 			);
 		}
 
 		if (!annotatedType.isAnnotationPresent(JaxrsExtensionSelect.class)) {
-			ofNullable((String[])configuration.get(JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT)).ifPresent(selects -> {
+			ofNullable((String[]) configuration.get(JaxrsWhiteboardConstants.JAX_RS_EXTENSION_SELECT)).ifPresent(selects -> {
 				if (selects.length > 0) {
 					configurator.add(JaxrsExtensionSelect.Literal.of(selects));
 				}
@@ -333,8 +230,8 @@ public class JaxrsCDIExtension implements Extension {
 		}
 
 		if (!annotatedType.isAnnotationPresent(JaxrsWhiteboardTarget.class)) {
-			ofNullable((String)configuration.get(JaxrsWhiteboardConstants.JAX_RS_WHITEBOARD_TARGET)).ifPresent(
-				target -> configurator.add(JaxrsWhiteboardTarget.Literal.of(target))
+			ofNullable((String) configuration.get(JaxrsWhiteboardConstants.JAX_RS_WHITEBOARD_TARGET)).ifPresent(
+					target -> configurator.add(JaxrsWhiteboardTarget.Literal.of(target))
 			);
 		}
 
@@ -345,15 +242,13 @@ public class JaxrsCDIExtension implements Extension {
 				configurator.add(ServiceInstance.Literal.of(ServiceScope.PROTOTYPE));
 			}
 		}
-
-		return true;
 	}
 
 	void afterDeploymentValidation(@Observes AfterDeploymentValidation adv) {
-		if (applications.size() > 1) {
+		if (applications.size() > 1) { // todo: revise that, it is not illegal and supported by cxf-cdi-extension
 			adv.addDeploymentProblem(
-				new DeploymentException(
-					"More than one javax.ws.rs.core.Application annotated types were found in the CDI bundle."));
+					new DeploymentException(
+							"More than one javax.ws.rs.core.Application annotated types were found in the CDI bundle."));
 		}
 	}
 

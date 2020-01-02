@@ -12,11 +12,11 @@
  * limitations under the License.
  */
 
-package org.apache.aries.cdi.owb;
+package org.apache.aries.cdi.owb.core;
 
+import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
 import static org.osgi.framework.namespace.PackageNamespace.PACKAGE_NAMESPACE;
-import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -39,6 +39,7 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.util.TypeLiteral;
 
+import org.apache.aries.cdi.owb.spi.StartObjectSupplier;
 import org.apache.aries.cdi.spi.CDIContainerInitializer;
 import org.apache.aries.cdi.spi.loader.SpiLoader;
 import org.apache.webbeans.config.WebBeansContext;
@@ -152,17 +153,17 @@ public class OWBCDIContainerInitializer extends CDIContainerInitializer {
 			// This Extension will have properties:
 			//    osgi.cdi.extension = aries.cdi.http
 			//    aries.cdi.http.provider = OpenWebBeans
-			extensions.entrySet().stream().filter(
-				e -> "aries.cdi.http".equals(e.getValue().get(CDI_EXTENSION_PROPERTY)) &&
-					"OpenWebBeans".equalsIgnoreCase(String.valueOf(e.getValue().get("aries.cdi.http.provider")))
-			).findFirst().ifPresent(entry -> {
-				// The service properties of the extension should list any properties needed
-				// to configure OWB for web support.
-				properties.putAll(entry.getValue());
+			extensions.entrySet().stream()
+					.filter(it -> StartObjectSupplier.class.isInstance(it.getKey()))
+					.max(comparing(it -> StartObjectSupplier.class.cast(it.getKey()).ordinal()))
+					.ifPresent(entry -> {
+						// The service properties of the extension should list any properties needed
+						// to configure OWB for web support.
+						properties.putAll(entry.getValue());
 
-				// The extension itself implements ServletContextEvent so set as the start object
-				startObject = entry.getKey();
-			});
+						// Extract the start instance to ensure it works with the configured services (properties)
+						startObject = StartObjectSupplier.class.cast(entry.getKey()).getStartObject();
+					});
 
 			bootstrap = new WebBeansContext(services, properties) {
 				private final ExtensionLoader overridenExtensionLoader = new ExtensionLoader(this) {

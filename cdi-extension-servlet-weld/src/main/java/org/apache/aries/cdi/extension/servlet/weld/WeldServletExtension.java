@@ -25,7 +25,6 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
@@ -34,53 +33,29 @@ import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.BeforeShutdown;
-import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.WithAnnotations;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebListener;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
-import org.apache.aries.cdi.extension.servlet.common.WebFilterProcessor;
-import org.apache.aries.cdi.extension.servlet.common.WebListenerProcessor;
-import org.apache.aries.cdi.extension.servlet.common.WebServletProcessor;
-import org.apache.aries.cdi.spi.configuration.Configuration;
+import org.apache.aries.cdi.extension.servlet.common.BaseServletExtension;
 import org.jboss.weld.module.web.servlet.WeldInitialListener;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
-public class WeldServletExtension implements Extension {
+public class WeldServletExtension extends BaseServletExtension {
 
 	private final BundleContext bundleContext;
-	volatile Configuration configuration;
+
+	protected WeldServletExtension() { // proxy
+		bundleContext = null;
+	}
 
 	public WeldServletExtension(Bundle bundle) {
 		this.bundleContext = bundle.getBundleContext();
-	}
-
-	void setConfiguration(@Observes Configuration configuration) {
-		this.configuration = configuration;
-	}
-
-	<X> void webFilter(@Observes @WithAnnotations(WebFilter.class) ProcessAnnotatedType<X> pat) {
-		new WebFilterProcessor().process(configuration, pat);
-	}
-
-	<X> void webListener(@Observes @WithAnnotations(WebListener.class) ProcessAnnotatedType<X> pat) {
-		new WebListenerProcessor().process(configuration, pat);
-	}
-
-	<X> void webServlet(@Observes @WithAnnotations(WebServlet.class) ProcessAnnotatedType<X> pat) {
-		new WebServletProcessor().process(configuration, pat);
 	}
 
 	void afterDeploymentValidation(
@@ -111,25 +86,11 @@ public class WeldServletExtension implements Extension {
 			LISTENER_CLASSES, new ListenerWrapper<>(initialListener), properties);
 	}
 
-	void beforeShutdown(@Observes BeforeShutdown bs) {
-		if (_listenerRegistration != null && !destroyed.get()) {
-			try {
-				_listenerRegistration.unregister();
-			}
-			catch (IllegalStateException ise) {
-				// the service was already unregistered.
-			}
-		}
-	}
-
 	private static final String[] LISTENER_CLASSES = new String[] {
 		ServletContextListener.class.getName(),
 		ServletRequestListener.class.getName(),
 		HttpSessionListener.class.getName()
 	};
-
-	private volatile ServiceRegistration<?> _listenerRegistration;
-	private final AtomicBoolean destroyed = new AtomicBoolean(false);
 
 	public static class Ready {}
 

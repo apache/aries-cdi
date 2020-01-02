@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,46 +27,46 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.BeforeShutdown;
-import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.WithAnnotations;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRequestListener;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebListener;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpSessionListener;
 
-import org.apache.aries.cdi.extension.servlet.common.WebFilterProcessor;
-import org.apache.aries.cdi.extension.servlet.common.WebListenerProcessor;
-import org.apache.aries.cdi.extension.servlet.common.WebServletProcessor;
-import org.apache.aries.cdi.spi.configuration.Configuration;
+import org.apache.aries.cdi.extension.servlet.common.BaseServletExtension;
+import org.apache.aries.cdi.owb.spi.StartObjectSupplier;
 import org.apache.webbeans.config.WebBeansContext;
 import org.apache.webbeans.spi.ContainerLifecycle;
 import org.apache.webbeans.web.lifecycle.test.MockServletContext;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
 @SuppressWarnings("serial")
-public class OWBServletExtension extends ServletContextEvent implements Extension {
+public class OWBServletExtension extends BaseServletExtension implements StartObjectSupplier {
 
 	private final BundleContext bundleContext;
 	private final ServletContext proxyContext;
+	private final ServletContextEvent startEvent;
 	private volatile ServletContext delegateContext;
-	volatile Configuration configuration;
+
+	protected OWBServletExtension() { // proxy
+		bundleContext = null;
+		proxyContext = null;
+		startEvent = null;
+	}
 
 	public OWBServletExtension(Bundle bundle) {
-		super(new MockServletContext());
+		this.startEvent = new ServletContextEvent(new MockServletContext()) {
+			@Override
+			public ServletContext getServletContext() {
+				return proxyContext;
+			}
+		};
 
 		this.bundleContext = bundle.getBundleContext();
 
@@ -75,9 +75,8 @@ public class OWBServletExtension extends ServletContextEvent implements Extensio
 				new Class<?>[]{ServletContext.class},
 				(proxy, method, args) -> {
 					try {
-						return method.invoke(ofNullable(delegateContext).orElseGet(OWBServletExtension.super::getServletContext), args);
-					}
-					catch (final InvocationTargetException ite) {
+						return method.invoke(ofNullable(delegateContext).orElseGet(startEvent::getServletContext), args);
+					} catch (final InvocationTargetException ite) {
 						throw ite.getTargetException();
 					}
 				}));
@@ -87,34 +86,9 @@ public class OWBServletExtension extends ServletContextEvent implements Extensio
 		this.delegateContext = delegateContext;
 	}
 
-	public ServletContext getOriginal() {
-		return super.getServletContext();
-	}
-
-	@Override
-	public ServletContext getServletContext() {
-		return proxyContext;
-	}
-
-	void setConfiguration(@Observes Configuration configuration) {
-		this.configuration = configuration;
-	}
-
-	<X> void webFilter(@Observes @WithAnnotations(WebFilter.class) ProcessAnnotatedType<X> pat) {
-		new WebFilterProcessor().process(configuration, pat);
-	}
-
-	<X> void webListener(@Observes @WithAnnotations(WebListener.class) ProcessAnnotatedType<X> pat) {
-		new WebListenerProcessor().process(configuration, pat);
-	}
-
-	<X> void webServlet(@Observes @WithAnnotations(WebServlet.class) ProcessAnnotatedType<X> pat) {
-		new WebServletProcessor().process(configuration, pat);
-	}
-
 	void afterDeploymentValidation(
-		@Observes @Priority(LIBRARY_AFTER + 800)
-		AfterDeploymentValidation adv, BeanManager beanManager) {
+			@Observes @Priority(LIBRARY_AFTER + 800)
+					AfterDeploymentValidation adv, BeanManager beanManager) {
 
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension for OpenWebBeans");
@@ -124,28 +98,19 @@ public class OWBServletExtension extends ServletContextEvent implements Extensio
 		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
 
 		_listenerRegistration = bundleContext.registerService(
-			LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
+				LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
 	}
 
-	void beforeShutdown(@Observes BeforeShutdown bs) {
-		if (_listenerRegistration != null && !destroyed.get()) {
-			try {
-				_listenerRegistration.unregister();
-			}
-			catch (IllegalStateException ise) {
-				// the service was already unregistered.
-			}
-		}
-	}
-
-	private static final String[] LISTENER_CLASSES = new String[] {
-		ServletContextListener.class.getName(),
-		ServletRequestListener.class.getName(),
-		HttpSessionListener.class.getName()
+	private static final String[] LISTENER_CLASSES = new String[]{
+			ServletContextListener.class.getName(),
+			ServletRequestListener.class.getName(),
+			HttpSessionListener.class.getName()
 	};
 
-	private volatile ServiceRegistration<?> _listenerRegistration;
-	private final AtomicBoolean destroyed = new AtomicBoolean(false);
+	@Override
+	public Object getStartObject() {
+		return startEvent;
+	}
 
 	private class CdiListener extends org.apache.webbeans.servlet.WebBeansConfigurationListener {
 		private final WebBeansContext webBeansContext;
@@ -162,8 +127,8 @@ public class OWBServletExtension extends ServletContextEvent implements Extensio
 			setDelegate(realSC);
 
 			// propagate attributes from the temporary sc
-			list(getOriginal().getAttributeNames()).forEach(
-				attr -> realSC.setAttribute(attr, getOriginal().getAttribute(attr)));
+			list(startEvent.getServletContext().getAttributeNames()).forEach(
+					attr -> realSC.setAttribute(attr, startEvent.getServletContext().getAttribute(attr)));
 
 			realSC.setAttribute(BundleContext.class.getName(), bundleContext);
 			realSC.setAttribute(WebBeansContext.class.getName(), webBeansContext);
@@ -179,8 +144,7 @@ public class OWBServletExtension extends ServletContextEvent implements Extensio
 		public void contextDestroyed(ServletContextEvent sce) {
 			try {
 				super.contextDestroyed(sce);
-			}
-			finally {
+			} finally {
 				destroyed.set(true);
 			}
 		}

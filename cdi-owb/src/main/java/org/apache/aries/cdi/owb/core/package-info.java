@@ -17,4 +17,4 @@
 	namespace = org.osgi.namespace.service.ServiceNamespace.SERVICE_NAMESPACE
 )
 @org.osgi.service.cdi.annotations.RequireCDIImplementation
-package org.apache.aries.cdi.owb;
+package org.apache.aries.cdi.owb.core;

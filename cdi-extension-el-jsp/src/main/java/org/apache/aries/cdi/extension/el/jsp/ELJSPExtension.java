@@ -51,6 +51,10 @@ import org.osgi.framework.wiring.BundleWiring;
 
 public class ELJSPExtension implements Extension {
 
+	protected ELJSPExtension() { // proxy
+		_bundle = null;
+	}
+
 	public ELJSPExtension(Bundle bundle) {
 		_bundle = bundle;
 	}
