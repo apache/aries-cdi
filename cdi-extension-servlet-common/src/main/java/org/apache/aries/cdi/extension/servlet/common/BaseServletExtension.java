@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -73,9 +73,12 @@ public class BaseServletExtension implements Extension {
 		this.configuration = configuration;
 	}
 
-	void webFilter(@Observes @FiltersOn(annotations = WebFilter.class) ProcessPotentialService pat,
-				   BeanManager beanManager) {
+	void webFilter(
+		@Observes @FiltersOn(annotations = WebFilter.class) ProcessPotentialService pat,
+		BeanManager beanManager) {
+
 		beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(Filter.class).build());
+
 		final AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
 		final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
 
@@ -83,7 +86,7 @@ public class BaseServletExtension implements Extension {
 
 		if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
 			ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-					select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+				select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
 			);
 		}
 
@@ -116,20 +119,22 @@ public class BaseServletExtension implements Extension {
 		}
 	}
 
-	void webListener(@Observes @FiltersOn(annotations = WebListener.class) ProcessPotentialService pat,
-						 BeanManager beanManager) {
+	void webListener(
+		@Observes @FiltersOn(annotations = WebListener.class) ProcessPotentialService pat,
+		BeanManager beanManager) {
+
 		final AnnotatedType<?> annotatedType = pat.getAnnotatedType();
 		final Class<?> javaClass = annotatedType.getJavaClass();
 		final Class<?>[] serviceTypes = Stream.of(
-				ServletContextListener.class,
-				ServletContextAttributeListener.class,
-				ServletRequestListener.class,
-				ServletRequestAttributeListener.class,
-				HttpSessionListener.class,
-				HttpSessionAttributeListener.class,
-				HttpSessionIdListener.class)
-				.filter(c -> c.isAssignableFrom(javaClass))
-				.toArray(Class[]::new);
+			ServletContextListener.class,
+			ServletContextAttributeListener.class,
+			ServletRequestListener.class,
+			ServletRequestAttributeListener.class,
+			HttpSessionListener.class,
+			HttpSessionAttributeListener.class,
+			HttpSessionIdListener.class)
+		.filter(c -> c.isAssignableFrom(javaClass))
+		.toArray(Class[]::new);
 
 		beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(serviceTypes).build());
 
@@ -139,7 +144,7 @@ public class BaseServletExtension implements Extension {
 
 		if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
 			ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-					select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+				select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
 			);
 		}
 
@@ -152,8 +157,10 @@ public class BaseServletExtension implements Extension {
 		}
 	}
 
-	void webServlet(@Observes @FiltersOn(annotations = WebServlet.class) ProcessPotentialService pat,
-						BeanManager beanManager) {
+	void webServlet(
+		@Observes @FiltersOn(annotations = WebServlet.class) ProcessPotentialService pat,
+		BeanManager beanManager) {
+
 		beanManager.fireEvent(MergeServiceTypes.forEvent(pat).withTypes(Servlet.class).build());
 
 		final AnnotatedTypeConfigurator<?> configurator = pat.configureAnnotatedType();
@@ -162,7 +169,7 @@ public class BaseServletExtension implements Extension {
 
 		if (!annotatedType.isAnnotationPresent(HttpWhiteboardContextSelect.class)) {
 			ofNullable((String) configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT)).ifPresent(
-					select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
+				select -> configurator.add(HttpWhiteboardContextSelect.Literal.of(select))
 			);
 		}
 
@@ -213,3 +220,4 @@ public class BaseServletExtension implements Extension {
 		}
 	}
 }
+

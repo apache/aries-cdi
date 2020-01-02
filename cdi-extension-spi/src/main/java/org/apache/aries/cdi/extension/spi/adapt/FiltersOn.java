@@ -28,10 +28,6 @@ import javax.enterprise.util.AnnotationLiteral;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FiltersOn {
-	/**
-	 * @return the annotations the {@link javax.enterprise.inject.spi.ProcessAnnotatedType} should get filtered for.
-	 */
-	Class<? extends Annotation>[] annotations() default {FiltersOn.class};
 
 	/**
 	 * @return the types to filter the event on using {@link Class#isAssignableFrom(Class)}.
@@ -53,5 +49,11 @@ public @interface FiltersOn {
 			return defaultArray;
 		}
 	}
+
+	/**
+	 * @return the annotations the {@link javax.enterprise.inject.spi.ProcessAnnotatedType} should get filtered for.
+	 */
+	Class<? extends Annotation>[] annotations() default {FiltersOn.class};
+
 }
 

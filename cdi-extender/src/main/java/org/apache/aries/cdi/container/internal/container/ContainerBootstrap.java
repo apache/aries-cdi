@@ -186,9 +186,9 @@ public class ContainerBootstrap extends Phase {
 			Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
 					Constants.SERVICE_DESCRIPTION, "Aries CDI LoggerExtension"));
 		initializer.addExtension(
-				new ServiceAdapterExtension(),
-				Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
-						Constants.SERVICE_DESCRIPTION, "Aries CDI ServiceAdapterExtension"));
+			new ServiceAdapterExtension(),
+			Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
+					Constants.SERVICE_DESCRIPTION, "Aries CDI ServiceAdapterExtension"));
 
 		// Add extensions found from the bundle's class loader, such as those in the Bundle-ClassPath
 		ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extension ->
