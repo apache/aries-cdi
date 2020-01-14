@@ -69,13 +69,15 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 		};
 
 		this.bundleContext = bundle.getBundleContext();
+		this.delegateContext = new ForwardingContext();
 
 		// ensure we can switch the impl and keep ServletContextBean working with an updated context
 		this.proxyContext = ServletContext.class.cast(Proxy.newProxyInstance(ServletContext.class.getClassLoader(),
 				new Class<?>[]{ServletContext.class},
 				(proxy, method, args) -> {
 					try {
-						return method.invoke(ofNullable(delegateContext).orElseGet(startEvent::getServletContext), args);
+						final ServletContext ctx = ofNullable(delegateContext).orElseGet(startEvent::getServletContext);
+						return method.invoke(ctx, args);
 					}
 					catch (final InvocationTargetException ite) {
 						throw ite.getTargetException();
@@ -84,7 +86,9 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 	}
 
 	public void setDelegate(final ServletContext delegateContext) {
+		final ServletContext oldCtx = this.delegateContext;
 		this.delegateContext = delegateContext;
+		list(oldCtx.getAttributeNames()).forEach(attr -> this.delegateContext.setAttribute(attr, oldCtx.getAttribute(attr)));
 	}
 
 	void afterDeploymentValidation(
@@ -149,6 +153,13 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 			finally {
 				destroyed.set(true);
 			}
+		}
+	}
+
+	private static class ForwardingContext extends MockServletContext {
+		@Override
+		public String getVirtualServerName() {
+			return "http";
 		}
 	}
 }
