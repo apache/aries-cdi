@@ -162,7 +162,9 @@ public class OWBCDIContainerInitializer extends CDIContainerInitializer {
 						properties.putAll(entry.getValue());
 
 						// Extract the start instance to ensure it works with the configured services (properties)
-						startObject = StartObjectSupplier.class.cast(entry.getKey()).getStartObject();
+						final StartObjectSupplier<?> objectSupplier = StartObjectSupplier.class.cast(entry.getKey());
+						properties.putAll(objectSupplier.properties());
+						startObject = objectSupplier.getStartObject();
 					});
 
 			bootstrap = new WebBeansContext(services, properties) {
