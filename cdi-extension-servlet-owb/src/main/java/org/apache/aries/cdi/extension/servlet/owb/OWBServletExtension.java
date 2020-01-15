@@ -16,22 +16,24 @@ package org.apache.aries.cdi.extension.servlet.owb;
 
 import static java.util.Collections.list;
 import static java.util.Optional.ofNullable;
-import static javax.interceptor.Interceptor.Priority.LIBRARY_AFTER;
 import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
 import static org.osgi.framework.Constants.SERVICE_RANKING;
 import static org.osgi.framework.Constants.SERVICE_VENDOR;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT;
 import static org.osgi.service.http.whiteboard.HttpWhiteboardConstants.HTTP_WHITEBOARD_LISTENER;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Objects;
 
 import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.AfterDeploymentValidation;
-import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeBeanDiscovery;
+import javax.enterprise.inject.spi.ObserverMethod;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -47,7 +49,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 @SuppressWarnings("serial")
-public class OWBServletExtension extends BaseServletExtension implements StartObjectSupplier {
+public class OWBServletExtension extends BaseServletExtension implements StartObjectSupplier<ServletContextEvent> {
 
 	private final BundleContext bundleContext;
 	private final ServletContext proxyContext;
@@ -60,7 +62,7 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 		startEvent = null;
 	}
 
-	public OWBServletExtension(Bundle bundle) {
+	public OWBServletExtension(final Bundle bundle) {
 		this.startEvent = new ServletContextEvent(new MockServletContext()) {
 			@Override
 			public ServletContext getServletContext() {
@@ -69,33 +71,23 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 		};
 
 		this.bundleContext = bundle.getBundleContext();
-		this.delegateContext = new ForwardingContext();
+		this.delegateContext = new SimpleContext(); // ensure we don't loop over the proxy with a specific instance
 
 		// ensure we can switch the impl and keep ServletContextBean working with an updated context
+		final InvocationHandler contextHandler = new ServletContextHandler();
 		this.proxyContext = ServletContext.class.cast(Proxy.newProxyInstance(ServletContext.class.getClassLoader(),
-				new Class<?>[]{ServletContext.class},
-				(proxy, method, args) -> {
-					try {
-						final ServletContext ctx = ofNullable(delegateContext).orElseGet(startEvent::getServletContext);
-						return method.invoke(ctx, args);
-					}
-					catch (final InvocationTargetException ite) {
-						throw ite.getTargetException();
-					}
-				}));
+				new Class<?>[]{ServletContext.class}, contextHandler));
 	}
 
 	public void setDelegate(final ServletContext delegateContext) {
-		final ServletContext oldCtx = this.delegateContext;
 		this.delegateContext = delegateContext;
-		list(oldCtx.getAttributeNames()).forEach(attr -> this.delegateContext.setAttribute(attr, oldCtx.getAttribute(attr)));
 	}
 
-	void afterDeploymentValidation(
-		@Observes @Priority(LIBRARY_AFTER + 800)
-		AfterDeploymentValidation adv, BeanManager beanManager) {
-
-		Dictionary<String, Object> properties = new Hashtable<>();
+	// execute that as early as possible, it already has a currentInstance() so we'll find the right one
+	// and it will setDelegate so the context will be initialized and "materialized" for the full cdi lifecycle
+	void eagerInitOfServletContext(@Observes @Priority(ObserverMethod.DEFAULT_PRIORITY - 100)
+								   final BeforeBeanDiscovery bbd) {
+		final Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(SERVICE_DESCRIPTION, "Aries CDI - HTTP Portable Extension for OpenWebBeans");
 		properties.put(SERVICE_VENDOR, "Apache Software Foundation");
 		properties.put(HTTP_WHITEBOARD_CONTEXT_SELECT, configuration.get(HTTP_WHITEBOARD_CONTEXT_SELECT));
@@ -103,7 +95,7 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 		properties.put(SERVICE_RANKING, Integer.MAX_VALUE - 100);
 
 		_listenerRegistration = bundleContext.registerService(
-			LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
+				LISTENER_CLASSES, new CdiListener(WebBeansContext.currentInstance()), properties);
 	}
 
 	private static final String[] LISTENER_CLASSES = new String[]{
@@ -113,7 +105,7 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 	};
 
 	@Override
-	public Object getStartObject() {
+	public ServletContextEvent getStartObject() {
 		return startEvent;
 	}
 
@@ -156,10 +148,53 @@ public class OWBServletExtension extends BaseServletExtension implements StartOb
 		}
 	}
 
-	private static class ForwardingContext extends MockServletContext {
+	private static class SimpleContext extends MockServletContext {
 		@Override
 		public String getVirtualServerName() {
 			return "http";
+		}
+	}
+
+	private class ServletContextHandler implements InvocationHandler {
+		private volatile Integer hashCode; // ensure it is stable but try to use the right instance
+
+		@Override
+		public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+			if (method.getDeclaringClass() == Object.class) {
+				switch (method.getName()) {
+					case "equals":
+						return args[0] != null &&
+								(proxy == args[0] || equalsAsProxy(args[0]) || Objects.equals(getContext(), args[0]));
+					case "hashCode":
+						return getOrCreateHashCode();
+					default:
+						// let delegate
+				}
+			}
+			try {
+				return method.invoke(getContext(), args);
+			} catch (final InvocationTargetException ite) {
+				throw ite.getTargetException();
+			}
+		}
+
+		private int getOrCreateHashCode() {
+			if (hashCode == null) {
+				synchronized (this) {
+					if (hashCode == null) {
+						hashCode = delegateContext != null ? delegateContext.hashCode() : super.hashCode();
+					}
+				}
+			}
+			return hashCode;
+		}
+
+		private boolean equalsAsProxy(final Object arg) {
+			return Proxy.isProxyClass(arg.getClass()) && Objects.equals(Proxy.getInvocationHandler(arg), this);
+		}
+
+		private ServletContext getContext() {
+			return ofNullable(delegateContext).orElseGet(startEvent::getServletContext);
 		}
 	}
 }
