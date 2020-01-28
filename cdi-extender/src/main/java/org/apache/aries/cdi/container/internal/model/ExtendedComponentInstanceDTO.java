@@ -35,6 +35,7 @@ import org.apache.aries.cdi.container.internal.util.Conversions;
 import org.apache.aries.cdi.container.internal.util.Syncro;
 import org.osgi.framework.Constants;
 import org.osgi.service.cdi.ConfigurationPolicy;
+import org.osgi.service.cdi.annotations.Reference;
 import org.osgi.service.cdi.runtime.dto.ComponentDTO;
 import org.osgi.service.cdi.runtime.dto.ComponentInstanceDTO;
 import org.osgi.service.cdi.runtime.dto.ConfigurationDTO;
@@ -332,7 +333,8 @@ public class ExtendedComponentInstanceDTO extends ComponentInstanceDTO {
 		Objects.requireNonNull(serviceType);
 		Objects.requireNonNull(componentName);
 		Objects.requireNonNull(targetFilter);
-		String base = "(objectClass=".concat(serviceType).concat(")");
+		String base = Reference.Any.class.getName().equals(serviceType) || Object.class.getName().equals(serviceType) ?
+				"" : "(objectClass=".concat(serviceType).concat(")");
 		String extraFilter = Optional.ofNullable(
 			properties.get(componentName.concat(".target"))
 		).map(

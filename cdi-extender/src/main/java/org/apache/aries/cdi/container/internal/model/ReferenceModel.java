@@ -159,7 +159,8 @@ public class ReferenceModel {
 	}
 
 	private Optional<Class<?>> getReferenceType() {
-		if ((_reference != null) && (_reference.value() != null) && (_reference.value() != Object.class)) {
+		if ((_reference != null) && (_reference.value() != null) &&
+				(_reference.value() != Object.class) && (_reference.value() != Reference.Any.class)) {
 			return Optional.of(_reference.value());
 		}
 		return Optional.empty();
