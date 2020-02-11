@@ -65,8 +65,8 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:git:git@github.com:apache/aries-cdi.git</connection>
-		<developerConnection>scm:git:git@github.com:apache/aries-cdi.git</developerConnection>
+		<connection>scm:git:https://gitbox.apache.org/repos/asf/aries-cdi.git</connection>
+		<developerConnection>scm:git:https://gitbox.apache.org/repos/asf/aries-cdi.git</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/apache/aries-cdi</url>
 	</scm>
