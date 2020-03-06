@@ -269,7 +269,7 @@
 			<id>experimental</id>
 			<properties>
 				<experimental>true</experimental>
-				<johnzon.version>1.2.3-SNAPSHOT</johnzon.version>
+				<johnzon.version>1.2.3</johnzon.version>
 			</properties>
 			<modules>
 				<module>cdi-extension-mp-config</module>
