@@ -247,6 +247,9 @@
 	<profiles>
 		<profile>
 			<id>itests</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<modules>
 				<module>cdi-itests</module>
 			</modules>
