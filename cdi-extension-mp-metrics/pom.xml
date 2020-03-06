@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.apache.aries.cdi</groupId>
 		<artifactId>org.apache.aries.cdi</artifactId>
-		<version>1.1.1-SNAPSHOT</version>
+		<version>1.1.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -103,7 +103,7 @@
 					<dependency>
 						<groupId>org.apache.aries.cdi</groupId>
 						<artifactId>org.apache.aries.cdi.build.tools</artifactId>
-						<version>${project.version}</version>
+						<version>1.1.2-SNAPSHOT</version>
 					</dependency>
 				</dependencies>
 			</plugin>
@@ -212,8 +212,8 @@
 
 			<properties>
 				<maven.test.skip>false</maven.test.skip>
-				<johnzon.version>1.2.3-SNAPSHOT</johnzon.version>
-				<jax.rs.whiteboard.version>1.0.7-SNAPSHOT</jax.rs.whiteboard.version>
+				<johnzon.version>1.2.3</johnzon.version>
+				<jax.rs.whiteboard.version>1.0.7</jax.rs.whiteboard.version>
 			</properties>
 
 			<dependencies>
