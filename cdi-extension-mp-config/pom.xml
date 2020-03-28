@@ -49,23 +49,19 @@
 			<plugin>
 				<groupId>biz.aQute.bnd</groupId>
 				<artifactId>bnd-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>bnd-process</id>
-						<configuration>
-							<bnd><![CDATA[
-								Export-Package: org.eclipse.microprofile.config.*
-								-includepackage: org.apache.geronimo.config.*
-								-cdiannotations:
-								-noclassforname: true
-								-fixupmessages: "Split package...";is:=ignore
-								-bundleannotations: \
-									!org.eclipse.microprofile.config.*,\
-									org.apache.aries.cdi.extension.mp.config.*
-							]]></bnd>
-						</configuration>
-					</execution>
-				</executions>
+				<configuration>
+					<bnd><![CDATA[
+						Export-Package: \
+							org.eclipse.microprofile.config.*
+						-includepackage: org.apache.geronimo.config.*
+						-cdiannotations:
+						-noclassforname: true
+						-fixupmessages: "Split package...";is:=ignore
+						-bundleannotations: \
+							!org.eclipse.microprofile.config.*,\
+							org.apache.aries.cdi.extension.mp.config.*
+					]]></bnd>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>net.bytebuddy</groupId>
@@ -119,8 +115,10 @@
 		<dependency>
 			<groupId>biz.aQute.bnd</groupId>
 			<artifactId>biz.aQute.bnd.annotation</artifactId>
-			<version>${bnd.version}</version>
-			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.aries.cdi</groupId>
+			<artifactId>org.apache.aries.cdi.extra</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>
@@ -196,14 +194,10 @@
 			<id>experimental</id>
 
 			<properties>
-				<maven.test.skip>false</maven.test.skip>
+				<maven.test.skip>true</maven.test.skip>
 			</properties>
 
 			<dependencies>
-				<dependency>
-					<groupId>org.apache.aries.cdi</groupId>
-					<artifactId>org.apache.aries.cdi.extra</artifactId>
-				</dependency>
 				<dependency>
 					<groupId>org.osgi</groupId>
 					<artifactId>org.osgi.test.assertj</artifactId>
@@ -240,11 +234,12 @@
 									<bnd><![CDATA[
 										p = org.apache.aries.cdi.extension.mp.config.test
 										Export-Package: !${p}.tb*,${p}.*
+										Test-Cases: ${classes;HIERARCHY_ANNOTATED;org.junit.Test;CONCRETE}
 										-make: (*).(jar); type=bnd; recipe="${.}/bnd/$1.bnd"
 										-includeresource: \
 											tb01.jar
 									]]></bnd>
-									<testCases>junit4</testCases>
+									<testCases>useTestCasesHeader</testCases>
 									<includeClassesDir>false</includeClassesDir>
 								</configuration>
 							</execution>

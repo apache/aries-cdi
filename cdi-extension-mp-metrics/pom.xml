@@ -114,8 +114,6 @@
 		<dependency>
 			<groupId>biz.aQute.bnd</groupId>
 			<artifactId>biz.aQute.bnd.annotation</artifactId>
-			<version>${bnd.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.aries.cdi</groupId>
@@ -276,12 +274,13 @@
 									<bnd><![CDATA[
 										p = org.apache.aries.cdi.extension.mp.metrics.test
 										Export-Package: !${p}.tb*,${p}.*
+										Test-Cases: ${classes;HIERARCHY_ANNOTATED;org.junit.Test;CONCRETE}
 										-make: (*).(jar); type=bnd; recipe="${.}/bnd/$1.bnd"
 										-includeresource: \
 											tb01.jar
 										-fixupmessages: "Split package...";is:=ignore
 									]]></bnd>
-									<testCases>junit4</testCases>
+									<testCases>useTestCasesHeader</testCases>
 									<includeClassesDir>false</includeClassesDir>
 								</configuration>
 							</execution>
