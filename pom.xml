@@ -589,4 +589,18 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
+	<repositories>
+		<repository>
+			<id>apache Snapshots</id>
+			<layout>default</layout>
+			<url>https://repository.apache.org/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 </project>

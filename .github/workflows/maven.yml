@@ -119,15 +119,15 @@ jobs:
     - name: Build OpenJDK13 Linux Experimental
       continue-on-error: true
       run: mvn -U -e -B -ntp install -Pexperimental
-#  OpenJDK14_Linux_Experimental:
-#    name: OpenJDK14 Linux Experimental
-#    runs-on: ubuntu-latest
-#    steps:
-#    - name: Git Checkout
-#      uses: actions/checkout@v1
-#    - name: Set up Java
-#      uses: actions/setup-java@v1
-#      with:
-#        java-version: 14.0.0-ea
-#    - name: Build OpenJDK14 Linux Experimental
-#      run: mvn -U -e -B -ntp install -Pexperimental
+  OpenJDK14_Linux_Experimental:
+    name: OpenJDK14 Linux Experimental
+    runs-on: ubuntu-latest
+    steps:
+    - name: Git Checkout
+      uses: actions/checkout@v2
+    - name: Set up Java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 14
+    - name: Build OpenJDK14 Linux Experimental
+      run: mvn -U -e -B -ntp install -Pexperimental
