@@ -30,12 +30,6 @@
 	<name>Apache Aries CDI - MicroProfile JWT Auth ${mp.jwt.auth.version} Using Apache Geronimo</name>
 	<description>Apache Aries CDI - MicroProfile JWT Auth ${mp.jwt.auth.version} Using Apache Geronimo</description>
 
-	<properties>
-		<gpg.skip>true</gpg.skip>
-		<maven.deploy.skip>true</maven.deploy.skip>
-		<maven.install.skip>true</maven.install.skip>
-	</properties>
-
 	<licenses>
 		<license>
 			<name>ASL 2.0</name>
@@ -122,8 +116,6 @@
 		<dependency>
 			<groupId>biz.aQute.bnd</groupId>
 			<artifactId>biz.aQute.bnd.annotation</artifactId>
-			<version>${bnd.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.aries.cdi</groupId>
@@ -232,7 +224,7 @@
 			<id>experimental</id>
 
 			<properties>
-				<maven.test.skip>false</maven.test.skip>
+				<maven.test.skip>true</maven.test.skip>
 				<johnzon.version>1.2.3</johnzon.version>
 				<jax.rs.whiteboard.version>1.0.7</jax.rs.whiteboard.version>
 			</properties>
@@ -334,6 +326,12 @@
 					<artifactId>org.osgi.test.assertj</artifactId>
 					<version>1.0.0-SNAPSHOT</version>
 					<scope>test</scope>
+					<exclusions>
+						<exclusion>
+							<groupId>org.osgi</groupId>
+							<artifactId>osgi.promise</artifactId>
+						</exclusion>
+					</exclusions>
 				</dependency>
 				<dependency>
 					<groupId>org.osgi</groupId>
@@ -380,6 +378,7 @@
 											com.nimbusds.*,\
 											net.minidev.json.*,\
 											org.eclipse.microprofile.jwt.tck.util
+										Test-Cases: ${classes;HIERARCHY_ANNOTATED;org.junit.Test;CONCRETE}
 										-make: (*).(jar); type=bnd; recipe="${.}/bnd/$1.bnd"
 										-includeresource: \
 											@microprofile-jwt-auth-tck-[0-9.]*-tests.jar!/privateKey.pem,\
@@ -387,7 +386,7 @@
 											tb01.jar
 										-fixupmessages: "Split package...";is:=ignore
 									]]></bnd>
-									<testCases>junit4</testCases>
+									<testCases>useTestCasesHeader</testCases>
 									<includeClassesDir>false</includeClassesDir>
 								</configuration>
 							</execution>

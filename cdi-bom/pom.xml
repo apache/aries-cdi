@@ -40,6 +40,12 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>biz.aQute.bnd</groupId>
+				<artifactId>biz.aQute.bnd.annotation</artifactId>
+				<version>${bnd.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.apache.aries.cdi</groupId>
 				<artifactId>org.apache.aries.cdi.extender</artifactId>
 				<version>${project.version}</version>

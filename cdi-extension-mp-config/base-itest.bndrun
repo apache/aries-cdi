@@ -12,8 +12,6 @@
 
 #-runjdb: 8000
 
--standalone: true
--runee: JavaSE-${if;${startswith;${java.version};1.};${substring;${java.version};0;3};${subst;${java.version};\\..*}}
 -runfw: org.eclipse.osgi
 -runproperties: \
 	eclipse.log.enabled=false,\
