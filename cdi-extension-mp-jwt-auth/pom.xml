@@ -49,20 +49,25 @@
 			<plugin>
 				<groupId>biz.aQute.bnd</groupId>
 				<artifactId>bnd-maven-plugin</artifactId>
-				<configuration>
-					<bnd><![CDATA[
-						Export-Package: \
-							org.eclipse.microprofile.auth.*,\
-							org.eclipse.microprofile.jwt.*
-						-includepackage: org.apache.geronimo.microprofile.impl.jwtauth.*
-						-cdiannotations:
-						-noclassforname: true
-						-fixupmessages: "Split package...";is:=ignore
-						-bundleannotations: \
-							!org.eclipse.microprofile.*,\
-							org.apache.aries.cdi.extension.mp.jwt.*
-					]]></bnd>
-				</configuration>
+				<executions>
+					<execution>
+						<id>bnd-process</id>
+						<configuration>
+							<bnd><![CDATA[
+								Export-Package: \
+									org.eclipse.microprofile.auth.*,\
+									org.eclipse.microprofile.jwt.*
+								-includepackage: org.apache.geronimo.microprofile.impl.jwtauth.*
+								-cdiannotations:
+								-noclassforname: true
+								-fixupmessages: "Split package...";is:=ignore
+								-bundleannotations: \
+									!org.eclipse.microprofile.*,\
+									org.apache.aries.cdi.extension.mp.jwt.*
+							]]></bnd>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>net.bytebuddy</groupId>
@@ -378,7 +383,6 @@
 											com.nimbusds.*,\
 											net.minidev.json.*,\
 											org.eclipse.microprofile.jwt.tck.util
-										Test-Cases: ${classes;HIERARCHY_ANNOTATED;org.junit.Test;CONCRETE}
 										-make: (*).(jar); type=bnd; recipe="${.}/bnd/$1.bnd"
 										-includeresource: \
 											@microprofile-jwt-auth-tck-[0-9.]*-tests.jar!/privateKey.pem,\
@@ -386,8 +390,67 @@
 											tb01.jar
 										-fixupmessages: "Split package...";is:=ignore
 									]]></bnd>
-									<testCases>useTestCasesHeader</testCases>
+									<testCases>junit4</testCases>
 									<includeClassesDir>false</includeClassesDir>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-jar-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>test-jar</id>
+								<goals>
+									<goal>test-jar</goal>
+								</goals>
+								<configuration>
+									<archive>
+										<manifestFile>${project.build.testOutputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+									</archive>
+									<excludes>
+										<exclude>org/apache/aries/cdi/extension/mp/jwt/test/tb*/**</exclude>
+									</excludes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>biz.aQute.bnd</groupId>
+						<artifactId>bnd-resolver-maven-plugin</artifactId>
+						<configuration>
+							<bundles>
+								<bundle>target/${project.build.finalName}-tests.jar</bundle>
+							</bundles>
+							<scopes>
+								<scope>compile</scope>
+								<scope>runtime</scope>
+								<scope>test</scope>
+							</scopes>
+						</configuration>
+						<executions>
+							<execution>
+								<id>owb-resolve</id>
+								<phase>package</phase>
+								<goals>
+									<goal>resolve</goal>
+								</goals>
+								<configuration>
+									<bndruns>
+										<bndrun>owb-itest.bndrun</bndrun>
+									</bndruns>
+								</configuration>
+							</execution>
+							<execution>
+								<id>weld-resolve</id>
+								<phase>package</phase>
+								<goals>
+									<goal>resolve</goal>
+								</goals>
+								<configuration>
+									<bndruns>
+										<bndrun>weld-itest.bndrun</bndrun>
+									</bndruns>
 								</configuration>
 							</execution>
 						</executions>
@@ -400,9 +463,6 @@
 							<bundles>
 								<bundle>target/${project.build.finalName}-tests.jar</bundle>
 							</bundles>
-							<failOnChanges>false</failOnChanges>
-							<includeDependencyManagement>true</includeDependencyManagement>
-							<resolve>true</resolve>
 							<scopes>
 								<scope>compile</scope>
 								<scope>runtime</scope>
@@ -449,25 +509,6 @@
 							<execution>
 								<id>default-testCompile</id>
 								<phase>test-compile</phase>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<artifactId>maven-jar-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>test-jar</id>
-								<goals>
-									<goal>test-jar</goal>
-								</goals>
-								<configuration>
-									<archive>
-										<manifestFile>${project.build.testOutputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-									</archive>
-									<excludes>
-										<exclude>org/apache/aries/cdi/extension/mp/jwt/test/tb*/**</exclude>
-									</excludes>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>
