@@ -424,6 +424,7 @@
 					<version>${bnd.version}</version>
 					<configuration>
 						<failOnChanges>false</failOnChanges>
+						<includeDependencyManagement>true</includeDependencyManagement>
 						<resolve>false</resolve>
 					</configuration>
 				</plugin>
@@ -446,6 +447,7 @@
 					<version>${bnd.version}</version>
 					<configuration>
 						<failOnChanges>false</failOnChanges>
+						<includeDependencyManagement>true</includeDependencyManagement>
 						<reportOptional>false</reportOptional>
 					</configuration>
 				</plugin>
@@ -455,6 +457,7 @@
 					<version>${bnd.version}</version>
 					<configuration>
 						<failOnChanges>false</failOnChanges>
+						<includeDependencyManagement>true</includeDependencyManagement>
 						<resolve>false</resolve>
 					</configuration>
 				</plugin>
