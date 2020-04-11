@@ -26,9 +26,9 @@ public class ExcludeTests extends BaseTestCase {
 
 	@Test
 	public void testExclude_ByName() throws Exception {
-		Bundle tb2Bundle = bcr.installBundle("tb18.jar");
+		Bundle tb2Bundle = installBundle.installBundle("tb18.jar");
 
-		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb2Bundle);
+		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);
 
 		assertEquals(1, containerDTO.template.components.size());
@@ -38,9 +38,9 @@ public class ExcludeTests extends BaseTestCase {
 
 	@Test
 	public void testExclude_IfClassAvailable() throws Exception {
-		Bundle tb2Bundle = bcr.installBundle("tb19.jar");
+		Bundle tb2Bundle = installBundle.installBundle("tb19.jar");
 
-		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb2Bundle);
+		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);
 
 		assertEquals(1, containerDTO.template.components.size());
@@ -50,9 +50,9 @@ public class ExcludeTests extends BaseTestCase {
 
 	@Test
 	public void testExclude_IfSystemProperty() throws Exception {
-		Bundle tb2Bundle = bcr.installBundle("tb20.jar");
+		Bundle tb2Bundle = installBundle.installBundle("tb20.jar");
 
-		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb2Bundle);
+		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);
 
 		assertEquals(1, containerDTO.template.components.size());

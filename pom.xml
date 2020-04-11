@@ -51,6 +51,7 @@
 		<mp.config.version>1.3</mp.config.version>
 		<mp.jwt.auth.version>1.1.1</mp.jwt.auth.version>
 		<mp.metrics.version>1.1.1</mp.metrics.version>
+		<osgi.test.version>0.9.0-SNAPSHOT</osgi.test.version>
 		<owb.version>2.0.13</owb.version>
 		<slf4j.version>1.7.28</slf4j.version>
 		<surefire.version>2.12</surefire.version>
@@ -240,6 +241,18 @@
 				<artifactId>osgi.core</artifactId>
 				<version>7.0.0</version>
 				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.test.assertj</artifactId>
+				<version>${osgi.test.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.test.junit4</artifactId>
+				<version>${osgi.test.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

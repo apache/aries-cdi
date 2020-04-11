@@ -28,7 +28,7 @@ public class ProducerTest extends SlimBaseTestCase {
 
 	@Test
 	public void checkProducersAreProperlyHandled() throws Exception {
-		bcr.installBundle("tb12.jar");
+		installBundle.installBundle("tb12.jar");
 
 		try (CloseableTracker<Pojo, Pojo> track = track("(&(objectClass=%s)(component.name=integerManager))", Pojo.class.getName())) {
 			Pojo pojo = track.waitForService(5000);

@@ -36,7 +36,7 @@ public class JndiExtensionTests extends SlimBaseTestCase {
 
 	@Test
 	public void testGetBeanManagerThroughJNDI() throws Exception {
-		Bundle testBundle = bcr.installBundle("tb21.jar");
+		Bundle testBundle = installBundle.installBundle("tb21.jar");
 
 		assertNotNull(getBeanManager(testBundle));
 
@@ -58,7 +58,7 @@ public class JndiExtensionTests extends SlimBaseTestCase {
 
 	@Test
 	public void testDisableExtensionAndCDIContainerWaits() throws Exception {
-		BundleTracker<Bundle> bundleTracker = new BundleTracker<Bundle>(bcr.getBundleContext(), Bundle.ACTIVE, null) {
+		BundleTracker<Bundle> bundleTracker = new BundleTracker<Bundle>(bundleContext, Bundle.ACTIVE, null) {
 			@Override
 			public Bundle addingBundle(Bundle bundle, BundleEvent event) {
 				if (bundle.getSymbolicName().equals("org.apache.aries.cdi.extension.jndi")) {
@@ -74,7 +74,7 @@ public class JndiExtensionTests extends SlimBaseTestCase {
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Bundle extensionBundle = bundleTracker.getBundles()[0];
 
-			Bundle testBundle = bcr.installBundle("tb21.jar", false);
+			Bundle testBundle = installBundle.installBundle("tb21.jar", false);
 
 			try (CloseableTracker<BeanManager, BeanManager> bmTracker = trackBM(testBundle.getBundleId());) {
 				assertThat(bmTracker).matches(CloseableTracker::isEmpty, "BeanManager tracker is empty");

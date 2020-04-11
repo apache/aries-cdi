@@ -49,19 +49,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.get().resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.get().resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1l.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1l.jar");
 		Configuration configuration = null;
 
 		try {
@@ -75,7 +75,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 				// we didn't do a "get" yet so this should fail
 				assertPromiseIsNotResolved(a);
 
-				configuration = car.getService().getConfiguration("prototypeFactory", "?");
+				configuration = car.getConfiguration("prototypeFactory", "?");
 
 				// this will trigger the onInitialized because of the tracker
 				configuration.update(new Hashtable() {{put("foo", "bar");}});
@@ -85,12 +85,12 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 				configuration.delete();
 
-				configuration = car.getService().getFactoryConfiguration("prototypeFactory", "one", "?");
+				configuration = car.getFactoryConfiguration("prototypeFactory", "one", "?");
 				configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 				assertThat(tracker.waitForService(50)).isNotNull();
 
-				ServiceObjects<Object> serviceObjects = bcr.getBundleContext().getServiceObjects(tracker.getService());
+				ServiceObjects<Object> serviceObjects = bundleContext.getServiceObjects(tracker.getService());
 
 				a.set(new Deferred<>());
 				b.set(new Deferred<>());
@@ -253,19 +253,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> b.get().resolve(o);
 		Consumer<Object[]> onDestroyed = (o) -> c.get().resolve(o);
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1k.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1k.jar");
 		Configuration configuration = null;
 
 		try {
@@ -284,7 +284,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 				// we didn't do a "get" yet so this should fail
 				a.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 
-				configuration = car.getService().getConfiguration("prototypeSingle_C", "?");
+				configuration = car.getConfiguration("prototypeSingle_C", "?");
 
 				configuration.update(new Hashtable() {{put("foo", "bar");}});
 
@@ -292,7 +292,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 				b.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 				c.get().getPromise().timeout(timeout).then(assertFailed).getFailure();
 
-				ServiceObjects<Object> serviceObjects = bcr.getBundleContext().getServiceObjects(tracker.getService());
+				ServiceObjects<Object> serviceObjects = bundleContext.getServiceObjects(tracker.getService());
 
 				Object instance1 = serviceObjects.getService();
 				assertThat(instance1).isNotNull();
@@ -426,19 +426,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.get().resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.get().resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1j.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1j.jar");
 
 		getBeanManager(tbBundle);
 
@@ -452,7 +452,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		try (CloseableTracker<Object, ServiceReference<Object>> tracker = trackSR("(objectClass=%s)", Pojo.class.getName())) {
 			assertThat(tracker.waitForService(50)).isNotNull();
 
-			ServiceObjects<Object> serviceObjects = bcr.getBundleContext().getServiceObjects(tracker.getService());
+			ServiceObjects<Object> serviceObjects = bundleContext.getServiceObjects(tracker.getService());
 
 			a.set(new Deferred<>());
 
@@ -574,19 +574,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> b.get().resolve(o);
 		Consumer<Object[]> onDestroyed = (o) -> c.get().resolve(o);
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1i.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1i.jar");
 		Configuration configuration = null;
 
 		try {
@@ -594,7 +594,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			assertPromiseIsNotResolved(a);
 
-			configuration = car.getService().getConfiguration("bundleFactory", "?");
+			configuration = car.getConfiguration("bundleFactory", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			// only accept factory configuration instances
@@ -608,7 +608,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			configuration.delete();
 
-			configuration = car.getService().getFactoryConfiguration("bundleFactory", "one", "?");
+			configuration = car.getFactoryConfiguration("bundleFactory", "one", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			// Even with configuration, there's still no instance until a "get" is performed
@@ -716,19 +716,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> b.get().resolve(o);
 		Consumer<Object[]> onDestroyed = (o) -> c.get().resolve(o);
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1h.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1h.jar");
 		Configuration configuration = null;
 
 		try {
@@ -736,7 +736,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			assertPromiseIsNotResolved(a);
 
-			configuration = car.getService().getConfiguration("bundleSingle_C", "?");
+			configuration = car.getConfiguration("bundleSingle_C", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			assertPromiseIsNotResolved(a);
@@ -834,19 +834,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1g.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1g.jar");
 
 		try {
 			getBeanManager(tbBundle);
@@ -921,19 +921,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1f.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1f.jar");
 		Configuration configuration = null;
 
 		try {
@@ -946,7 +946,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
 
-			configuration = car.getService().getConfiguration("singletonFactory", "?");
+			configuration = car.getConfiguration("singletonFactory", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			// only accept factory configuration instances
@@ -954,7 +954,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			configuration.delete();
 
-			configuration = car.getService().getFactoryConfiguration("singletonFactory", "one", "?");
+			configuration = car.getFactoryConfiguration("singletonFactory", "one", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			Success<Object[], Object[]> assertSucceeded = s -> {
@@ -1051,19 +1051,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1e.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1e.jar");
 		Configuration configuration = null;
 
 		try {
@@ -1076,7 +1076,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
 
-			configuration = car.getService().getConfiguration("singletonSingle_C", "?");
+			configuration = car.getConfiguration("singletonSingle_C", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			Success<Object[], Object[]> assertSucceeded = s -> {
@@ -1167,19 +1167,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1d.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1d.jar");
 
 		try {
 			getBeanManager(tbBundle);
@@ -1247,19 +1247,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1c.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1c.jar");
 		Configuration configuration = null;
 
 		try {
@@ -1272,7 +1272,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
 
-			configuration = car.getService().getConfiguration("immediateFactory", "?");
+			configuration = car.getConfiguration("immediateFactory", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			// only accept factory configuration instances
@@ -1280,7 +1280,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			configuration.delete();
 
-			configuration = car.getService().getFactoryConfiguration("immediateFactory", "one", "?");
+			configuration = car.getFactoryConfiguration("immediateFactory", "one", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			Success<Object[], Object[]> assertSucceeded = s -> {
@@ -1345,19 +1345,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1b.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1b.jar");
 		Configuration configuration = null;
 
 		try {
@@ -1370,7 +1370,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 
 			a.getPromise().timeout(timeout).then(assertFailed).getFailure();
 
-			configuration = car.getService().getConfiguration("immediateSingle_C", "?");
+			configuration = car.getConfiguration("immediateSingle_C", "?");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			Success<Object[], Object[]> assertSucceeded = s -> {
@@ -1433,19 +1433,19 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 		Consumer<Object[]> onBeforeDestroyed = (o) -> {try {b.resolve(o);} catch (Exception e) {}};
 		Consumer<Object[]> onDestroyed = (o) -> {try {c.resolve(o);} catch (Exception e) {}};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = bcr.installBundle("tb152_3_1_1a.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1a.jar");
 
 		try {
 			getBeanManager(tbBundle);

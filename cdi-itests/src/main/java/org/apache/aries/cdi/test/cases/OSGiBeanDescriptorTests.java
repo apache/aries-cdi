@@ -35,7 +35,7 @@ public class OSGiBeanDescriptorTests extends BaseTestCase {
 
 	@Test
 	public void testServices() throws Exception {
-		bcr.installBundle("tb2.jar");
+		installBundle.installBundle("tb2.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -46,8 +46,8 @@ public class OSGiBeanDescriptorTests extends BaseTestCase {
 	@SuppressWarnings("serial")
 	@Test
 	public void testReferences() throws Exception {
-		Bundle tb1Bundle = bcr.installBundle("tb1.jar");
-		bcr.installBundle("tb2.jar");
+		Bundle tb1Bundle = installBundle.installBundle("tb1.jar");
+		installBundle.installBundle("tb2.jar");
 
 		BeanManager beanManager = getBeanManager(tb1Bundle);
 		Set<Bean<?>> beans = beanManager.getBeans("beanimpl");

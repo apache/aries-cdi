@@ -25,14 +25,16 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
 import org.junit.Test;
-import org.osgi.framework.ServiceObjects;
+import org.osgi.test.common.annotation.InjectService;
 
 // NOTE: reuses tck resources and token generation
 public class PreProvidedTokenTest extends MpJwtAuthTests {
+
+	@InjectService
+	ClientBuilder cb;
+
 	@Test
 	public void runAsync() {
-		ServiceObjects<ClientBuilder> cbSO = bcr.getBundleContext().getServiceObjects(cbr.getServiceReference());
-		final ClientBuilder cb = cbSO.getService();
 		cb.connectTimeout(100, TimeUnit.SECONDS);
 		cb.readTimeout(100, TimeUnit.SECONDS);
 
@@ -48,7 +50,7 @@ public class PreProvidedTokenTest extends MpJwtAuthTests {
 			assertEquals("run-as", value);
 		} finally {
 			client.close();
-			cbSO.ungetService(cb);
 		}
 	}
+
 }

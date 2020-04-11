@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 
 import org.apache.aries.cdi.test.cases.base.JaxrsBaseTestCase;
 import org.junit.After;
@@ -35,11 +34,11 @@ public class ResourceTests extends JaxrsBaseTestCase {
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
-		cdiBundle = bcr.installBundle("tb24.jar");
+		cdiBundle = installBundle.installBundle("tb24.jar");
 
 		int count = 100;
 		RuntimeDTO runtimeDTO;
-		while ((runtimeDTO = jsrr.getService().getRuntimeDTO()).defaultApplication.resourceDTOs.length < 1 && (count > 0)) {
+		while ((runtimeDTO = jsr.getRuntimeDTO()).defaultApplication.resourceDTOs.length < 1 && (count > 0)) {
 			count--;
 			Thread.sleep(100);
 		}
@@ -56,7 +55,6 @@ public class ResourceTests extends JaxrsBaseTestCase {
 
 	@Test
 	public void test() throws Exception {
-		final ClientBuilder cb = cbr.getService();
 		cb.connectTimeout(1000, TimeUnit.SECONDS);
 		cb.readTimeout(1000, TimeUnit.SECONDS);
 

@@ -25,22 +25,22 @@ public class Test152_2 extends BaseTestCase {
 
 	@Test
 	public void checkUniqueComponentNames() throws Exception {
-		Bundle tb = bcr.installBundle("tb152_2.jar");
+		Bundle tb = installBundle.installBundle("tb152_2.jar");
 
 		getBeanManager(tb);
 
-		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+		ContainerDTO containerDTO = getContainerDTO(tb);
 		assertThat(containerDTO).isNotNull();
 		assertThat(containerDTO.errors).isNotNull().asList().isNotEmpty();
 	}
 
 	@Test
 	public void checkUniqueComponentNames_b() throws Exception {
-		Bundle tb = bcr.installBundle("tb152_2b.jar");
+		Bundle tb = installBundle.installBundle("tb152_2b.jar");
 
 		getBeanManager(tb);
 
-		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+		ContainerDTO containerDTO = getContainerDTO(tb);
 		assertThat(containerDTO).isNotNull();
 		assertThat(containerDTO.errors).isNotNull().asList().isNotEmpty();
 	}

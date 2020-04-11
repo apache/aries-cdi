@@ -18,20 +18,22 @@ import java.util.Collection;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.junit.Rule;
 import org.osgi.service.jaxrs.runtime.JaxrsServiceRuntime;
 import org.osgi.service.jaxrs.runtime.JaxrsServiceRuntimeConstants;
-import org.osgi.test.junit4.service.ServiceUseRule;
+import org.osgi.test.common.annotation.InjectService;
+import org.osgi.test.common.service.ServiceAware;
 
 public abstract class JaxrsBaseTestCase extends HttpBaseTestCase {
 
-	@Rule
-	public ServiceUseRule<JaxrsServiceRuntime> jsrr = new ServiceUseRule.Builder<JaxrsServiceRuntime>(JaxrsServiceRuntime.class, bcr).build();
-	@Rule
-	public ServiceUseRule<ClientBuilder> cbr = new ServiceUseRule.Builder<ClientBuilder>(ClientBuilder.class, bcr).build();
+	@InjectService
+	public JaxrsServiceRuntime jsr;
+	@InjectService
+	public ServiceAware<JaxrsServiceRuntime> jsrSA;
+	@InjectService
+	public ClientBuilder cb;
 
 	public String getJaxrsEndpoint() {
-		Object endpointsObj = jsrr.getServiceReference().getProperty(
+		Object endpointsObj = jsrSA.getServiceReference().getProperty(
 			JaxrsServiceRuntimeConstants.JAX_RS_SERVICE_ENDPOINT);
 
 		if (endpointsObj instanceof String) {

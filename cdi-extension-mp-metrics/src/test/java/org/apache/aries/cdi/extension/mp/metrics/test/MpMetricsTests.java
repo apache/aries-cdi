@@ -29,22 +29,24 @@ import javax.ws.rs.ext.MessageBodyReader;
 
 import org.apache.aries.cdi.extension.mp.metrics.test.interfaces.Pojo;
 import org.assertj.core.api.Assertions;
-import org.junit.Rule;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
-import org.osgi.test.junit4.service.ServiceUseRule;
+import org.osgi.test.common.annotation.InjectService;
 
 public class MpMetricsTests extends JaxrsBaseTestCase {
 
-	@Rule
+	@InjectService
+	ClientBuilder cb;
+
+	@InjectService(filter = "(%s=%s)", filterArguments = {JAX_RS_MEDIA_TYPE, APPLICATION_JSON})
 	@SuppressWarnings("rawtypes")
-	public ServiceUseRule<MessageBodyReader> mbr = new ServiceUseRule.Builder<>(MessageBodyReader.class) //
-		.filter("(%s=%s)", JAX_RS_MEDIA_TYPE, APPLICATION_JSON)
-		.build();
+	MessageBodyReader mbr;
 
 	@Test
 	public void testMetrics() throws Exception {
-		Bundle bundle = bcr.installBundle("tb01.jar");
+		Bundle bundle = installBundle.installBundle("tb01.jar");
+
+		cb.register(mbr);
 
 		try (CloseableTracker<BeanManager, BeanManager> bmt = track(BeanManager.class, "(service.bundleid=%d)", bundle.getBundleId())) {
 			assertThat(bmt.waitForService(timeout)).isNotNull();
@@ -52,9 +54,6 @@ public class MpMetricsTests extends JaxrsBaseTestCase {
 			try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 				Pojo pojo = tracker.waitForService(timeout);
 				assertNotNull(pojo);
-
-				final ClientBuilder cb = cbr.getService();
-				cb.register(mbr.getService());
 
 				WebTarget webTarget = cb.build().target(getJaxrsEndpoint()).path("/metrics/application");
 
