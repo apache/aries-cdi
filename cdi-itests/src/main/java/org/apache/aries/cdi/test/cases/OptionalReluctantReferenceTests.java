@@ -33,7 +33,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 
 	@Test
 	public void applicationScoped() throws Exception {
-		Bundle tb = bcr.installBundle("tb11.jar");
+		Bundle tb = installBundle.installBundle("tb11.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(&(objectClass=%s)(bean.id=as))", Pojo.class.getName());) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -41,16 +41,16 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 			assertEquals(-1, pojo.getCount());
 			assertEquals("-1", pojo.foo(""));
 
-			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+			ContainerDTO containerDTO = getContainerDTO(tb);
 
 			long changeCount = containerDTO.changeCount;
 
-			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(
+			ServiceRegistration<Integer> int1 = bundleContext.registerService(
 				Integer.class, new Integer(12),
 				new Hashtable<>(Collections.singletonMap("bean.id", "as")));
 
 			try {
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -66,11 +66,11 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 				assertEquals("12", pojo.foo(""));
 			}
 			finally {
-				changeCount = getContainerDTO(ccrr.getService(), tb).changeCount;
+				changeCount = getContainerDTO(tb).changeCount;
 
 				int1.unregister();
 
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -84,7 +84,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 
 	@Test
 	public void singleComponent() throws Exception {
-		Bundle tb = bcr.installBundle("tb11.jar");
+		Bundle tb = installBundle.installBundle("tb11.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(&(objectClass=%s)(bean.id=sc))", Pojo.class.getName());) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -92,16 +92,16 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 			assertEquals(-1, pojo.getCount());
 			assertEquals("-1", pojo.foo(""));
 
-			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+			ContainerDTO containerDTO = getContainerDTO(tb);
 
 			long changeCount = containerDTO.changeCount;
 
-			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(
+			ServiceRegistration<Integer> int1 = bundleContext.registerService(
 				Integer.class, new Integer(12),
 				new Hashtable<>(Collections.singletonMap("bean.id", "sc")));
 
 			try {
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -117,11 +117,11 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 				assertEquals("12", pojo.foo(""));
 			}
 			finally {
-				changeCount = getContainerDTO(ccrr.getService(), tb).changeCount;
+				changeCount = getContainerDTO(tb).changeCount;
 
 				int1.unregister();
 
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -135,7 +135,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 
 	@Test
 	public void factoryComponent() throws Exception {
-		Bundle tb = bcr.installBundle("tb11.jar");
+		Bundle tb = installBundle.installBundle("tb11.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(&(objectClass=%s)(bean.id=fc))", Pojo.class.getName());) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -144,7 +144,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 
 			int trackingCount = tracker.getTrackingCount();
 
-			Configuration configuration = car.getService().createFactoryConfiguration("optionalReference_FC");
+			Configuration configuration = car.createFactoryConfiguration("optionalReference_FC");
 			configuration.update(new Hashtable<>(Collections.singletonMap("foo", "bar")));
 
 			for (long i = 10; i > 0 && (tracker.getTrackingCount() == trackingCount); i--) {
@@ -156,16 +156,16 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 			assertEquals(-1, pojo.getCount());
 			assertEquals("-1", pojo.foo(""));
 
-			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+			ContainerDTO containerDTO = getContainerDTO(tb);
 
 			long changeCount = containerDTO.changeCount;
 
-			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(
+			ServiceRegistration<Integer> int1 = bundleContext.registerService(
 				Integer.class, new Integer(12),
 				new Hashtable<>(Collections.singletonMap("bean.id", "fc")));
 
 			try {
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -181,11 +181,11 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 				assertEquals("12", pojo.foo(""));
 			}
 			finally {
-				changeCount = getContainerDTO(ccrr.getService(), tb).changeCount;
+				changeCount = getContainerDTO(tb).changeCount;
 
 				int1.unregister();
 
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 

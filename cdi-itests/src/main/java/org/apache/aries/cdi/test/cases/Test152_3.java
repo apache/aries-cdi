@@ -29,7 +29,7 @@ public class Test152_3 extends SlimBaseTestCase {
 
 	@Test
 	public void componentScopeContext() throws Exception {
-		Bundle tbBundle = bcr.installBundle("tb152_3.jar");
+		Bundle tbBundle = installBundle.installBundle("tb152_3.jar");
 
 		try (CloseableTracker<Object, Object> oneTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "one");
 				CloseableTracker<Object, Object> twoTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "two")) {

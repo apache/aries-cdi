@@ -31,7 +31,7 @@ public class BeanPropertyTypeTest extends SlimBaseTestCase {
 
 	@Test
 	public void beanPropertyAnnotationsWereUsed() throws Exception {
-		Bundle tbBundle = bcr.installBundle("tb13.jar");
+		Bundle tbBundle = installBundle.installBundle("tb13.jar");
 
 		getBeanManager(tbBundle);
 

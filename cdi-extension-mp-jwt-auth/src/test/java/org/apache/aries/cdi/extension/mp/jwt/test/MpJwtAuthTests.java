@@ -23,11 +23,11 @@ public class MpJwtAuthTests extends JaxrsBaseTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		bcr.installBundle("tb01.jar");
+		installBundle.installBundle("tb01.jar");
 
 		int count = 100;
 		RuntimeDTO runtimeDTO;
-		while ((runtimeDTO = jsrr.getService().getRuntimeDTO()).defaultApplication.resourceDTOs.length < 3 && (count > 0)) {
+		while ((runtimeDTO = jsr.getRuntimeDTO()).defaultApplication.resourceDTOs.length < 3 && (count > 0)) {
 			count--;
 			Thread.sleep(100);
 		}

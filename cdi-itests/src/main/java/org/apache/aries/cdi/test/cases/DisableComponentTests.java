@@ -31,7 +31,7 @@ public class DisableComponentTests extends SlimBaseTestCase {
 
 	@Test
 	public void testDisableContainerComponent() throws Exception {
-		Bundle tb8Bundle = bcr.installBundle("tb8.jar");
+		Bundle tb8Bundle = installBundle.installBundle("tb8.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track(
 				"(&(objectClass=%s)(objectClass=*.%s)(service.bundleid=%s))",
@@ -46,7 +46,7 @@ public class DisableComponentTests extends SlimBaseTestCase {
 			Configuration configurationA = null;
 
 			try {
-				configurationA = car.getService().getConfiguration("osgi.cdi.cdi.itests.tb8", "?");
+				configurationA = car.getConfiguration("osgi.cdi.cdi.itests.tb8", "?");
 
 				Dictionary<String, Object> p1 = new Hashtable<>();
 				p1.put("cdi-itests.tb8.enabled", false);
@@ -89,7 +89,7 @@ public class DisableComponentTests extends SlimBaseTestCase {
 
 	@Test
 	public void testDisableSingleComponent() throws Exception {
-		Bundle tb8Bundle = bcr.installBundle("tb8.jar");
+		Bundle tb8Bundle = installBundle.installBundle("tb8.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s)(service.bundleid=%s))",
@@ -104,7 +104,7 @@ public class DisableComponentTests extends SlimBaseTestCase {
 			Configuration configurationA = null;
 
 			try {
-				configurationA = car.getService().getConfiguration("osgi.cdi.cdi.itests.tb8", "?");
+				configurationA = car.getConfiguration("osgi.cdi.cdi.itests.tb8", "?");
 
 				Dictionary<String, Object> p1 = new Hashtable<>();
 				p1.put("singleComponentBean.enabled", false);

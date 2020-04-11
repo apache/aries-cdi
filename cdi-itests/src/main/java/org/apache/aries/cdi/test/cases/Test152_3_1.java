@@ -39,7 +39,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 	@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 	@Test
 	public void checkSingleComponentContextEvents() throws Exception {
-		Bundle tb152_3_1Bundle = bcr.installBundle("tb152_3_1.jar");
+		Bundle tb152_3_1Bundle = installBundle.installBundle("tb152_3_1.jar");
 
 		AtomicReference<Object[]> a = new AtomicReference<>();
 		AtomicReference<Object[]> b = new AtomicReference<>();
@@ -64,15 +64,15 @@ public class Test152_3_1 extends SlimBaseTestCase {
 			return null;
 		};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Function.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Function.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Function.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
@@ -86,7 +86,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 			twoTracker.open();
 			int trackingCount = twoTracker.getTrackingCount();
 
-			ServiceRegistration<Integer> integerReg = bcr.getBundleContext().registerService(
+			ServiceRegistration<Integer> integerReg = bundleContext.registerService(
 				Integer.class, new Integer(45),
 				new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "two");}});
 
@@ -135,7 +135,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 	@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 	@Test
 	public void checkFactoryComponentContextEvents() throws Exception {
-		Bundle tb152_3_1Bundle = bcr.installBundle("tb152_3_1.jar");
+		Bundle tb152_3_1Bundle = installBundle.installBundle("tb152_3_1.jar");
 
 		AtomicReference<Object[]> a = new AtomicReference<>();
 		AtomicReference<Object[]> b = new AtomicReference<>();
@@ -160,15 +160,15 @@ public class Test152_3_1 extends SlimBaseTestCase {
 			return null;
 		};
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Function.class, onInitialized,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onInitialized");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Function.class, onBeforeDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onBeforeDestroyed");}});
 
-		bcr.getBundleContext().registerService(
+		bundleContext.registerService(
 			Function.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
@@ -184,7 +184,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 			threeTracker.open();
 			int trackingCount = threeTracker.getTrackingCount();
 
-			ServiceRegistration<Integer> integerReg = bcr.getBundleContext().registerService(
+			ServiceRegistration<Integer> integerReg = bundleContext.registerService(
 				Integer.class, new Integer(45),
 				new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "three");}});
 
@@ -196,7 +196,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 			assertThat(b.get()).isNull();
 			assertThat(c.get()).isNull();
 
-			configuration = car.getService().createFactoryConfiguration("three");
+			configuration = car.createFactoryConfiguration("three");
 			configuration.update(new Hashtable() {{put("foo", "bar");}});
 
 			count = 10;

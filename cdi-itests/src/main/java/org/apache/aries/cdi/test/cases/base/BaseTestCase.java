@@ -37,6 +37,7 @@ import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleWire;
@@ -46,8 +47,12 @@ import org.osgi.service.cdi.CDIConstants;
 import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.test.common.annotation.InjectBundleContext;
+import org.osgi.test.common.annotation.InjectInstallBundle;
+import org.osgi.test.common.annotation.InjectService;
+import org.osgi.test.common.install.InstallBundle;
 import org.osgi.test.junit4.context.BundleContextRule;
-import org.osgi.test.junit4.service.ServiceUseRule;
+import org.osgi.test.junit4.service.ServiceRule;
 import org.osgi.util.promise.PromiseFactory;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
@@ -61,9 +66,16 @@ public abstract class BaseTestCase {
 	@Rule
 	public BundleContextRule bcr = new BundleContextRule();
 	@Rule
-	public ServiceUseRule<CDIComponentRuntime> ccrr = new ServiceUseRule.Builder<CDIComponentRuntime>(CDIComponentRuntime.class, bcr).build();
-	@Rule
-	public ServiceUseRule<ConfigurationAdmin> car = new ServiceUseRule.Builder<ConfigurationAdmin>(ConfigurationAdmin.class, bcr).build();
+	public ServiceRule sr = new ServiceRule();
+
+	@InjectBundleContext
+	public BundleContext bundleContext;
+	@InjectInstallBundle
+	public InstallBundle installBundle;
+	@InjectService
+	public CDIComponentRuntime ccr;
+	@InjectService
+	public ConfigurationAdmin car;
 
 	@Rule
 	public TestWatcher watchman= new TestWatcher() {
@@ -80,9 +92,9 @@ public abstract class BaseTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		servicesBundle = bcr.installBundle("services-one.jar", false);
+		servicesBundle = installBundle.installBundle("services-one.jar", false);
 		servicesBundle.start();
-		cdiBundle = bcr.installBundle("basic-beans.jar", false);
+		cdiBundle = installBundle.installBundle("basic-beans.jar", false);
 		cdiBundle.start();
 	}
 
@@ -124,12 +136,12 @@ public abstract class BaseTestCase {
 		return null;
 	}
 
-	public ContainerDTO getContainerDTO(CDIComponentRuntime runtime, Bundle bundle) {
+	public ContainerDTO getContainerDTO(Bundle bundle) {
 		Iterator<ContainerDTO> iterator;
 		ContainerDTO containerDTO = null;
 		int attempts = 50;
 		while (--attempts > 0) {
-			iterator = ccrr.getService().getContainerDTOs(bundle).iterator();
+			iterator = ccr.getContainerDTOs(bundle).iterator();
 			if (iterator.hasNext()) {
 				containerDTO = iterator.next();
 				if (containerDTO != null) {

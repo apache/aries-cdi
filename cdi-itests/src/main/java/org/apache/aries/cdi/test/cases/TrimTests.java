@@ -26,9 +26,9 @@ public class TrimTests extends SlimBaseTestCase {
 
 	@Test
 	public void testTrimmed() throws Exception {
-		Bundle tb2Bundle = bcr.installBundle("tb17.jar");
+		Bundle tb2Bundle = installBundle.installBundle("tb17.jar");
 
-		ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb2Bundle);
+		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);
 
 		assertEquals(5, containerDTO.template.components.get(0).beans.size());

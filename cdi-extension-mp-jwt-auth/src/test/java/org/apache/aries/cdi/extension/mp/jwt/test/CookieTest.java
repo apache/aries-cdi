@@ -26,19 +26,17 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Cookie;
 
 import org.eclipse.microprofile.jwt.tck.util.TokenUtils;
-import org.junit.Rule;
 import org.junit.Test;
-import org.osgi.test.junit4.service.ServiceUseRule;
+import org.osgi.test.common.annotation.InjectService;
 
 // NOTE: reuses tck resources and token generation
 public class CookieTest extends MpJwtAuthTests {
-	@Rule
-	public ServiceUseRule<ClientBuilder> cbr = new ServiceUseRule.Builder<>(ClientBuilder.class) //
-		.build();
+
+	@InjectService
+	ClientBuilder cb;
 
 	@Test
 	public void test() throws Exception {
-		final ClientBuilder cb = cbr.getService();
 		cb.connectTimeout(1000, TimeUnit.SECONDS);
 		cb.readTimeout(1000, TimeUnit.SECONDS);
 

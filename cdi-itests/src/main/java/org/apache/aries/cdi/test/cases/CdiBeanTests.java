@@ -123,7 +123,7 @@ public class CdiBeanTests extends BaseTestCase {
 			assertNotNull(beanService);
 			assertEquals("PREFIXMETHOD", beanService.doSomething());
 
-			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), cdiBundle);
+			ContainerDTO containerDTO = getContainerDTO(cdiBundle);
 			assertNotNull(containerDTO);
 
 			ComponentDTO containerComponentDTO = containerDTO.components.stream().filter(

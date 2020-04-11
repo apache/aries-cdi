@@ -30,7 +30,7 @@ public class EventsTests extends SlimBaseTestCase {
 
 	@Test
 	public void testContainerComponentReferenceEventHandler() throws Exception {
-		Bundle tb = bcr.installBundle("tb9.jar");
+		Bundle tb = installBundle.installBundle("tb9.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -38,14 +38,14 @@ public class EventsTests extends SlimBaseTestCase {
 			assertEquals(0, pojo.getCount());
 			assertEquals("[]", pojo.foo(null));
 
-			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+			ContainerDTO containerDTO = getContainerDTO(tb);
 
 			long changeCount = containerDTO.changeCount;
 
 			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(Integer.class, new Integer(12), null);
 
 			try {
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -58,7 +58,7 @@ public class EventsTests extends SlimBaseTestCase {
 				properties.put("foo", "bar");
 				int1.setProperties(properties);
 
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -69,7 +69,7 @@ public class EventsTests extends SlimBaseTestCase {
 
 				int1.unregister();
 
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -81,7 +81,7 @@ public class EventsTests extends SlimBaseTestCase {
 
 	@Test
 	public void testSingleComponentReferenceEventHandler() throws Exception {
-		Bundle tb = bcr.installBundle("tb10.jar");
+		Bundle tb = installBundle.installBundle("tb10.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -89,14 +89,14 @@ public class EventsTests extends SlimBaseTestCase {
 			assertEquals(0, pojo.getCount());
 			assertEquals("[]", pojo.foo(null));
 
-			ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb);
+			ContainerDTO containerDTO = getContainerDTO(tb);
 
 			long changeCount = containerDTO.changeCount;
 
 			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(Integer.class, new Integer(12), null);
 
 			try {
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -109,7 +109,7 @@ public class EventsTests extends SlimBaseTestCase {
 				properties.put("foo", "bar");
 				int1.setProperties(properties);
 
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 
@@ -120,7 +120,7 @@ public class EventsTests extends SlimBaseTestCase {
 
 				int1.unregister();
 
-				for (long i = 10; i > 0 && (getContainerDTO(ccrr.getService(), tb).changeCount == changeCount); i--) {
+				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
 					Thread.sleep(20);
 				}
 

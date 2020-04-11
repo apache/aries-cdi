@@ -19,7 +19,7 @@
 -runblacklist: \
 	osgi.identity;filter:='(osgi.identity=*weld*)'
 -runbundles: \
-	biz.aQute.junit;version='[5.0.1,5.0.2)',\
+	assertj-core;version='[3.15.0,3.15.1)',\
 	javax.servlet.jsp-api;version='[2.3.3,2.3.4)',\
 	openwebbeans-impl;version='[2.0.13,2.0.14)',\
 	openwebbeans-spi;version='[2.0.13,2.0.14)',\
@@ -55,12 +55,13 @@
 	org.apache.geronimo.specs.geronimo-jcdi_2.0_spec;version='[1.1.0,1.1.1)',\
 	org.apache.httpcomponents.httpclient;version='[4.5.3,4.5.4)',\
 	org.apache.httpcomponents.httpcore;version='[4.4.6,4.4.7)',\
+	org.apache.servicemix.bundles.junit;version='[4.12.0,4.12.1)',\
 	org.apache.xbean.asm7-shaded;version='[4.13.0,4.13.1)',\
 	org.apache.xbean.bundleutils;version='[4.15.0,4.15.1)',\
 	org.apache.xbean.finder-shaded;version='[4.13.0,4.13.1)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
 	org.osgi.service.jaxrs;version='[1.0.0,1.0.1)',\
-	org.osgi.test.common;version='[1.0.0,1.0.1)',\
-	org.osgi.test.junit4;version='[1.0.0,1.0.1)',\
+	org.osgi.test.common;version='[0.9.0,0.9.1)',\
+	org.osgi.test.junit4;version='[0.9.0,0.9.1)',\
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
 	org.osgi.util.promise;version='[1.1.0,1.1.1)'

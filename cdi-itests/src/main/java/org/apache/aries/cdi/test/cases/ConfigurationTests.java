@@ -43,7 +43,7 @@ public class ConfigurationTests extends SlimBaseTestCase {
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testConfiguration() throws Exception {
-		Bundle tb3Bundle = bcr.installBundle("tb3.jar");
+		Bundle tb3Bundle = installBundle.installBundle("tb3.jar");
 
 		Configuration configurationA = null, configurationB = null;
 
@@ -52,7 +52,7 @@ public class ConfigurationTests extends SlimBaseTestCase {
 			ComponentDTO configurationBeanA = null;
 
 			while (--attempts > 0) {
-				ContainerDTO containerDTO = getContainerDTO(ccrr.getService(), tb3Bundle);
+				ContainerDTO containerDTO = getContainerDTO(tb3Bundle);
 
 				configurationBeanA = containerDTO.components.stream().filter(
 					c -> c.template.name.equals("configurationBeanA")
@@ -74,7 +74,7 @@ public class ConfigurationTests extends SlimBaseTestCase {
 				)
 			);
 
-			configurationA = car.getService().getConfiguration("configurationBeanA", "?");
+			configurationA = car.getConfiguration("configurationBeanA", "?");
 
 			Dictionary<String, Object> p1 = new Hashtable<>();
 			p1.put("ports", new int[] {12, 4567});
@@ -86,7 +86,7 @@ public class ConfigurationTests extends SlimBaseTestCase {
 				)
 			);
 
-			configurationB = car.getService().getConfiguration("configurationBeanB", "?");
+			configurationB = car.getConfiguration("configurationBeanB", "?");
 
 			Dictionary<String, Object> p2 = new Hashtable<>();
 			p2.put("color", "green");
@@ -161,7 +161,7 @@ public class ConfigurationTests extends SlimBaseTestCase {
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testOptionalConfiguration() throws Exception {
-		bcr.installBundle("tb5.jar");
+		installBundle.installBundle("tb5.jar");
 
 		Configuration configurationC = null;
 
@@ -173,7 +173,7 @@ public class ConfigurationTests extends SlimBaseTestCase {
 			assertArrayEquals(new int[] {35777}, beanService.get().call());
 		}
 
-		configurationC = car.getService().getConfiguration("foo.bar", "?");
+		configurationC = car.getConfiguration("foo.bar", "?");
 
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put("ports", new int[] {12, 4567});

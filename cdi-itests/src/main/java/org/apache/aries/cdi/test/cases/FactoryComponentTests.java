@@ -32,7 +32,7 @@ public class FactoryComponentTests extends SlimBaseTestCase {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testFactoryComponent() throws Exception {
-		bcr.installBundle("tb7.jar");
+		installBundle.installBundle("tb7.jar");
 
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",
@@ -54,7 +54,7 @@ public class FactoryComponentTests extends SlimBaseTestCase {
 					BeanService.class.getName(),
 					"ConfigurationBeanF")) {
 
-				configurationA = car.getService().getFactoryConfiguration("configurationBeanF", "one");
+				configurationA = car.getFactoryConfiguration("configurationBeanF", "one");
 
 				Dictionary<String, Object> p1 = new Hashtable<>();
 				p1.put("ports", new int[] {12, 4567});
@@ -65,7 +65,7 @@ public class FactoryComponentTests extends SlimBaseTestCase {
 
 				assertNotNull(beanServiceA);
 
-				configurationB = car.getService().getFactoryConfiguration("configurationBeanF", "two");
+				configurationB = car.getFactoryConfiguration("configurationBeanF", "two");
 
 				p1 = new Hashtable<>();
 				p1.put("ports", new int[] {45689, 1065});

@@ -26,8 +26,12 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cdi.runtime.CDIComponentRuntime;
+import org.osgi.test.common.annotation.InjectBundleContext;
+import org.osgi.test.common.annotation.InjectInstallBundle;
+import org.osgi.test.common.annotation.InjectService;
+import org.osgi.test.common.install.InstallBundle;
 import org.osgi.test.junit4.context.BundleContextRule;
-import org.osgi.test.junit4.service.ServiceUseRule;
+import org.osgi.test.junit4.service.ServiceRule;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
@@ -38,7 +42,14 @@ public abstract class BaseTestCase {
 	@Rule
 	public BundleContextRule bcr = new BundleContextRule();
 	@Rule
-	public ServiceUseRule<CDIComponentRuntime> ccrr = new ServiceUseRule.Builder<CDIComponentRuntime>(CDIComponentRuntime.class, bcr).build();
+	public ServiceRule sr = new ServiceRule();
+
+	@InjectBundleContext
+	BundleContext bundleContext;
+	@InjectInstallBundle
+	InstallBundle installBundle;
+	@InjectService
+	CDIComponentRuntime ccrr;
 
 	@Rule
 	public TestWatcher watchman= new TestWatcher() {
@@ -53,8 +64,20 @@ public abstract class BaseTestCase {
 		}
 	};
 
+	public <S,T> CloseableTracker<S, T> track(Class<S> typeToTrack) {
+		CloseableTracker<S, T> tracker = new CloseableTracker<>(bundleContext, typeToTrack);
+		tracker.open();
+		return tracker;
+	}
+
+	public <S,T> CloseableTracker<S, T> track(Class<S> typeToTrack, String pattern, Object... objects) {
+		CloseableTracker<S, T> tracker = new CloseableTracker<>(bundleContext, format("(&(objectClass=%s)%s)", typeToTrack.getName(), format(pattern, objects)));
+		tracker.open();
+		return tracker;
+	}
+
 	public <S,T> CloseableTracker<S, T> track(Filter filter) {
-		CloseableTracker<S, T> tracker = new CloseableTracker<>(bcr.getBundleContext(), filter);
+		CloseableTracker<S, T> tracker = new CloseableTracker<>(bundleContext, filter);
 		tracker.open();
 		return tracker;
 	}
@@ -68,7 +91,7 @@ public abstract class BaseTestCase {
 	}
 
 	public <S> CloseableTracker<S, ServiceReference<S>> trackSR(Filter filter) {
-		CloseableTracker<S, ServiceReference<S>> tracker = new CloseableTracker<>(bcr.getBundleContext(), filter, new ServiceTrackerCustomizer<S, ServiceReference<S>>() {
+		CloseableTracker<S, ServiceReference<S>> tracker = new CloseableTracker<>(bundleContext, filter, new ServiceTrackerCustomizer<S, ServiceReference<S>>() {
 
 			@Override
 			public ServiceReference<S> addingService(ServiceReference<S> reference) {
@@ -111,6 +134,10 @@ public abstract class BaseTestCase {
 	}
 
 	public static class CloseableTracker<S, T> extends ServiceTracker<S, T> implements AutoCloseable {
+
+		public CloseableTracker(BundleContext context, Class<S> typeToTrack) {
+			super(context, typeToTrack, null);
+		}
 
 		public CloseableTracker(BundleContext context, Filter filter) {
 			super(context, filter, null);

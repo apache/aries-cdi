@@ -28,11 +28,11 @@ public class Test_discoverByBeansXml extends SlimBaseTestCase {
 
 	@Test
 	public void componentScopeContext() throws Exception {
-		Bundle tbBundle = bcr.installBundle("tb14.jar");
+		Bundle tbBundle = installBundle.installBundle("tb14.jar");
 
 		getBeanManager(tbBundle);
 
-		ContainerTemplateDTO containerTemplateDTO = ccrr.getService().getContainerTemplateDTO(tbBundle);
+		ContainerTemplateDTO containerTemplateDTO = ccr.getContainerTemplateDTO(tbBundle);
 
 		assertThat(containerTemplateDTO).isNotNull();
 

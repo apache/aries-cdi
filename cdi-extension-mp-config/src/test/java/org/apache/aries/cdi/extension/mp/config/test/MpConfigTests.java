@@ -26,7 +26,7 @@ public class MpConfigTests extends BaseTestCase {
 
 	@Test
 	public void testConfigIsSet() throws Exception {
-		Bundle bundle = bcr.installBundle("tb01.jar");
+		Bundle bundle = installBundle.installBundle("tb01.jar");
 
 		try (CloseableTracker<BeanManager, BeanManager> bmt = track(BeanManager.class, "(service.bundleid=%d)", bundle.getBundleId())) {
 			assertThat(bmt.waitForService(timeout)).isNotNull();

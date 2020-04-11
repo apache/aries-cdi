@@ -37,8 +37,8 @@ public class HttpTestCase extends HttpBaseTestCase {
 
 	@Test
 	public void testSessionScoped() throws Exception {
-		bcr.installBundle("tb6.jar");
-		bcr.installBundle("tb2.jar");
+		installBundle.installBundle("tb6.jar");
+		installBundle.installBundle("tb2.jar");
 
 		String path = "/foo";
 
@@ -46,7 +46,7 @@ public class HttpTestCase extends HttpBaseTestCase {
 
 		assertEquals("foo", servletDTO.name);
 
-		HttpClientBuilder clientBuilder = hcbfr.getService().newBuilder();
+		HttpClientBuilder clientBuilder = hcbf.newBuilder();
 		CloseableHttpClient httpclient = clientBuilder.build();
 
 		CookieStore cookieStore = new BasicCookieStore();
@@ -95,8 +95,8 @@ public class HttpTestCase extends HttpBaseTestCase {
 
 	@Test
 	public void testRequestScopedWithReference() throws Exception {
-		bcr.installBundle("tb6.jar");
-		bcr.installBundle("tb2.jar");
+		installBundle.installBundle("tb6.jar");
+		installBundle.installBundle("tb2.jar");
 
 		String path = "/bar";
 
@@ -104,7 +104,7 @@ public class HttpTestCase extends HttpBaseTestCase {
 
 		assertEquals("bar", servletDTO.name);
 
-		HttpClientBuilder clientBuilder = hcbfr.getService().newBuilder();
+		HttpClientBuilder clientBuilder = hcbf.newBuilder();
 		CloseableHttpClient httpclient = clientBuilder.build();
 
 		CookieStore cookieStore = new BasicCookieStore();

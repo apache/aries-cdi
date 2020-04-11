@@ -21,25 +21,27 @@ import java.io.InputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.osgi.services.HttpClientBuilderFactory;
 import org.assertj.core.util.Arrays;
-import org.junit.Rule;
 import org.osgi.service.http.runtime.HttpServiceRuntime;
 import org.osgi.service.http.runtime.dto.ServletContextDTO;
 import org.osgi.service.http.runtime.dto.ServletDTO;
 import org.osgi.service.http.whiteboard.HttpWhiteboardConstants;
-import org.osgi.test.junit4.service.ServiceUseRule;
+import org.osgi.test.common.annotation.InjectService;
+import org.osgi.test.common.service.ServiceAware;
 
 public abstract class HttpBaseTestCase extends SlimBaseTestCase {
 
-	@Rule
-	public ServiceUseRule<HttpServiceRuntime> hsrr = new ServiceUseRule.Builder<HttpServiceRuntime>(HttpServiceRuntime.class, bcr).build();
-	@Rule
-	public ServiceUseRule<HttpClientBuilderFactory> hcbfr = new ServiceUseRule.Builder<HttpClientBuilderFactory>(HttpClientBuilderFactory.class, bcr).build();
+	@InjectService
+	public HttpServiceRuntime hsr;
+	@InjectService
+	public ServiceAware<HttpServiceRuntime> hsrSA;
+	@InjectService
+	public HttpClientBuilderFactory hcbf;
 
 	public String getHttpEndpoint() {
-		String[] endpoints = (String[])hsrr.getServiceReference().getProperty("osgi.http.endpoint");
+		String[] endpoints = (String[])hsrSA.getServiceReference().getProperty("osgi.http.endpoint");
 
 		if (endpoints == null || endpoints.length == 0) {
-			String port = (String)hsrr.getServiceReference().getProperty("org.osgi.service.http.port");
+			String port = (String)hsrSA.getServiceReference().getProperty("org.osgi.service.http.port");
 			return "http://localhost:" + port;
 		}
 
@@ -65,7 +67,7 @@ public abstract class HttpBaseTestCase extends SlimBaseTestCase {
 
 	public ServletDTO waitFor(String path, int intervals) throws InterruptedException {
 		for (int j = intervals; j > 0; j--) {
-			for (ServletContextDTO scDTO : hsrr.getService().getRuntimeDTO().servletContextDTOs) {
+			for (ServletContextDTO scDTO : hsr.getRuntimeDTO().servletContextDTOs) {
 				if (scDTO.name.equals(HttpWhiteboardConstants.HTTP_WHITEBOARD_DEFAULT_CONTEXT_NAME)) {
 					for (ServletDTO sDTO : scDTO.servletDTOs) {
 						if (Arrays.asList(sDTO.patterns).contains(path)) {

@@ -147,8 +147,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.test.assertj</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.test.junit4</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<scope>compile</scope>
 		</dependency>
 
 		<!-- RUNTIME dependencies not found in BOMs -->
