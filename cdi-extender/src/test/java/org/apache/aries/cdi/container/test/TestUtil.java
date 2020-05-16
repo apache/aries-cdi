@@ -14,9 +14,12 @@
 
 package org.apache.aries.cdi.container.test;
 
-import static org.apache.aries.cdi.container.internal.util.Reflection.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.apache.aries.cdi.container.internal.util.Reflection.cast;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.net.URL;
 import java.util.AbstractMap.SimpleEntry;
@@ -245,31 +248,31 @@ public class TestUtil {
 		when(lf.getLogger(any(Class.class))).then(
 			(Answer<Logger>) getLogger -> {
 				Class<?> clazz = getLogger.getArgument(0);
-				return new Sfl4jLogger(clazz.getName());
+				return Logs.getLoggerProxy(new Sfl4jLogger(clazz.getName()));
 			}
 		);
 		when(lf.getLogger(anyString())).then(
 			(Answer<Logger>) getLogger -> {
 				String name = getLogger.getArgument(0);
-				return new Sfl4jLogger(name);
+				return Logs.getLoggerProxy(new Sfl4jLogger(name));
 			}
 		);
 		when(lf.getLogger(any(Class.class), any())).then(
 			(Answer<Logger>) getLogger -> {
 				Class<?> clazz = getLogger.getArgument(0);
-				return new Sfl4jLogger(clazz.getName());
+				return Logs.getLoggerProxy(new Sfl4jLogger(clazz.getName()));
 			}
 		);
 		when(lf.getLogger(anyString(), any())).then(
 			(Answer<Logger>) getLogger -> {
 				String name = getLogger.getArgument(0);
-				return new Sfl4jLogger(name);
+				return Logs.getLoggerProxy(new Sfl4jLogger(name));
 			}
 		);
 		when(lf.getLogger(any(), anyString(), any())).then(
 			(Answer<Logger>) getLogger -> {
 				String name = getLogger.getArgument(1);
-				return new Sfl4jLogger(name);
+				return Logs.getLoggerProxy(new Sfl4jLogger(name));
 			}
 		);
 		bundle.getBundleContext().registerService(LoggerFactory.class, lf, null);

@@ -14,6 +14,13 @@
 
 package org.apache.aries.cdi.container.internal.util;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.Logger;
 import org.osgi.service.log.LoggerConsumer;
@@ -59,7 +66,12 @@ public class Logs {
 			return _loggerFactory.getLogger(name);
 		}
 
-		return new SysoutLogger(name);
+		return getLoggerProxy(new SysoutLogger(name));
+	}
+
+	public static Logger getLoggerProxy(InvocationHandler invocationHandler) {
+		return (Logger)Proxy.newProxyInstance(
+			Logs.class.getClassLoader(), new Class<?>[] {Logger.class}, invocationHandler);
 	}
 
 	public LoggerFactory getLoggerFactory() {
@@ -68,57 +80,22 @@ public class Logs {
 
 	private final LoggerFactory _loggerFactory;
 
-	private static abstract class BaseLogger implements Logger {
+	public static class SysoutLogger implements InvocationHandler {
 
-		@Override
-		public <E extends Exception> void debug(LoggerConsumer<E> consumer) throws E {
-			if (isDebugEnabled())
-				consumer.accept(this);
+		static final Map<Method, Method> methodMap = new ConcurrentHashMap<>();
+
+		static {
+			Method[] handlerMethods = SysoutLogger.class.getDeclaredMethods();
+
+			for (Method handlerMethod : handlerMethods) {
+				try {
+					Method method = Logger.class.getMethod(handlerMethod.getName(), handlerMethod.getParameterTypes());
+					methodMap.put(method, handlerMethod);
+				} catch (NoSuchMethodException | SecurityException e) {
+					// nothing to do
+				}
+			}
 		}
-
-		@Override
-		public <E extends Exception> void error(LoggerConsumer<E> consumer) throws E {
-			if (isErrorEnabled())
-				consumer.accept(this);
-		}
-
-		@Override
-		public <E extends Exception> void info(LoggerConsumer<E> consumer) throws E {
-			if (isInfoEnabled())
-				consumer.accept(this);
-		}
-
-		@Override
-		public <E extends Exception> void trace(LoggerConsumer<E> consumer) throws E {
-			if (isTraceEnabled())
-				consumer.accept(this);
-		}
-
-		@Override
-		public <E extends Exception> void warn(LoggerConsumer<E> consumer) throws E {
-			if (isWarnEnabled())
-				consumer.accept(this);
-		}
-
-		@Override
-		public void audit(String message) {
-		}
-
-		@Override
-		public void audit(String format, Object arg) {
-		}
-
-		@Override
-		public void audit(String format, Object arg1, Object arg2) {
-		}
-
-		@Override
-		public void audit(String format, Object... arguments) {
-		}
-
-	}
-
-	public static class SysoutLogger extends BaseLogger {
 
 		private final String name;
 
@@ -127,113 +104,130 @@ public class Logs {
 		}
 
 		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+			Method handlerMethod = methodMap.get(method);
+
+			if (handlerMethod != null) {
+				try {
+					if (handlerMethod != null) {
+						return handlerMethod.invoke(this, args);
+					}
+				} catch (InvocationTargetException e) {
+					throw e.getCause();
+				}
+			}
+			return method.invoke(this, args);
+		}
+
+		public void audit(String message) {
+		}
+
+		public void audit(String format, Object arg) {
+		}
+
+		public void audit(String format, Object arg1, Object arg2) {
+		}
+
+		public void audit(String format, Object... arguments) {
+		}
+
 		public void debug(String message) {
 		}
 
-		@Override
 		public void debug(String format, Object arg) {
 		}
 
-		@Override
 		public void debug(String format, Object arg1, Object arg2) {
 		}
 
-		@Override
 		public void debug(String format, Object... arguments) {
 		}
 
-		@Override
+		public <E extends Exception> void debug(LoggerConsumer<E> consumer) throws E {
+		}
+
 		public void error(String message) {
 		}
 
-		@Override
 		public void error(String format, Object arg) {
 		}
 
-		@Override
 		public void error(String format, Object arg1, Object arg2) {
 		}
 
-		@Override
 		public void error(String format, Object... arguments) {
 		}
 
-		@Override
+		public <E extends Exception> void error(LoggerConsumer<E> consumer) throws E {
+		}
+
 		public String getName() {
 			return name;
 		}
 
-		@Override
 		public void info(String message) {
 		}
 
-		@Override
 		public void info(String format, Object arg) {
 		}
 
-		@Override
 		public void info(String format, Object arg1, Object arg2) {
 		}
 
-		@Override
 		public void info(String format, Object... arguments) {
 		}
 
-		@Override
+		public <E extends Exception> void info(LoggerConsumer<E> consumer) throws E {
+		}
+
 		public boolean isDebugEnabled() {
-			return true;
+			return false;
 		}
 
-		@Override
 		public boolean isErrorEnabled() {
-			return true;
+			return false;
 		}
 
-		@Override
 		public boolean isInfoEnabled() {
-			return true;
+			return false;
 		}
 
-		@Override
 		public boolean isTraceEnabled() {
-			return true;
+			return false;
 		}
 
-		@Override
 		public boolean isWarnEnabled() {
-			return true;
+			return false;
 		}
 
-		@Override
 		public void trace(String message) {
 		}
 
-		@Override
 		public void trace(String format, Object arg) {
 		}
 
-		@Override
 		public void trace(String format, Object arg1, Object arg2) {
 		}
 
-		@Override
 		public void trace(String format, Object... arguments) {
 		}
 
-		@Override
+		public <E extends Exception> void trace(LoggerConsumer<E> consumer) throws E {
+		}
+
 		public void warn(String message) {
 		}
 
-		@Override
 		public void warn(String format, Object arg) {
 		}
 
-		@Override
 		public void warn(String format, Object arg1, Object arg2) {
 		}
 
-		@Override
 		public void warn(String format, Object... arguments) {
+		}
+
+		public <E extends Exception> void warn(LoggerConsumer<E> consumer) throws E {
 		}
 
 	}
