@@ -51,6 +51,7 @@
 				<artifactId>bnd-maven-plugin</artifactId>
 				<configuration>
 					<bnd><![CDATA[
+                        Import-Package: org.osgi.framework;version='[1.9,2)', *
 						-cdiannotations:
 					]]></bnd>
 				</configuration>
