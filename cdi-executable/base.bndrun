@@ -35,7 +35,8 @@
 	org.slf4j.helpers;version=1.7.28,\
 	org.slf4j.spi;version=1.7.28,\
 	sun.invoke,\
-	sun.misc
+	sun.misc,\
+	${bndjava15temorarysupplementalpackages}
 
 -runblacklist.base: \
 	osgi.identity;filter:='(osgi.identity=biz.aQute.bndlib)'

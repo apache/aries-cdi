@@ -36,7 +36,8 @@
 	org.slf4j.helpers;version=1.7.25,\
 	org.slf4j.spi;version=1.7.25,\
 	sun.invoke,\
-	sun.misc
+	sun.misc,\
+	${bndjava15temorarysupplementalpackages}
 
 -runrequires.base: \
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.extra)',\

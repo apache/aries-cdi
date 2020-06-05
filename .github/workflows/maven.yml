@@ -21,7 +21,7 @@ jobs:
   JDKxx_Matrix:
     strategy:
       matrix:
-        java: [ 8, 11, 14 ]
+        java: [ 8, 11, 14, 15-ea ]
         os: [ ubuntu-latest ]
         include:
         - os: windows-latest
@@ -38,11 +38,11 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        mvn -U -e -B -ntp -X install
+        mvn -U -e -B -ntp install
   JDKxx_Matrix-Experimental:
     strategy:
       matrix:
-        java: [ 8, 11, 14 ]
+        java: [ 8, 11, 14, 15-ea ]
         os: [ ubuntu-latest ]
         include:
         - os: windows-latest
@@ -58,4 +58,4 @@ jobs:
         java-version: ${{ matrix.java }}
     - name: Build
       run: |
-        mvn -U -e -B -ntp -X install -Pexperimental
+        mvn -U -e -B -ntp install -Pexperimental
