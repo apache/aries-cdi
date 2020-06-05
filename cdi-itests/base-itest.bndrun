@@ -46,3 +46,7 @@
 
 -runblacklist.base: \
 	osgi.identity;filter:='(osgi.identity=biz.aQute.bndlib)'
+
+-runstartlevel: \
+	order=sortbynameversion,\
+	begin=-1
