@@ -26,7 +26,6 @@ import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeBeanDiscovery;
-import javax.enterprise.inject.spi.DeploymentException;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 import javax.ws.rs.ApplicationPath;
@@ -135,7 +134,6 @@ public class JaxrsCDIExtension implements Extension {
 		addJaxRsExtension(pat);
 	}
 
-	@SuppressWarnings("rawtypes")
 	void messageBodyReader(
 		@Observes @FiltersOn(types = MessageBodyReader.class) ProcessPotentialService pat, BeanManager beanManager) {
 
@@ -143,7 +141,6 @@ public class JaxrsCDIExtension implements Extension {
 		addJaxRsExtension(pat);
 	}
 
-	@SuppressWarnings("rawtypes")
 	void messageBodyWriter(
 		@Observes @FiltersOn(types = MessageBodyWriter.class) ProcessPotentialService pat, BeanManager beanManager) {
 
@@ -151,7 +148,6 @@ public class JaxrsCDIExtension implements Extension {
 		addJaxRsExtension(pat);
 	}
 
-	@SuppressWarnings("rawtypes")
 	void contextResolver(
 		@Observes @FiltersOn(types = ContextResolver.class) ProcessPotentialService pat, BeanManager beanManager) {
 
@@ -159,7 +155,6 @@ public class JaxrsCDIExtension implements Extension {
 		addJaxRsExtension(pat);
 	}
 
-	@SuppressWarnings("rawtypes")
 	void exceptionMapper(
 		@Observes @FiltersOn(types = ExceptionMapper.class) ProcessPotentialService pat, BeanManager beanManager) {
 

@@ -34,10 +34,12 @@ public @interface FiltersOn {
 	 */
 	Class<?>[] types() default {FiltersOn.class};
 
+	@SuppressWarnings("serial")
 	class Literal extends AnnotationLiteral<FiltersOn> implements FiltersOn {
 		public static final Literal INSTANCE = new Literal();
 
-		private final Class[] defaultArray = new Class[0];
+		@SuppressWarnings("unchecked")
+		private final Class<? extends Annotation>[] defaultArray = new Class[0];
 
 		@Override
 		public Class<? extends Annotation>[] annotations() {

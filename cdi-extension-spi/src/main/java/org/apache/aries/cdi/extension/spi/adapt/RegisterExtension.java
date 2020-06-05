@@ -73,7 +73,9 @@ public class RegisterExtension {
 			return this;
 		}
 
-		public ObserverBuilder forAnnotations(final Class<? extends Annotation>... annotations) {
+		public ObserverBuilder forAnnotations(
+			@SuppressWarnings("unchecked") final Class<? extends Annotation>... annotations) {
+
 			if (annotations.length > 0) {
 				this.annotations.remove(FiltersOn.class);
 			}
