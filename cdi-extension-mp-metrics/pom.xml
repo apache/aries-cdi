@@ -239,7 +239,7 @@
 				</dependency>
 				<dependency>
 					<groupId>org.osgi</groupId>
-					<artifactId>org.osgi.test.assertj</artifactId>
+					<artifactId>org.osgi.test.assertj.framework</artifactId>
 				</dependency>
 				<dependency>
 					<groupId>org.osgi</groupId>
