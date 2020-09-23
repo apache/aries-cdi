@@ -40,6 +40,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.site.skip>true</maven.site.skip>
 		<maven.site.deploy.skip>true</maven.site.deploy.skip>
+		<bnd.baseline.skip>false</bnd.baseline.skip>
 
 		<!-- Versions -->
 		<bnd.version>5.1.0</bnd.version>
@@ -133,7 +134,8 @@
 		<module>cdi-weld</module>
 		<module>cdi-bom</module>
 		<module>cdi-executable</module>
-	</modules>
+    <module>karaf</module>
+  </modules>
 
 	<dependencyManagement>
 		<dependencies>
@@ -462,6 +464,9 @@
 							<goals>
 								<goal>baseline</goal>
 							</goals>
+							<configuration>
+								<skip>${bnd.baseline.skip}</skip>
+							</configuration>
 						</execution>
 					</executions>
 				</plugin>
