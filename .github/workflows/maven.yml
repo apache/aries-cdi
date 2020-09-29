@@ -21,7 +21,7 @@ jobs:
   JDKxx_Matrix:
     strategy:
       matrix:
-        java: [ 8, 11, 14, 15-ea ]
+        java: [ 8, 11, 15 ]
         os: [ ubuntu-latest ]
         include:
         - os: windows-latest
@@ -42,7 +42,7 @@ jobs:
   JDKxx_Matrix-Experimental:
     strategy:
       matrix:
-        java: [ 8, 11, 14, 15-ea ]
+        java: [ 8, 11, 15 ]
         os: [ ubuntu-latest ]
         include:
         - os: windows-latest
