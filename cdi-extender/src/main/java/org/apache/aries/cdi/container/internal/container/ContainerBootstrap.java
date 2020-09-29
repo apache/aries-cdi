@@ -20,8 +20,10 @@ import static java.util.Optional.ofNullable;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -191,12 +193,7 @@ public class ContainerBootstrap extends Phase {
 					Constants.SERVICE_DESCRIPTION, "Aries CDI ServiceAdapterExtension"));
 
 		// Add extensions found from the bundle's class loader, such as those in the Bundle-ClassPath
-		ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extension ->
-			initializer.addExtension(
-				extension,
-				Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
-						Constants.SERVICE_DESCRIPTION, "ClassLoader Extension from " + containerState.bundle()))
-		);
+		final Collection<Class<?>> serviceExtensions = new HashSet<>();
 
 		// Add external extensions
 		for (ExtensionDTO extensionDTO : containerState.containerDTO().extensions) {
@@ -204,8 +201,9 @@ public class ContainerBootstrap extends Phase {
 
 			Dictionary<String,Object> properties = extendedExtensionDTO.extension.getServiceReference().getProperties();
 
-			initializer.addExtension(
-				extendedExtensionDTO.extension.getService(), Maps.of(properties));
+			final Extension service = extendedExtensionDTO.extension.getService();
+			initializer.addExtension(service, Maps.of(properties));
+			serviceExtensions.add(service.getClass());
 
 			Bundle extensionBundle = extendedExtensionDTO.extension.getServiceReference().getBundle();
 
@@ -215,6 +213,17 @@ public class ContainerBootstrap extends Phase {
 				loader.getBundles().add(extensionBundle);
 			}
 		}
+
+		ServiceLoader.load(Extension.class, containerState.classLoader()).forEach(extension -> {
+			// let ServiceLoader.load have duplicatesd fail (cdi spec)
+			// we just want to solve conflicts between ServiceLoader and OSGi extensions
+			if (!serviceExtensions.contains(extension.getClass())) {
+				initializer.addExtension(
+						extension,
+						Maps.of(Constants.SERVICE_ID, counter.decrementAndGet(),
+								Constants.SERVICE_DESCRIPTION, "ClassLoader Extension from " + containerState.bundle()));
+			}
+		});
 	}
 
 	private void getClassesFromExtensionCapability(Dictionary<String,Object> properties, Bundle extensionBundle, CDIContainerInitializer initializer) {
