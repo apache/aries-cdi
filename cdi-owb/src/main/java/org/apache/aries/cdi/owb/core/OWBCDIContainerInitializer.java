@@ -169,9 +169,15 @@ public class OWBCDIContainerInitializer extends CDIContainerInitializer {
 
 			bootstrap = new WebBeansContext(services, properties) {
 				private final ExtensionLoader overridenExtensionLoader = new ExtensionLoader(this) {
+					private boolean added;
+
 					@Override
 					public void loadExtensionServices() {
+						if (added) {
+							return;
+						}
 						extensions.forEach((k, v) -> addExtension(k));
+						added = true;
 					}
 				};
 
