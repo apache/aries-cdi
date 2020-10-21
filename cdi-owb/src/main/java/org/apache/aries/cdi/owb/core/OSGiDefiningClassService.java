@@ -21,11 +21,9 @@ import org.apache.webbeans.proxy.Unsafe;
 import org.apache.webbeans.spi.DefiningClassService;
 
 public class OSGiDefiningClassService implements DefiningClassService {
-	private final Unsafe unsafe;
 	private final ClassLoaders classloaders;
 
 	public OSGiDefiningClassService(final WebBeansContext context) {
-		this.unsafe = new Unsafe();
 		this.classloaders = context.getService(ClassLoaders.class);
 	}
 
@@ -52,7 +50,7 @@ public class OSGiDefiningClassService implements DefiningClassService {
 			if (classLoader != classloaders.bundleLoader) {
 				// todo: log a warning?
 			}
-			return unsafe.defineAndLoadClass(classLoader, name, bytes);
+			return UnsafeFacade.INSTANCE.defineAndLoadClass(classLoader, name, bytes);
 		}
 		return (Class<T>) classloaders.loader.getOrRegister(name, bytes, proxied.getPackage(), proxied.getProtectionDomain());
 	}
@@ -69,5 +67,10 @@ public class OSGiDefiningClassService implements DefiningClassService {
 			this.bundleLoader = bundleLoader;
 			this.loader = loader;
 		}
+	}
+
+	// lazy init unsafe, not needed for a lot of apps and avoids warnings on java > 8
+	private static class UnsafeFacade {
+		private static final Unsafe INSTANCE = new Unsafe();
 	}
 }
