@@ -30,6 +30,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.log.Logger;
 
+import javax.enterprise.inject.Vetoed;
+
 public class BeansModelBuilder {
 
 	public BeansModelBuilder(
@@ -80,6 +82,11 @@ public class BeansModelBuilder {
 		for (String beanClassName : beanClassNames) {
 			try {
 				Class<?> clazz = _aggregateClassLoader.loadClass(beanClassName);
+				if (clazz.isAnnotationPresent(Vetoed.class) ||
+						// should be recursive but at the end this is generally enough and faster
+						(clazz.getPackage() != null && clazz.getPackage().isAnnotationPresent(Vetoed.class))) {
+					continue;
+				}
 
 				beans.put(beanClassName, new OSGiBean.Builder(_containerState.containerLogs(), clazz).build());
 

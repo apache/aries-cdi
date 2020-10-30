@@ -126,7 +126,7 @@ public class Discovery {
 	}
 
 	public void discover() {
-		_beansModel.getOSGiBeans().stream().forEach(osgiBean -> {
+		_beansModel.getOSGiBeans().forEach(osgiBean -> {
 			osgiBean.found(true);
 
 			AnnotatedType<?> annotatedType = new AnnotatedTypeImpl<>(osgiBean.getBeanClass());
