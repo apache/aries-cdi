@@ -16,6 +16,7 @@ package org.apache.aries.cdi.container.internal.util;
 
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static org.apache.aries.cdi.container.internal.util.Reflection.getRawType;
 
 import java.lang.annotation.Annotation;
@@ -25,7 +26,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +58,7 @@ import javax.inject.Qualifier;
 import javax.inject.Scope;
 import javax.interceptor.Interceptor;
 
+import org.apache.aries.cdi.container.internal.annotated.CachingAnnotated;
 import org.apache.aries.cdi.extension.spi.annotation.AdaptedService;
 import org.osgi.service.cdi.ServiceScope;
 import org.osgi.service.cdi.annotations.Service;
@@ -70,22 +71,32 @@ public class Annotates {
 	}
 
 	private static final Predicate<Annotation> isBeanDefining = annotation ->
-		ApplicationScoped.class.isAssignableFrom(annotation.annotationType()) ||
-		ConversationScoped.class.isAssignableFrom(annotation.annotationType()) ||
-		Decorator.class.isAssignableFrom(annotation.annotationType()) ||
-		Dependent.class.isAssignableFrom(annotation.annotationType()) ||
-		Interceptor.class.isAssignableFrom(annotation.annotationType()) ||
-		RequestScoped.class.isAssignableFrom(annotation.annotationType()) ||
-		SessionScoped.class.isAssignableFrom(annotation.annotationType()) ||
-		Stereotype.class.isAssignableFrom(annotation.annotationType());
+	{
+		// sun.reflect.annotation.AnnotationParser.annotationForMap is a proxy so locally cache the type
+		final Class<? extends Annotation> annotationType = annotation.annotationType();
+		return ApplicationScoped.class.isAssignableFrom(annotationType) ||
+		ConversationScoped.class.isAssignableFrom(annotationType) ||
+		Decorator.class.isAssignableFrom(annotationType) ||
+		Dependent.class.isAssignableFrom(annotationType) ||
+		Interceptor.class.isAssignableFrom(annotationType) ||
+		RequestScoped.class.isAssignableFrom(annotationType) ||
+		SessionScoped.class.isAssignableFrom(annotationType) ||
+		Stereotype.class.isAssignableFrom(annotationType);
+	};
 
 	private static final Predicate<Annotation> isQualifier = annotation ->
-		!annotation.annotationType().equals(Qualifier.class) &&
-		annotation.annotationType().isAnnotationPresent(Qualifier.class);
+	{
+		final Class<? extends Annotation> annotationType = annotation.annotationType();
+		return !annotationType.equals(Qualifier.class) &&
+		annotationType.isAnnotationPresent(Qualifier.class);
+	};
 
 	private static final Predicate<Annotation> isScope = annotation ->
-		annotation.annotationType().isAnnotationPresent(Scope.class) ||
-		annotation.annotationType().isAnnotationPresent(NormalScope.class);
+	{
+		final Class<? extends Annotation> type = annotation.annotationType();
+		return type.isAnnotationPresent(Scope.class) ||
+		type.isAnnotationPresent(NormalScope.class);
+	};
 
 	public static Map<String, Object> componentProperties(Annotated annotated) {
 		return Maps.merge(annotated.getAnnotations());
@@ -157,17 +168,27 @@ public class Annotates {
 	}
 
 	public static Set<Annotation> collect(Annotated annotated, Predicate<Annotation> predicate) {
-		return collect(annotated.getAnnotations()).stream().filter(predicate).collect(Collectors.toSet());
+		CachingAnnotated cachingAnnotated = CachingAnnotated.class.isInstance(annotated) ?
+				CachingAnnotated.class.cast(annotated) : null;
+		List<Annotation> cached = cachingAnnotated == null ? null : cachingAnnotated.getCollectedAnnotations();
+		if (cached != null) {
+			return cached.stream().filter(predicate).collect(Collectors.toSet());
+		}
+		List<Annotation> collected = collect(annotated.getAnnotations());
+		if (cachingAnnotated != null) {
+			cachingAnnotated.setCollectedAnnotations(collected);
+		}
+		return collected.stream().filter(predicate).collect(Collectors.toSet());
 	}
 
 	private static List<Annotation> collect(Collection<Annotation> annotations) {
-		List<Annotation> list = new ArrayList<>();
-		for (Annotation a1 : annotations) {
-			if (a1.annotationType().getName().startsWith("java.lang.annotation.")) continue;
-			list.add(a1);
-		}
-		list.addAll(inherit(list));
-		return list;
+		return annotations.stream()
+				.flatMap(it -> Stream.concat(
+						Stream.of(it), Stream.of(it.annotationType().getAnnotations()))
+						.filter(a -> !a.annotationType().getName().startsWith("java.lang.annotation."))
+						.distinct())
+				.distinct()
+				.collect(toList());
 	}
 
 	private static List<Annotation> inherit(Collection<Annotation> annotations) {
@@ -336,19 +357,21 @@ public class Annotates {
 	}
 
 	public static Class<? extends Annotation> beanScope(Annotated annotated, Class<? extends Annotation> defaultValue) {
-		Class<? extends Annotation> scope = collect(annotated.getAnnotations()).stream().filter(isScope).map(Annotation::annotationType).findFirst().orElse(null);
-
-		return (scope == null) ? defaultValue : scope;
+		CachingAnnotated cachingAnnotated = CachingAnnotated.class.isInstance(annotated) ?
+				CachingAnnotated.class.cast(annotated) : null;
+		Class<? extends Annotation> cached = cachingAnnotated == null ? null : cachingAnnotated.getBeanScope();
+		if (cached == null) {
+			cached = collect(annotated.getAnnotations()).stream().filter(isScope).map(Annotation::annotationType).findFirst().orElse(null);
+			if (cachingAnnotated != null) {
+				cachingAnnotated.setBeanScope(cached);
+			}
+		}
+		return cached == null ? defaultValue : cached;
 	}
 
 	public static boolean hasBeanDefiningAnnotations(AnnotatedType<?> annotatedType) {
-		Set<Annotation> beanDefiningAnnotations = new HashSet<>();
-
-		beanDefiningAnnotations.addAll(collect(annotatedType, isBeanDefining));
-		beanDefiningAnnotations.addAll(annotatedType.getFields().stream().flatMap(field -> collect(field, isBeanDefining).stream()).collect(Collectors.toSet()));
-		beanDefiningAnnotations.addAll(annotatedType.getMethods().stream().flatMap(method -> collect(method, isBeanDefining).stream()).collect(Collectors.toSet()));
-
-		return !beanDefiningAnnotations.isEmpty();
+		// only on classes, not on producers
+		return !collect(annotatedType, isBeanDefining).isEmpty();
 	}
 
 }

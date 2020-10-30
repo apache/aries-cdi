@@ -20,22 +20,46 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import javax.enterprise.inject.spi.Annotated;
 
 import org.apache.aries.cdi.container.internal.util.Reflection;
 
-public class AnnotatedImpl<X> implements Annotated {
+public class AnnotatedImpl<X> implements CachingAnnotated {
 
 	private final Type _baseType;
 	private final AnnotatedElement _annotatedElement;
 	private final Set<Type> _typeClosure;
 
+	private Class<? extends Annotation> beanScope;
+	private List<Annotation> collectedAnnotations;
+
 	public AnnotatedImpl(final Type baseType, final AnnotatedElement annotatedElement) {
 		_baseType = baseType;
 		_annotatedElement = annotatedElement;
 		_typeClosure = Reflection.getTypes(_baseType);
+	}
+
+	@Override
+	public List<Annotation> getCollectedAnnotations() {
+		return collectedAnnotations;
+	}
+
+	@Override
+	public void setCollectedAnnotations(final List<Annotation> collectedAnnotations) {
+		this.collectedAnnotations = collectedAnnotations;
+	}
+
+	@Override
+	public Class<? extends Annotation> getBeanScope() {
+		return beanScope;
+	}
+
+	@Override
+	public void setBeanScope(Class<? extends Annotation> beanScope) {
+		this.beanScope = beanScope;
 	}
 
 	@Override

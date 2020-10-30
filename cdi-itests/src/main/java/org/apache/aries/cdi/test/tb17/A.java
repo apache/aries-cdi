@@ -29,5 +29,4 @@ public class A implements Pojo {
 	public int getCount() {
 		return 1;
 	}
-
 }

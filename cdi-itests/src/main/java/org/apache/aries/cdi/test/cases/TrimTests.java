@@ -25,13 +25,15 @@ import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 public class TrimTests extends SlimBaseTestCase {
 
 	@Test
-	public void testTrimmed() throws Exception {
+	public void testTrimmed() {
 		Bundle tb2Bundle = installBundle.installBundle("tb17.jar");
 
 		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);
 
-		assertEquals(5, containerDTO.template.components.get(0).beans.size());
+		assertEquals( // expected: B, E, F, G, H
+				String.join(", ", containerDTO.template.components.get(0).beans),
+				5, containerDTO.template.components.get(0).beans.size());
 
 		assertEquals(2, containerDTO.template.components.size());
 

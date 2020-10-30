@@ -20,6 +20,7 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -136,23 +137,24 @@ public class Discovery {
 			}
 
 			try {
-				String beanName = Annotates.beanName(annotatedType);
-				Class<? extends Annotation> beanScope = Annotates.beanScope(annotatedType);
-				Map<String, Object> componentProperties = Annotates.componentProperties(annotatedType);
-				ServiceScope serviceScope = Annotates.serviceScope(annotatedType);
-				List<String> serviceTypes = Annotates.serviceClassNames(annotatedType);
-
 				if (annotatedType.isAnnotationPresent(SingleComponent.class)) {
-					doFactoryOrSingleComponent(osgiBean, osgiBean.getBeanClass(), annotatedType, beanName, serviceTypes, serviceScope, componentProperties, ComponentType.SINGLE);
+					doFactoryOrSingleComponent(
+							osgiBean, osgiBean.getBeanClass(), annotatedType, Annotates.beanName(annotatedType),
+							Annotates.serviceClassNames(annotatedType), Annotates.serviceScope(annotatedType),
+							Annotates.componentProperties(annotatedType), ComponentType.SINGLE);
 				}
 				else if (annotatedType.isAnnotationPresent(FactoryComponent.class)) {
-					doFactoryOrSingleComponent(osgiBean, osgiBean.getBeanClass(), annotatedType, beanName, serviceTypes, serviceScope, componentProperties, ComponentType.FACTORY);
+					doFactoryOrSingleComponent(
+							osgiBean, osgiBean.getBeanClass(), annotatedType, Annotates.beanName(annotatedType),
+							Annotates.serviceClassNames(annotatedType), Annotates.serviceScope(annotatedType),
+							Annotates.componentProperties(annotatedType), ComponentType.FACTORY);
 				}
 				else if (annotatedType.isAnnotationPresent(ComponentScoped.class)) {
 					_componentScoped.add(osgiBean);
 				}
 				else {
-					discoverActivations(osgiBean, osgiBean.getBeanClass(), annotatedType, null, beanScope, serviceTypes, serviceScope, componentProperties);
+					discoverActivations(osgiBean, osgiBean.getBeanClass(), annotatedType, null,
+							Annotates.beanScope(annotatedType), Annotates.serviceClassNames(annotatedType));
 				}
 			}
 			catch (Exception e) {
@@ -174,31 +176,25 @@ public class Discovery {
 			annotatedType.getFields().stream().filter(this::isProduces).forEach(
 				annotatedField -> {
 					Class<? extends Annotation> beanScope = Annotates.beanScope(annotatedField);
-					Map<String, Object> componentProperties = Annotates.componentProperties(annotatedField);
-					ServiceScope serviceScope = Annotates.serviceScope(annotatedField);
 					List<String> serviceTypes = Annotates.serviceClassNames(annotatedField);
-
-					discoverActivations(osgiBean, osgiBean.getBeanClass(), annotatedField, annotatedField, beanScope, serviceTypes, serviceScope, componentProperties);
+					discoverActivations(osgiBean, osgiBean.getBeanClass(), annotatedField, annotatedField, beanScope, serviceTypes);
 				}
 			);
 
-			annotatedType.getMethods().stream().forEach(annotatedMethod -> {
+			annotatedType.getMethods().forEach(annotatedMethod -> {
 				if (isInjectOrProduces(annotatedMethod)) {
-					annotatedMethod.getParameters().stream().forEach(
+					annotatedMethod.getParameters().forEach(
 						annotatedParameter -> processAnnotated(annotatedParameter, annotatedParameter.getBaseType(), Annotates.qualifiers(annotatedParameter), osgiBean)
 					);
 
 					if (isProduces(annotatedMethod)) {
 						Class<? extends Annotation> beanScope = Annotates.beanScope(annotatedMethod);
-						Map<String, Object> componentProperties = Annotates.componentProperties(annotatedMethod);
-						ServiceScope serviceScope = Annotates.serviceScope(annotatedMethod);
 						List<String> serviceTypes = Annotates.serviceClassNames(annotatedMethod);
-
-						discoverActivations(osgiBean, osgiBean.getBeanClass(), annotatedMethod, annotatedMethod, beanScope, serviceTypes, serviceScope, componentProperties);
+						discoverActivations(osgiBean, osgiBean.getBeanClass(), annotatedMethod, annotatedMethod, beanScope, serviceTypes);
 					}
 				}
 				else if (isDisposeOrObserves(annotatedMethod)) {
-					annotatedMethod.getParameters().subList(1, annotatedMethod.getParameters().size()).stream().forEach(
+					annotatedMethod.getParameters().stream().skip(1).forEach(
 						annotatedParameter -> processAnnotated(annotatedParameter, annotatedParameter.getBaseType(), Annotates.qualifiers(annotatedParameter), osgiBean)
 					);
 				}
@@ -311,7 +307,9 @@ public class Discovery {
 		}
 	}
 
-	void discoverActivations(OSGiBean osgiBean, Class<?> declaringClass, Annotated annotated, AnnotatedMember<?> producer, Class<? extends Annotation> scope, List<String> serviceTypeNames, ServiceScope serviceScope, Map<String, Object> componentProperties) {
+	void discoverActivations(OSGiBean osgiBean, Class<?> declaringClass, final Annotated component,
+							 AnnotatedMember<?> producer, Class<? extends Annotation> scope,
+							 List<String> serviceTypeNames) {
 		String className = declaringClass.getName();
 
 		if (!_containerTemplate.beans.contains(className)) {
@@ -335,8 +333,8 @@ public class Discovery {
 			activationTemplate.cdiScope = scope;
 			activationTemplate.declaringClass = declaringClass;
 			activationTemplate.producer = producer;
-			activationTemplate.properties = componentProperties;
-			activationTemplate.scope = serviceScope;
+			activationTemplate.properties = Annotates.componentProperties(component);
+			activationTemplate.scope = Annotates.serviceScope(component);
 			activationTemplate.serviceClasses = serviceTypeNames;
 
 			_containerTemplate.activations.add(activationTemplate);

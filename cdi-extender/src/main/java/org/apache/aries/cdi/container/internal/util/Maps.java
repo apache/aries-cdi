@@ -20,7 +20,6 @@ import static java.util.Objects.requireNonNull;
 import java.lang.annotation.Annotation;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -108,30 +107,12 @@ public class Maps {
 		).map(Map::entrySet).flatMap(Collection::stream));
 	}
 
-	public static Map<String, Object> merge(List<Dictionary<String, Object>> dictionaries) {
-		return merge(dictionaries.stream().flatMap(Maps::streamOf));
-	}
-
-	@SafeVarargs
-	public static Map<String, Object> merge(Map<String, Object>... maps) {
-		return merge(Arrays.stream(maps).map(Map::entrySet).flatMap(Collection::stream));
-	}
-
 	public static Map<String, Object> merge(Stream<Map.Entry<String, Object>> mapEntries) {
 		return mapEntries.collect(
 			Collectors.toMap(
 				Map.Entry::getKey,
 				Map.Entry::getValue,
 				Maps::mergeValues
-			)
-		);
-	}
-
-	static Map<String, Object> addPrefix(Map<String, Object> map, String prefix) {
-		return map.entrySet().stream().collect(
-			Collectors.toMap(
-				e -> prefix + e.getKey(),
-				Map.Entry::getValue
 			)
 		);
 	}
