@@ -88,21 +88,23 @@ public class Discovery {
 
 	private static final List<Type> BIND_TYPES = Arrays.asList(BindService.class, BindBeanServiceObjects.class, BindServiceReference.class);
 
-	static final DocumentBuilderFactory	dbf	= DocumentBuilderFactory.newInstance();
-	static final XPathFactory			xpf	= XPathFactory.newInstance();
-	static final XPathExpression		trimExpression;
-	static final XPathExpression		excludeExpression;
+	private static final class LazyXml { // when not needed, don't create that
+		static final DocumentBuilderFactory	dbf	= DocumentBuilderFactory.newInstance();
+		static final XPathFactory			xpf	= XPathFactory.newInstance();
+		static final XPathExpression		trimExpression;
+		static final XPathExpression		excludeExpression;
 
-	static {
-		try {
-			dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-			dbf.setXIncludeAware(false);
-			dbf.setExpandEntityReferences(false);
-			XPath xPath = xpf.newXPath();
-			trimExpression = xPath.compile("boolean(/beans/trim)");
-			excludeExpression = xPath.compile("/beans/scan/exclude");
-		} catch (Throwable t) {
-			throw Exceptions.duck(t);
+		static {
+			try {
+				dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+				dbf.setXIncludeAware(false);
+				dbf.setExpandEntityReferences(false);
+				XPath xPath = xpf.newXPath();
+				trimExpression = xPath.compile("boolean(/beans/trim)");
+				excludeExpression = xPath.compile("/beans/scan/exclude");
+			} catch (Throwable t) {
+				throw Exceptions.duck(t);
+			}
 		}
 	}
 
@@ -460,7 +462,7 @@ public class Discovery {
 
 	boolean checkTrim(Document document) {
 		try {
-			return Boolean.class.cast(trimExpression.evaluate(document, XPathConstants.BOOLEAN));
+			return Boolean.class.cast(LazyXml.trimExpression.evaluate(document, XPathConstants.BOOLEAN));
 		} catch (XPathExpressionException e) {
 			throw Exceptions.duck(e);
 		}
@@ -470,7 +472,8 @@ public class Discovery {
 		try {
 			List<Exclude> excludes = new ArrayList<>();
 
-			NodeList excludeNodes = NodeList.class.cast(excludeExpression.evaluate(document, XPathConstants.NODESET));
+			NodeList excludeNodes = NodeList.class.cast(
+					LazyXml.excludeExpression.evaluate(document, XPathConstants.NODESET));
 
 			for (int i = 0; i < excludeNodes.getLength(); i++) {
 				Element excludeElement = (Element)excludeNodes.item(i);
@@ -487,7 +490,7 @@ public class Discovery {
 
 	Document readXMLResource(URL resource) {
 		try {
-			DocumentBuilder db = dbf.newDocumentBuilder();
+			DocumentBuilder db = LazyXml.dbf.newDocumentBuilder();
 			try (InputStream is = resource.openStream()) {
 				return db.parse(is);
 			} catch (Throwable t) {
