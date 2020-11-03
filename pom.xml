@@ -396,6 +396,7 @@
 								<exclude>**/.settings/**</exclude>
 								<exclude>**/eclipse-classes/**/*</exclude>
 								<exclude>.gitignore</exclude>
+                <exclude>.github/**/*</exclude>
 								<exclude>*.md</exclude>
 								<exclude>*.cfg</exclude>
 								<exclude>**/*.md</exclude>
