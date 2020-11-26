@@ -51,8 +51,8 @@ Karaf distribution configuration requirement:
   </feature>
 
   <feature name="osgi-util">
-    <bundle>mvn:org.osgi/org.osgi.util.function/1.1.0</bundle>
-    <bundle>mvn:org.osgi/org.osgi.util.promise/1.1.0</bundle>
+    <bundle dependency="true">mvn:org.osgi/org.osgi.util.function/1.1.0</bundle>
+    <bundle dependency="true">mvn:org.osgi/org.osgi.util.promise/1.1.0</bundle>
   </feature>
 
   <feature name="osgi-cdi">
@@ -69,14 +69,17 @@ Karaf distribution configuration requirement:
     <bundle>mvn:org.apache.xbean/xbean-finder-shaded/4.17</bundle>
     <bundle>mvn:org.apache.openwebbeans/openwebbeans-spi/2.0.17</bundle>
     <bundle>mvn:org.apache.openwebbeans/openwebbeans-impl/2.0.17</bundle>
-    <bundle>mvn:org.apache.openwebbeans/openwebbeans-web/2.0.17</bundle>
-    <bundle>mvn:org.apache.openwebbeans/openwebbeans-el22/2.0.17</bundle>
     <bundle>mvn:org.apache.felix/org.apache.felix.converter/1.0.12</bundle>
     <bundle>mvn:org.apache.aries.cdi/org.apache.aries.cdi.spi/${project.version}</bundle>
     <bundle>mvn:org.apache.aries.cdi/org.apache.aries.cdi.owb/${project.version}</bundle>
-    <bundle>mvn:org.apache.aries.cdi/org.apache.aries.cdi.extra/${project.version}</bundle>
+    <!-- <bundle>mvn:org.apache.aries.cdi/org.apache.aries.cdi.extra/${project.version}</bundle> -->
     <bundle start="true">mvn:org.apache.aries.cdi/org.apache.aries.cdi.extension.spi/${project.version}</bundle>
     <bundle start="true">mvn:org.apache.aries.cdi/org.apache.aries.cdi.extender/${project.version}</bundle>
+  </feature>
+
+  <feature name="osgi-cdi-owb-web">
+    <bundle>mvn:org.apache.openwebbeans/openwebbeans-web/2.0.17</bundle>
+    <bundle>mvn:org.apache.openwebbeans/openwebbeans-el22/2.0.17</bundle>
   </feature>
 
 </features>
