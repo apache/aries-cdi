@@ -134,7 +134,7 @@
 		<module>cdi-weld</module>
 		<module>cdi-bom</module>
 		<module>cdi-executable</module>
-    <module>karaf</module>
+    <module>cdi-karaf</module>
   </modules>
 
 	<dependencyManagement>
