@@ -44,7 +44,7 @@
 		<bnd.baseline.skip>false</bnd.baseline.skip>
 
 		<!-- Versions -->
-		<bnd.version>5.1.0</bnd.version>
+		<bnd.version>5.2.0</bnd.version>
 		<byte.buddy.version>1.10.6</byte.buddy.version>
 		<jax.rs.whiteboard.version>1.0.6</jax.rs.whiteboard.version>
 		<jaxb.api.version>2.3.2</jaxb.api.version>
