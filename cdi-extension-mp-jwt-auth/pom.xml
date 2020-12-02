@@ -255,6 +255,10 @@
 					<scope>test</scope>
 					<exclusions>
 						<exclusion>
+							<groupId>commons-io</groupId>
+							<artifactId>commons-io</artifactId>
+						</exclusion>
+						<exclusion>
 							<groupId>javax.enterprise</groupId>
 							<artifactId>cdi-api</artifactId>
 						</exclusion>
