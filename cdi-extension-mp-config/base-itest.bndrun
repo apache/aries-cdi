@@ -37,8 +37,7 @@
 	org.slf4j.helpers;version=1.7.25,\
 	org.slf4j.spi;version=1.7.25,\
 	sun.invoke,\
-	sun.misc,\
-	${bndjava15temorarysupplementalpackages}
+	sun.misc
 
 -runrequires.base: \
 	osgi.identity;filter:='(osgi.identity=${project.artifactId})',\

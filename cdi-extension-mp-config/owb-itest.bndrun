@@ -41,7 +41,7 @@
 	org.apache.geronimo.specs.geronimo-jcdi_2.0_spec;version='[1.1.0,1.1.1)',\
 	org.apache.servicemix.bundles.junit;version='[4.12.0,4.12.1)',\
 	org.apache.xbean.asm7-shaded;version='[4.13.0,4.13.1)',\
-	org.apache.xbean.bundleutils;version='[4.15.0,4.15.1)',\
+	org.apache.xbean.bundleutils;version='[4.18.0,4.18.1)',\
 	org.apache.xbean.finder-shaded;version='[4.13.0,4.13.1)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
 	org.osgi.test.common;version='[0.9.0,0.9.1)',\
