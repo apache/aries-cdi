@@ -29,10 +29,11 @@
 	<groupId>org.apache.aries.cdi</groupId>
 	<artifactId>org.apache.aries.cdi</artifactId>
 	<name>Apache Aries CDI - OSGi CDI Integration Project</name>
-	<version>1.1.4-SNAPSHOT</version>
+	<version>${revision}</version>
 	<packaging>pom</packaging>
 
 	<properties>
+		<revision>1.1.4-SNAPSHOT</revision>
 		<java.build.version>1.8</java.build.version>
 		<!-- <maven.compiler.release>${java.build.version}</maven.compiler.release> -->
 		<maven.compiler.source>${java.build.version}</maven.compiler.source>
@@ -134,8 +135,8 @@
 		<module>cdi-weld</module>
 		<module>cdi-bom</module>
 		<module>cdi-executable</module>
-    <module>cdi-karaf</module>
-  </modules>
+		<module>cdi-karaf</module>
+	</modules>
 
 	<dependencyManagement>
 		<dependencies>
@@ -396,7 +397,7 @@
 								<exclude>**/.settings/**</exclude>
 								<exclude>**/eclipse-classes/**/*</exclude>
 								<exclude>.gitignore</exclude>
-                <exclude>.github/**/*</exclude>
+				<exclude>.github/**/*</exclude>
 								<exclude>*.md</exclude>
 								<exclude>*.cfg</exclude>
 								<exclude>**/*.md</exclude>

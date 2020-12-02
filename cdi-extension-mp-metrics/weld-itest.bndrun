@@ -22,13 +22,13 @@
 -runbundles: \
 	assertj-core;version='[3.16.1,3.16.2)',\
 	jboss-classfilewriter;version='[1.2.4,1.2.5)',\
-	org.apache.aries.cdi.extender;version='[1.1.2,1.1.3)',\
-	org.apache.aries.cdi.extension.mp-metrics;version='[1.1.2,1.1.3)',\
-	org.apache.aries.cdi.extension.mp-metrics-tests;version='[1.1.2,1.1.3)',\
-	org.apache.aries.cdi.extension.spi;version='[1.1.2,1.1.3)',\
-	org.apache.aries.cdi.extra;version='[1.1.2,1.1.3)',\
-	org.apache.aries.cdi.spi;version='[1.1.2,1.1.3)',\
-	org.apache.aries.cdi.weld;version='[1.1.2,1.1.3)',\
+	org.apache.aries.cdi.extender;version='[1.1.4,1.1.5)',\
+	org.apache.aries.cdi.extension.mp-metrics;version='[1.1.4,1.1.5)',\
+	org.apache.aries.cdi.extension.mp-metrics-tests;version='[1.1.4,1.1.5)',\
+	org.apache.aries.cdi.extension.spi;version='[1.1.4,1.1.5)',\
+	org.apache.aries.cdi.extra;version='[1.1.4,1.1.5)',\
+	org.apache.aries.cdi.spi;version='[1.1.4,1.1.5)',\
+	org.apache.aries.cdi.weld;version='[1.1.4,1.1.5)',\
 	org.apache.aries.jax.rs.whiteboard;version='[1.0.7,1.0.8)',\
 	org.apache.aries.spifly.dynamic.framework.extension;version='[1.3.2,1.3.3)',\
 	org.apache.felix.configadmin;version='[1.9.10,1.9.11)',\
