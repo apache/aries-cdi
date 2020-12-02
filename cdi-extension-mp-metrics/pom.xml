@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.apache.aries.cdi</groupId>
 		<artifactId>org.apache.aries.cdi</artifactId>
-		<version>1.1.2-SNAPSHOT</version>
+		<version>${revision}</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -108,7 +108,7 @@
 					<dependency>
 						<groupId>org.apache.aries.cdi</groupId>
 						<artifactId>org.apache.aries.cdi.build.tools</artifactId>
-						<version>1.1.2-SNAPSHOT</version>
+						<version>${revision}</version>
 					</dependency>
 				</dependencies>
 			</plugin>
