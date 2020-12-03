@@ -48,6 +48,7 @@
 		<jax.rs.whiteboard.version>1.0.6</jax.rs.whiteboard.version>
 		<jaxb.api.version>2.3.2</jaxb.api.version>
 		<jakarta.xml.ws-api>2.3.2</jakarta.xml.ws-api>
+		<johnzon.version>1.2.8</johnzon.version>
 		<jsp.version>2.0</jsp.version>
 		<mp.config.version>1.3</mp.config.version>
 		<mp.jwt.auth.version>1.1.1</mp.jwt.auth.version>
@@ -154,7 +155,7 @@
 			<dependency>
 				<groupId>org.apache.geronimo.specs</groupId>
 				<artifactId>geronimo-interceptor_1.2_spec</artifactId>
-				<version>1.1</version>
+				<version>1.2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.geronimo.specs</groupId>
@@ -284,7 +285,6 @@
 			<id>experimental</id>
 			<properties>
 				<experimental>true</experimental>
-				<johnzon.version>1.2.8</johnzon.version>
 			</properties>
 			<modules>
 				<module>cdi-extension-mp-config</module>

@@ -30,10 +30,10 @@
 	slf4j.api
 
 -runsystempackages: \
-	org.slf4j;version=1.7.28,\
-	org.slf4j.event;version=1.7.28,\
-	org.slf4j.helpers;version=1.7.28,\
-	org.slf4j.spi;version=1.7.28,\
+	org.slf4j;version=${slf4j.version},\
+	org.slf4j.event;version=${slf4j.version},\
+	org.slf4j.helpers;version=${slf4j.version},\
+	org.slf4j.spi;version=${slf4j.version},\
 	sun.invoke,\
 	sun.misc
 
