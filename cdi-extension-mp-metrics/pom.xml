@@ -216,7 +216,7 @@
 			<properties>
 				<maven.test.skip>false</maven.test.skip>
 				<johnzon.version>1.2.8</johnzon.version>
-				<jax.rs.whiteboard.version>1.0.7</jax.rs.whiteboard.version>
+				<jax.rs.whiteboard.version>1.0.10</jax.rs.whiteboard.version>
 			</properties>
 
 			<dependencies>
