@@ -37,12 +37,13 @@
 )
 @org.osgi.annotation.bundle.Requirement(
 	attribute = "osgi.contract=JavaJSP",
-	filter = "(&(osgi.contract=JavaJSP)(version=${jsp.version}))",
+	filter = "(&(osgi.contract=JavaJSP)(version=" + JSP_VERSION + "))",
 	namespace = "osgi.contract"
 )
 @org.osgi.service.cdi.annotations.RequireCDIImplementation
 package org.apache.aries.cdi.extension.el.jsp;
 
+import static org.apache.aries.cdi.extension.el.jsp.Constants.JSP_VERSION;
 import static org.osgi.namespace.implementation.ImplementationNamespace.IMPLEMENTATION_NAMESPACE;
 import static org.osgi.namespace.service.ServiceNamespace.SERVICE_NAMESPACE;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;
