@@ -122,6 +122,12 @@
 				<artifactId>org.apache.aries.jax.rs.whiteboard</artifactId>
 				<version>${jax.rs.whiteboard.version}</version>
 				<scope>runtime</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>org.apache.aries.jax.rs.cxf.repackage</groupId>
+						<artifactId>org.apache.aries.jax.rs.cxf.repackage</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.aries.spifly</groupId>
