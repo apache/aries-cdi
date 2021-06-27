@@ -157,7 +157,7 @@
 		<dependency>
 			<groupId>org.apache.geronimo</groupId>
 			<artifactId>geronimo-metrics</artifactId>
-			<version>1.0.3</version>
+			<version>1.0.5</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
