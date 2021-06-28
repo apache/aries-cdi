@@ -12,6 +12,8 @@
 
 #-runjdb: 8000
 
+-tester: biz.aQute.tester.junit-platform
+
 -runfw: org.eclipse.osgi
 -runproperties: \
 	eclipse.log.enabled=false,\
@@ -42,7 +44,9 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.extra)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.cdi.itests)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.jndi.core)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
+	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
+	bnd.identity;id='junit-jupiter-engine',\
+	bnd.identity;id='junit-platform-launcher'
 
 -runblacklist.base: \
 	osgi.identity;filter:='(osgi.identity=biz.aQute.bndlib)'

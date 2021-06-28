@@ -21,7 +21,7 @@ import javax.enterprise.context.spi.Context;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.BeanService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 
@@ -29,7 +29,7 @@ public class Test152_3 extends SlimBaseTestCase {
 
 	@Test
 	public void componentScopeContext() throws Exception {
-		Bundle tbBundle = installBundle.installBundle("tb152_3.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3.jar");
 
 		try (CloseableTracker<Object, Object> oneTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "one");
 				CloseableTracker<Object, Object> twoTracker = track("(&(objectClass=%s)(%s=%s))", BeanService.class.getName(), Constants.SERVICE_DESCRIPTION, "two")) {

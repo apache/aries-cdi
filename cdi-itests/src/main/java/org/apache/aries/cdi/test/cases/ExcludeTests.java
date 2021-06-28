@@ -14,11 +14,11 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.apache.aries.cdi.test.cases.base.BaseTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 
@@ -26,7 +26,7 @@ public class ExcludeTests extends BaseTestCase {
 
 	@Test
 	public void testExclude_ByName() throws Exception {
-		Bundle tb2Bundle = installBundle.installBundle("tb18.jar");
+		Bundle tb2Bundle = bundleInstaller.installBundle("tb18.jar");
 
 		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);
@@ -38,7 +38,7 @@ public class ExcludeTests extends BaseTestCase {
 
 	@Test
 	public void testExclude_IfClassAvailable() throws Exception {
-		Bundle tb2Bundle = installBundle.installBundle("tb19.jar");
+		Bundle tb2Bundle = bundleInstaller.installBundle("tb19.jar");
 
 		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);
@@ -50,7 +50,7 @@ public class ExcludeTests extends BaseTestCase {
 
 	@Test
 	public void testExclude_IfSystemProperty() throws Exception {
-		Bundle tb2Bundle = installBundle.installBundle("tb20.jar");
+		Bundle tb2Bundle = bundleInstaller.installBundle("tb20.jar");
 
 		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);

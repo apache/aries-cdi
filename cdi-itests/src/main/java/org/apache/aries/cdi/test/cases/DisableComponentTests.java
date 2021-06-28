@@ -14,8 +14,8 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -23,7 +23,7 @@ import java.util.Hashtable;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cm.Configuration;
 
@@ -31,7 +31,7 @@ public class DisableComponentTests extends SlimBaseTestCase {
 
 	@Test
 	public void testDisableContainerComponent() throws Exception {
-		Bundle tb8Bundle = installBundle.installBundle("tb8.jar");
+		Bundle tb8Bundle = bundleInstaller.installBundle("tb8.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track(
 				"(&(objectClass=%s)(objectClass=*.%s)(service.bundleid=%s))",
@@ -89,7 +89,7 @@ public class DisableComponentTests extends SlimBaseTestCase {
 
 	@Test
 	public void testDisableSingleComponent() throws Exception {
-		Bundle tb8Bundle = installBundle.installBundle("tb8.jar");
+		Bundle tb8Bundle = bundleInstaller.installBundle("tb8.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s)(service.bundleid=%s))",

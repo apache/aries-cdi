@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
 
@@ -30,15 +30,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.service.http.runtime.dto.ServletDTO;
 
 public class HttpTestCase extends HttpBaseTestCase {
 
 	@Test
 	public void testSessionScoped() throws Exception {
-		installBundle.installBundle("tb6.jar");
-		installBundle.installBundle("tb2.jar");
+		bundleInstaller.installBundle("tb6.jar");
+		bundleInstaller.installBundle("tb2.jar");
 
 		String path = "/foo";
 
@@ -95,8 +95,8 @@ public class HttpTestCase extends HttpBaseTestCase {
 
 	@Test
 	public void testRequestScopedWithReference() throws Exception {
-		installBundle.installBundle("tb6.jar");
-		installBundle.installBundle("tb2.jar");
+		bundleInstaller.installBundle("tb6.jar");
+		bundleInstaller.installBundle("tb2.jar");
 
 		String path = "/bar";
 

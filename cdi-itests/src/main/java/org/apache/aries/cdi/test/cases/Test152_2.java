@@ -17,7 +17,7 @@ package org.apache.aries.cdi.test.cases;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.aries.cdi.test.cases.base.BaseTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 
@@ -25,7 +25,7 @@ public class Test152_2 extends BaseTestCase {
 
 	@Test
 	public void checkUniqueComponentNames() throws Exception {
-		Bundle tb = installBundle.installBundle("tb152_2.jar");
+		Bundle tb = bundleInstaller.installBundle("tb152_2.jar");
 
 		getBeanManager(tb);
 
@@ -36,7 +36,7 @@ public class Test152_2 extends BaseTestCase {
 
 	@Test
 	public void checkUniqueComponentNames_b() throws Exception {
-		Bundle tb = installBundle.installBundle("tb152_2b.jar");
+		Bundle tb = bundleInstaller.installBundle("tb152_2b.jar");
 
 		getBeanManager(tb);
 

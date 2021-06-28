@@ -15,11 +15,11 @@
 package org.apache.aries.cdi.test.cases;
 
 import static java.lang.Thread.sleep;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.BeanService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cdi.ConfigurationPolicy;
 import org.osgi.service.cdi.runtime.dto.ComponentDTO;
@@ -43,7 +43,7 @@ public class ConfigurationTests extends SlimBaseTestCase {
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testConfiguration() throws Exception {
-		Bundle tb3Bundle = installBundle.installBundle("tb3.jar");
+		Bundle tb3Bundle = bundleInstaller.installBundle("tb3.jar");
 
 		Configuration configurationA = null, configurationB = null;
 
@@ -161,7 +161,7 @@ public class ConfigurationTests extends SlimBaseTestCase {
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testOptionalConfiguration() throws Exception {
-		installBundle.installBundle("tb5.jar");
+		bundleInstaller.installBundle("tb5.jar");
 
 		Configuration configurationC = null;
 

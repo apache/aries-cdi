@@ -47,17 +47,6 @@
 	<dependencies>
 		<!-- COMPILE -->
 		<dependency>
-			<groupId>biz.aQute.bnd</groupId>
-			<artifactId>biz.aQute.junit</artifactId>
-			<version>${bnd.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>biz.aQute.bnd</groupId>
-					<artifactId>biz.aQute.bndlib</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.aries.cdi</groupId>
 			<artifactId>org.apache.aries.cdi.extra</artifactId>
 		</dependency>
@@ -102,6 +91,14 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore-osgi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
@@ -150,12 +147,17 @@
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.test.common</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.test.assertj.framework</artifactId>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
-			<artifactId>org.osgi.test.junit4</artifactId>
+			<artifactId>org.osgi.test.junit5</artifactId>
 			<scope>compile</scope>
 		</dependency>
 

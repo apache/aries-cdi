@@ -14,11 +14,12 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 
@@ -26,14 +27,14 @@ public class TrimTests extends SlimBaseTestCase {
 
 	@Test
 	public void testTrimmed() {
-		Bundle tb2Bundle = installBundle.installBundle("tb17.jar");
+		Bundle tb2Bundle = bundleInstaller.installBundle("tb17.jar");
 
 		ContainerDTO containerDTO = getContainerDTO(tb2Bundle);
 		assertNotNull(containerDTO);
 
-		assertEquals( // expected: B, E, F, G, H
-				String.join(", ", containerDTO.template.components.get(0).beans),
-				5, containerDTO.template.components.get(0).beans.size());
+		Assertions.assertEquals( // expected: B, E, F, G, H
+			5, containerDTO.template.components.get(0).beans.size(),
+			String.join(", ", containerDTO.template.components.get(0).beans));
 
 		assertEquals(2, containerDTO.template.components.size());
 

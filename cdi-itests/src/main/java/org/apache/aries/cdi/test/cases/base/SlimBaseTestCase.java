@@ -14,15 +14,17 @@
 
 package org.apache.aries.cdi.test.cases.base;
 
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class SlimBaseTestCase extends BaseTestCase {
 
+	@BeforeEach
 	@Override
 	public void setUp() throws Exception {
 	}
 
-	@After
+	@AfterEach
 	@Override
 	public void tearDown() throws Exception {
 	}

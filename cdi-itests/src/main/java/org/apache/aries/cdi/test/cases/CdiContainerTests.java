@@ -14,16 +14,16 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 
 import org.apache.aries.cdi.test.cases.base.BaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.cdi.ComponentType;
 import org.osgi.service.cdi.runtime.dto.ComponentDTO;
@@ -41,7 +41,7 @@ public class CdiContainerTests extends BaseTestCase {
 	}
 
 	@Test
-	@Ignore("Due to a Service Loader Mediator incompatibility in the official CDI 2.0 API")
+	@Disabled("Due to a Service Loader Mediator incompatibility in the official CDI 2.0 API")
 	public void testGetBeanManagerFromCDI() throws Exception {
 		BeanManager beanManager = tccl(
 			cdiBundle.adapt(BundleWiring.class).getClassLoader(),
@@ -71,7 +71,7 @@ public class CdiContainerTests extends BaseTestCase {
 		assertNotNull(componentInstanceDTO);
 
 		assertEquals(0, componentInstanceDTO.configurations.size());
-		assertNotNull("should have properties", componentInstanceDTO.properties);
+		assertNotNull(componentInstanceDTO.properties, "should have properties");
 	}
 
 }

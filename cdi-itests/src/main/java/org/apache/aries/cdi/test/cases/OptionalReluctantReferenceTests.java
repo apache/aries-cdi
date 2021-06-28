@@ -14,8 +14,8 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 import java.util.Hashtable;
@@ -23,7 +23,7 @@ import java.util.Hashtable;
 import org.apache.aries.cdi.test.cases.base.BaseTestCase;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
@@ -33,7 +33,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 
 	@Test
 	public void applicationScoped() throws Exception {
-		Bundle tb = installBundle.installBundle("tb11.jar");
+		Bundle tb = bundleInstaller.installBundle("tb11.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(&(objectClass=%s)(bean.id=as))", Pojo.class.getName());) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -46,7 +46,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 			long changeCount = containerDTO.changeCount;
 
 			ServiceRegistration<Integer> int1 = bundleContext.registerService(
-				Integer.class, new Integer(12),
+				Integer.class, Integer.valueOf(12),
 				new Hashtable<>(Collections.singletonMap("bean.id", "as")));
 
 			try {
@@ -84,7 +84,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 
 	@Test
 	public void singleComponent() throws Exception {
-		Bundle tb = installBundle.installBundle("tb11.jar");
+		Bundle tb = bundleInstaller.installBundle("tb11.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(&(objectClass=%s)(bean.id=sc))", Pojo.class.getName());) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -97,7 +97,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 			long changeCount = containerDTO.changeCount;
 
 			ServiceRegistration<Integer> int1 = bundleContext.registerService(
-				Integer.class, new Integer(12),
+				Integer.class, Integer.valueOf(12),
 				new Hashtable<>(Collections.singletonMap("bean.id", "sc")));
 
 			try {
@@ -135,7 +135,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 
 	@Test
 	public void factoryComponent() throws Exception {
-		Bundle tb = installBundle.installBundle("tb11.jar");
+		Bundle tb = bundleInstaller.installBundle("tb11.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(&(objectClass=%s)(bean.id=fc))", Pojo.class.getName());) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -161,7 +161,7 @@ public class OptionalReluctantReferenceTests extends BaseTestCase {
 			long changeCount = containerDTO.changeCount;
 
 			ServiceRegistration<Integer> int1 = bundleContext.registerService(
-				Integer.class, new Integer(12),
+				Integer.class, Integer.valueOf(12),
 				new Hashtable<>(Collections.singletonMap("bean.id", "fc")));
 
 			try {

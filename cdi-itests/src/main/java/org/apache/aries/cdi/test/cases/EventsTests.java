@@ -14,14 +14,14 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Dictionary;
 
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
@@ -30,7 +30,7 @@ public class EventsTests extends SlimBaseTestCase {
 
 	@Test
 	public void testContainerComponentReferenceEventHandler() throws Exception {
-		Bundle tb = installBundle.installBundle("tb9.jar");
+		Bundle tb = bundleInstaller.installBundle("tb9.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -42,7 +42,7 @@ public class EventsTests extends SlimBaseTestCase {
 
 			long changeCount = containerDTO.changeCount;
 
-			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(Integer.class, new Integer(12), null);
+			ServiceRegistration<Integer> int1 = bundleContext.registerService(Integer.class, Integer.valueOf(12), null);
 
 			try {
 				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {
@@ -81,7 +81,7 @@ public class EventsTests extends SlimBaseTestCase {
 
 	@Test
 	public void testSingleComponentReferenceEventHandler() throws Exception {
-		Bundle tb = installBundle.installBundle("tb10.jar");
+		Bundle tb = bundleInstaller.installBundle("tb10.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -93,7 +93,7 @@ public class EventsTests extends SlimBaseTestCase {
 
 			long changeCount = containerDTO.changeCount;
 
-			ServiceRegistration<Integer> int1 = bcr.getBundleContext().registerService(Integer.class, new Integer(12), null);
+			ServiceRegistration<Integer> int1 = bundleContext.registerService(Integer.class, Integer.valueOf(12), null);
 
 			try {
 				for (long i = 10; i > 0 && (getContainerDTO(tb).changeCount == changeCount); i--) {

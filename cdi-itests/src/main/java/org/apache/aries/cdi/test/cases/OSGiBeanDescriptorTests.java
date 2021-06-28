@@ -14,8 +14,8 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Set;
 
@@ -28,14 +28,14 @@ import org.apache.aries.cdi.test.cases.base.BaseTestCase;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.interfaces.BeanService;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 
 public class OSGiBeanDescriptorTests extends BaseTestCase {
 
 	@Test
 	public void testServices() throws Exception {
-		installBundle.installBundle("tb2.jar");
+		bundleInstaller.installBundle("tb2.jar");
 
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Pojo pojo = tracker.waitForService(timeout);
@@ -46,8 +46,8 @@ public class OSGiBeanDescriptorTests extends BaseTestCase {
 	@SuppressWarnings("serial")
 	@Test
 	public void testReferences() throws Exception {
-		Bundle tb1Bundle = installBundle.installBundle("tb1.jar");
-		installBundle.installBundle("tb2.jar");
+		Bundle tb1Bundle = bundleInstaller.installBundle("tb1.jar");
+		bundleInstaller.installBundle("tb2.jar");
 
 		BeanManager beanManager = getBeanManager(tb1Bundle);
 		Set<Bean<?>> beans = beanManager.getBeans("beanimpl");

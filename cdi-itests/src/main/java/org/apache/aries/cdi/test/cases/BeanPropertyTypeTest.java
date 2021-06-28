@@ -15,13 +15,13 @@
 package org.apache.aries.cdi.test.cases;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.http.runtime.HttpServiceRuntime;
 import org.osgi.service.http.runtime.dto.ServletContextDTO;
@@ -31,7 +31,7 @@ public class BeanPropertyTypeTest extends SlimBaseTestCase {
 
 	@Test
 	public void beanPropertyAnnotationsWereUsed() throws Exception {
-		Bundle tbBundle = installBundle.installBundle("tb13.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb13.jar");
 
 		getBeanManager(tbBundle);
 
@@ -40,10 +40,10 @@ public class BeanPropertyTypeTest extends SlimBaseTestCase {
 		assertThat(contextDTO).isNotNull();
 	}
 
-	@Before
+	@BeforeEach
 	@Override
 	public void setUp() throws Exception {
-		hsrTracker = new ServiceTracker<>(bcr.getBundleContext(), HttpServiceRuntime.class, null);
+		hsrTracker = new ServiceTracker<>(bundleContext, HttpServiceRuntime.class, null);
 
 		hsrTracker.open();
 
@@ -52,7 +52,7 @@ public class BeanPropertyTypeTest extends SlimBaseTestCase {
 		assertNotNull(hsr);
 	}
 
-	@After
+	@AfterEach
 	@Override
 	public void tearDown() throws Exception {
 		hsrTracker.close();
@@ -73,7 +73,7 @@ public class BeanPropertyTypeTest extends SlimBaseTestCase {
 			Thread.sleep(50);
 		}
 
-		assertTrue(String.format("%s not found in time", context), false);
+		assertTrue(false, String.format("%s not found in time", context));
 
 		return null;
 	}

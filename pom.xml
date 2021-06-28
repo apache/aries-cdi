@@ -50,10 +50,12 @@
 		<jakarta.xml.ws-api>2.3.2</jakarta.xml.ws-api>
 		<johnzon.version>1.2.13</johnzon.version>
 		<jsp.version>2.0</jsp.version>
+		<junit.jupiter.version>5.7.2</junit.jupiter.version>
+		<junit.platform.version>1.7.2</junit.platform.version>
 		<mp.config.version>1.3</mp.config.version>
 		<mp.jwt.auth.version>1.1.1</mp.jwt.auth.version>
 		<mp.metrics.version>1.1.1</mp.metrics.version>
-		<osgi.test.version>0.10.0</osgi.test.version>
+		<osgi.test.version>1.0.0</osgi.test.version>
 		<owb.version>2.0.13</owb.version>
 		<slf4j.version>1.7.30</slf4j.version>
 		<surefire.version>2.12</surefire.version>
@@ -178,6 +180,36 @@
 				<version>1.2</version>
 			</dependency>
 			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-api</artifactId>
+				<version>${junit.jupiter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-engine</artifactId>
+				<version>${junit.jupiter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-params</artifactId>
+				<version>${junit.jupiter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.platform</groupId>
+				<artifactId>junit-platform-commons</artifactId>
+				<version>${junit.platform.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.platform</groupId>
+				<artifactId>junit-platform-engine</artifactId>
+				<version>${junit.platform.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.platform</groupId>
+				<artifactId>junit-platform-launcher</artifactId>
+				<version>${junit.platform.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.osgi</groupId>
 				<artifactId>org.osgi.namespace.extender</artifactId>
 				<version>1.0.1</version>
@@ -245,17 +277,13 @@
 				<version>7.0.0</version>
 				<scope>provided</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>org.osgi</groupId>
-				<artifactId>org.osgi.test.assertj.framework</artifactId>
+				<artifactId>org.osgi.test.bom</artifactId>
 				<version>${osgi.test.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.osgi</groupId>
-				<artifactId>org.osgi.test.junit4</artifactId>
-				<version>${osgi.test.version}</version>
-				<scope>test</scope>
+				<scope>import</scope>
+				<type>pom</type>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -487,7 +515,6 @@
 					<artifactId>bnd-run-maven-plugin</artifactId>
 					<version>${bnd.version}</version>
 					<configuration>
-						<failOnChanges>false</failOnChanges>
 						<includeDependencyManagement>true</includeDependencyManagement>
 					</configuration>
 				</plugin>

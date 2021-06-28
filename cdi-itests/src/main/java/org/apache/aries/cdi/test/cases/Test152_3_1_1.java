@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceObjects;
@@ -61,7 +61,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1l.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1l.jar");
 		Configuration configuration = null;
 
 		try {
@@ -265,7 +265,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1k.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1k.jar");
 		Configuration configuration = null;
 
 		try {
@@ -438,7 +438,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1j.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1j.jar");
 
 		getBeanManager(tbBundle);
 
@@ -586,7 +586,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1i.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1i.jar");
 		Configuration configuration = null;
 
 		try {
@@ -728,7 +728,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1h.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1h.jar");
 		Configuration configuration = null;
 
 		try {
@@ -846,7 +846,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1g.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1g.jar");
 
 		try {
 			getBeanManager(tbBundle);
@@ -933,7 +933,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1f.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1f.jar");
 		Configuration configuration = null;
 
 		try {
@@ -1063,7 +1063,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1e.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1e.jar");
 		Configuration configuration = null;
 
 		try {
@@ -1179,7 +1179,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1d.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1d.jar");
 
 		try {
 			getBeanManager(tbBundle);
@@ -1259,7 +1259,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1c.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1c.jar");
 		Configuration configuration = null;
 
 		try {
@@ -1357,7 +1357,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1b.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1b.jar");
 		Configuration configuration = null;
 
 		try {
@@ -1445,7 +1445,7 @@ public class Test152_3_1_1 extends SlimBaseTestCase {
 			Consumer.class, onDestroyed,
 			new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "onDestroyed");}});
 
-		Bundle tbBundle = installBundle.installBundle("tb152_3_1_1a.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb152_3_1_1a.jar");
 
 		try {
 			getBeanManager(tbBundle);

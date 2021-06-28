@@ -15,14 +15,15 @@
 package org.apache.aries.cdi.test.cases.base;
 
 import static java.util.Optional.ofNullable;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.osgi.test.common.filter.Filters.format;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -31,11 +32,13 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.TestWatcher;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
@@ -48,14 +51,15 @@ import org.osgi.service.cdi.runtime.CDIComponentRuntime;
 import org.osgi.service.cdi.runtime.dto.ContainerDTO;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.test.common.annotation.InjectBundleContext;
-import org.osgi.test.common.annotation.InjectInstallBundle;
+import org.osgi.test.common.annotation.InjectBundleInstaller;
 import org.osgi.test.common.annotation.InjectService;
-import org.osgi.test.common.install.InstallBundle;
-import org.osgi.test.junit4.context.BundleContextRule;
-import org.osgi.test.junit4.service.ServiceRule;
+import org.osgi.test.common.install.BundleInstaller;
+import org.osgi.test.junit5.context.BundleContextExtension;
+import org.osgi.test.junit5.service.ServiceExtension;
 import org.osgi.util.promise.PromiseFactory;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
+@ExtendWith({BundleContextExtension.class, ServiceExtension.class})
 public abstract class BaseTestCase {
 
 	public static final long timeout = 500;
@@ -63,42 +67,47 @@ public abstract class BaseTestCase {
 	public Bundle servicesBundle;
 	public static final PromiseFactory promiseFactory = new PromiseFactory(null);
 
-	@Rule
-	public BundleContextRule bcr = new BundleContextRule();
-	@Rule
-	public ServiceRule sr = new ServiceRule();
-
 	@InjectBundleContext
 	public BundleContext bundleContext;
-	@InjectInstallBundle
-	public InstallBundle installBundle;
+	@InjectBundleInstaller
+	public BundleInstaller bundleInstaller;
 	@InjectService
 	public CDIComponentRuntime ccr;
 	@InjectService
 	public ConfigurationAdmin car;
 
-	@Rule
-	public TestWatcher watchman= new TestWatcher() {
+	//@RegisterExtension
+	public static BeforeEachCallback beforeEachCallback = (ExtensionContext context) -> {
+		System.out.printf("--------- TEST: %s [%s]%n", context.getUniqueId(), "STARTING");
+	};
+
+	@RegisterExtension
+	public static TestWatcher watchman = new TestWatcher() {
 		@Override
-		protected void failed(Throwable e, Description description) {
-			System.out.printf("--------- TEST: %s#%s [%s]%n", description.getTestClass(), description.getMethodName(), "FAILED");
+		public void testDisabled(ExtensionContext context, Optional<String> reason) {
+			System.out.printf("--------- TEST: %s [%s] Reason: %s%n", context.getUniqueId(), "DISABLED", reason.orElse(""));
 		}
 
 		@Override
-		protected void succeeded(Description description) {
-			System.out.printf("--------- TEST: %s#%s [%s]%n", description.getTestClass(), description.getMethodName(), "PASSED");
+		public void testFailed(ExtensionContext context, Throwable cause) {
+			System.out.printf("--------- TEST: %s [%s]%n", context.getUniqueId(), "FAILED");
+		}
+
+		@Override
+		public void testSuccessful(ExtensionContext context) {
+			System.out.printf("--------- TEST: %s [%s]%n", context.getUniqueId(), "PASSED");
 		}
 	};
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
-		servicesBundle = installBundle.installBundle("services-one.jar", false);
+		servicesBundle = bundleInstaller.installBundle("services-one.jar", false);
 		servicesBundle.start();
-		cdiBundle = installBundle.installBundle("basic-beans.jar", false);
+		cdiBundle = bundleInstaller.installBundle("basic-beans.jar", false);
 		cdiBundle.start();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		cdiBundle.uninstall();
 		servicesBundle.uninstall();
@@ -159,7 +168,7 @@ public abstract class BaseTestCase {
 	}
 
 	public <S,T> CloseableTracker<S, T> track(Filter filter) {
-		CloseableTracker<S, T> tracker = new CloseableTracker<>(bcr.getBundleContext(), filter);
+		CloseableTracker<S, T> tracker = new CloseableTracker<>(bundleContext, filter);
 		tracker.open();
 		return tracker;
 	}
@@ -173,7 +182,7 @@ public abstract class BaseTestCase {
 	}
 
 	public <S> CloseableTracker<S, ServiceReference<S>> trackSR(Filter filter) {
-		CloseableTracker<S, ServiceReference<S>> tracker = new CloseableTracker<>(bcr.getBundleContext(), filter, new ServiceTrackerCustomizer<S, ServiceReference<S>>() {
+		CloseableTracker<S, ServiceReference<S>> tracker = new CloseableTracker<>(bundleContext, filter, new ServiceTrackerCustomizer<S, ServiceReference<S>>() {
 
 			@Override
 			public ServiceReference<S> addingService(ServiceReference<S> reference) {
@@ -203,7 +212,7 @@ public abstract class BaseTestCase {
 
 	public CloseableTracker<BeanManager, BeanManager> trackBM(long bundleId) throws Exception {
 		CloseableTracker<BeanManager, BeanManager> serviceTracker = new CloseableTracker<>(
-			bcr.getBundleContext(),
+			bundleContext,
 			format(
 				"(&(objectClass=%s)(service.bundleid=%d))",
 				BeanManager.class.getName(),
@@ -219,7 +228,7 @@ public abstract class BaseTestCase {
 		).map(
 			Long.class::cast
 		).orElseGet(
-			() -> new Long(-1l)
+			() -> Long.valueOf(-1)
 		).longValue();
 	}
 

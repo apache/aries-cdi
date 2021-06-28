@@ -26,7 +26,7 @@ import javax.enterprise.inject.spi.EventMetadata;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.BeanService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -39,7 +39,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 	@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 	@Test
 	public void checkSingleComponentContextEvents() throws Exception {
-		Bundle tb152_3_1Bundle = installBundle.installBundle("tb152_3_1.jar");
+		Bundle tb152_3_1Bundle = bundleInstaller.installBundle("tb152_3_1.jar");
 
 		AtomicReference<Object[]> a = new AtomicReference<>();
 		AtomicReference<Object[]> b = new AtomicReference<>();
@@ -87,7 +87,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 			int trackingCount = twoTracker.getTrackingCount();
 
 			ServiceRegistration<Integer> integerReg = bundleContext.registerService(
-				Integer.class, new Integer(45),
+				Integer.class, Integer.valueOf(45),
 				new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "two");}});
 
 			while (trackingCount == twoTracker.getTrackingCount()) {Thread.sleep(50);}
@@ -135,7 +135,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 	@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 	@Test
 	public void checkFactoryComponentContextEvents() throws Exception {
-		Bundle tb152_3_1Bundle = installBundle.installBundle("tb152_3_1.jar");
+		Bundle tb152_3_1Bundle = bundleInstaller.installBundle("tb152_3_1.jar");
 
 		AtomicReference<Object[]> a = new AtomicReference<>();
 		AtomicReference<Object[]> b = new AtomicReference<>();
@@ -185,7 +185,7 @@ public class Test152_3_1 extends SlimBaseTestCase {
 			int trackingCount = threeTracker.getTrackingCount();
 
 			ServiceRegistration<Integer> integerReg = bundleContext.registerService(
-				Integer.class, new Integer(45),
+				Integer.class, Integer.valueOf(45),
 				new Hashtable() {{put(Constants.SERVICE_DESCRIPTION, "three");}});
 
 			int count = 10;

@@ -14,13 +14,12 @@
 
 package org.apache.aries.cdi.test.cases.base;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.InputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.osgi.services.HttpClientBuilderFactory;
 import org.assertj.core.util.Arrays;
+import org.junit.jupiter.api.Assertions;
 import org.osgi.service.http.runtime.HttpServiceRuntime;
 import org.osgi.service.http.runtime.dto.ServletContextDTO;
 import org.osgi.service.http.runtime.dto.ServletDTO;
@@ -80,7 +79,7 @@ public abstract class HttpBaseTestCase extends SlimBaseTestCase {
 			Thread.sleep(50);
 		}
 
-		assertTrue(String.format("%s not found in time", path), false);
+		Assertions.assertTrue(false, String.format("%s not found in time", path));
 
 		return null;
 	}

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cdi.runtime.dto.template.ContainerTemplateDTO;
 
@@ -28,7 +28,7 @@ public class Test_discoverByBeansXml extends SlimBaseTestCase {
 
 	@Test
 	public void componentScopeContext() throws Exception {
-		Bundle tbBundle = installBundle.installBundle("tb14.jar");
+		Bundle tbBundle = bundleInstaller.installBundle("tb14.jar");
 
 		getBeanManager(tbBundle);
 

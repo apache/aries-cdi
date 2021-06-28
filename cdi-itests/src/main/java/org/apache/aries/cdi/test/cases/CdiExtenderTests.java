@@ -14,14 +14,14 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import javax.enterprise.inject.spi.BeanManager;
 
 import org.apache.aries.cdi.test.cases.base.BaseTestCase;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 
 public class CdiExtenderTests extends BaseTestCase {

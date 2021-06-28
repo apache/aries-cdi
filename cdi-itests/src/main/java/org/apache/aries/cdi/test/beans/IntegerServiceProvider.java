@@ -14,6 +14,9 @@
 
 package org.apache.aries.cdi.test.beans;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 
@@ -23,7 +26,9 @@ import org.osgi.service.cdi.propertytypes.ServiceRanking;
 @ApplicationScoped
 public class IntegerServiceProvider {
 
-	protected IntegerServiceProvider() {
+	private final SecureRandom random = new SecureRandom();
+
+	protected IntegerServiceProvider() throws NoSuchAlgorithmException {
 		// no-op: a normal scoped bean MUST have a default constructor to let container create a proxy
 	}
 
@@ -31,26 +36,26 @@ public class IntegerServiceProvider {
 	@Service(Integer.class)
 	@ServiceRanking(5000)
 	Integer int1() {
-		return new Integer(Double.valueOf(Math.random()).intValue());
+		return random.nextInt();
 	}
 
 	@Produces
 	@Service(Integer.class)
 	@ServiceRanking(12000)
 	Integer int2() {
-		return new Integer(Double.valueOf(Math.random()).intValue());
+		return random.nextInt();
 	}
 
 	@Produces
 	@Service(Integer.class)
 	@ServiceRanking(1000)
 	Integer int3() {
-		return new Integer(Double.valueOf(Math.random()).intValue());
+		return random.nextInt();
 	}
 
 	@Produces
 	@Service(Integer.class)
 	@ServiceRanking(100000)
-	Integer int4 = new Integer(Double.valueOf(Math.random()).intValue());
+	Integer int4 = random.nextInt();
 
 }

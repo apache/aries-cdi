@@ -16,25 +16,25 @@ package org.apache.aries.cdi.test.cases.jaxrs;
 
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Client;
 
 import org.apache.aries.cdi.test.cases.base.JaxrsBaseTestCase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.osgi.service.jaxrs.runtime.dto.RuntimeDTO;
 
 public class ResourceTests extends JaxrsBaseTestCase {
 
-	@Before
+	@BeforeEach
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
-		cdiBundle = installBundle.installBundle("tb24.jar");
+		cdiBundle = bundleInstaller.installBundle("tb24.jar");
 
 		int count = 100;
 		RuntimeDTO runtimeDTO;
@@ -47,7 +47,7 @@ public class ResourceTests extends JaxrsBaseTestCase {
 			"A");
 	}
 
-	@After
+	@AfterEach
 	@Override
 	public void tearDown() throws Exception {
 		cdiBundle.uninstall();

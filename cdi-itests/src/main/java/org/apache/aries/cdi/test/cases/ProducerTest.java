@@ -14,21 +14,21 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Constants;
 
 public class ProducerTest extends SlimBaseTestCase {
 
 	@Test
 	public void checkProducersAreProperlyHandled() throws Exception {
-		installBundle.installBundle("tb12.jar");
+		bundleInstaller.installBundle("tb12.jar");
 
 		try (CloseableTracker<Pojo, Pojo> track = track("(&(objectClass=%s)(component.name=integerManager))", Pojo.class.getName())) {
 			Pojo pojo = track.waitForService(5000);

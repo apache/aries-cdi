@@ -14,10 +14,10 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +32,7 @@ import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.interfaces.BeanService;
 import org.apache.aries.cdi.test.interfaces.BundleContextBeanQualifier;
 import org.apache.aries.cdi.test.interfaces.FieldInjectedReference;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cdi.ComponentType;
@@ -136,7 +136,7 @@ public class CdiBeanTests extends BaseTestCase {
 			assertNotNull(componentInstanceDTO);
 
 			assertEquals(0, componentInstanceDTO.configurations.size());
-			assertNotNull("should have properties", componentInstanceDTO.properties);
+			assertNotNull(componentInstanceDTO.properties, "should have properties");
 		}
 	}
 

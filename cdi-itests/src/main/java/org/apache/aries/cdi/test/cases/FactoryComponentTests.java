@@ -14,9 +14,9 @@
 
 package org.apache.aries.cdi.test.cases;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -24,7 +24,7 @@ import java.util.Hashtable;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.BeanService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.service.cm.Configuration;
 
 public class FactoryComponentTests extends SlimBaseTestCase {
@@ -32,7 +32,7 @@ public class FactoryComponentTests extends SlimBaseTestCase {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testFactoryComponent() throws Exception {
-		installBundle.installBundle("tb7.jar");
+		bundleInstaller.installBundle("tb7.jar");
 
 		try (CloseableTracker<BeanService, BeanService> tracker = track(
 			"(&(objectClass=%s)(objectClass=*.%s))",

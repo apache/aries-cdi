@@ -15,8 +15,8 @@
 package org.apache.aries.cdi.test.cases;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 
@@ -26,7 +26,7 @@ import javax.naming.InitialContext;
 import org.apache.aries.cdi.test.cases.base.CloseableTracker;
 import org.apache.aries.cdi.test.cases.base.SlimBaseTestCase;
 import org.apache.aries.cdi.test.interfaces.Pojo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.wiring.BundleWiring;
@@ -36,7 +36,7 @@ public class JndiExtensionTests extends SlimBaseTestCase {
 
 	@Test
 	public void testGetBeanManagerThroughJNDI() throws Exception {
-		Bundle testBundle = installBundle.installBundle("tb21.jar");
+		Bundle testBundle = bundleInstaller.installBundle("tb21.jar");
 
 		assertNotNull(getBeanManager(testBundle));
 
@@ -74,7 +74,7 @@ public class JndiExtensionTests extends SlimBaseTestCase {
 		try (CloseableTracker<Pojo, Pojo> tracker = track("(objectClass=%s)", Pojo.class.getName())) {
 			Bundle extensionBundle = bundleTracker.getBundles()[0];
 
-			Bundle testBundle = installBundle.installBundle("tb21.jar", false);
+			Bundle testBundle = bundleInstaller.installBundle("tb21.jar", false);
 
 			try (CloseableTracker<BeanManager, BeanManager> bmTracker = trackBM(testBundle.getBundleId());) {
 				assertThat(bmTracker).matches(CloseableTracker::isEmpty, "BeanManager tracker is empty");

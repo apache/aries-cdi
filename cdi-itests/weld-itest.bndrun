@@ -33,10 +33,16 @@ _java.opens: "--add-opens", "java.base/java.lang=ALL-UNNAMED"
 -runblacklist: \
 	osgi.identity;filter:='(osgi.identity=*owb*)'
 -runbundles: \
-	assertj-core;version='[3.17.2,3.17.3)',\
+	assertj-core;version='[3.19.0,3.19.1)',\
 	jakarta.xml.bind-api;version='[2.3.2,2.3.3)',\
 	jboss-classfilewriter;version='[1.2.4,1.2.5)',\
 	jcl.over.slf4j;version='[1.7.30,1.7.31)',\
+	junit-jupiter-api;version='[5.7.2,5.7.3)',\
+	junit-jupiter-engine;version='[5.7.2,5.7.3)',\
+	junit-jupiter-params;version='[5.7.2,5.7.3)',\
+	junit-platform-commons;version='[1.7.2,1.7.3)',\
+	junit-platform-engine;version='[1.7.2,1.7.3)',\
+	junit-platform-launcher;version='[1.7.2,1.7.3)',\
 	org.apache.aries.cdi.extender;version='[1.1.4,1.1.5)',\
 	org.apache.aries.cdi.extension.jaxrs;version='[1.1.4,1.1.5)',\
 	org.apache.aries.cdi.extension.jndi;version='[1.1.4,1.1.5)',\
@@ -66,12 +72,12 @@ _java.opens: "--add-opens", "java.base/java.lang=ALL-UNNAMED"
 	org.apache.geronimo.specs.geronimo-jcdi_2.0_spec;version='[1.1.0,1.1.1)',\
 	org.apache.httpcomponents.httpclient;version='[4.5.13,4.5.14)',\
 	org.apache.httpcomponents.httpcore;version='[4.4.14,4.4.15)',\
-	org.apache.servicemix.bundles.junit;version='[4.13.0,4.13.1)',\
 	org.jboss.logging.jboss-logging;version='[3.4.2,3.4.3)',\
 	org.jboss.weld.osgi-bundle;version='[3.1.7,3.1.8)',\
+	org.opentest4j;version='[1.2.0,1.2.1)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
 	org.osgi.service.jaxrs;version='[1.0.0,1.0.1)',\
-	org.osgi.test.common;version='[0.10.0,0.10.1)',\
-	org.osgi.test.junit4;version='[0.10.0,0.10.1)',\
+	org.osgi.test.common;version='[1.0.0,1.0.1)',\
+	org.osgi.test.junit5;version='[1.0.0,1.0.1)',\
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
 	org.osgi.util.promise;version='[1.1.1,1.1.2)'
