@@ -29,9 +29,9 @@
 	junit-platform-commons;version='[1.7.2,1.7.3)',\
 	junit-platform-engine;version='[1.7.2,1.7.3)',\
 	junit-platform-launcher;version='[1.7.2,1.7.3)',\
-	openwebbeans-impl;version='[2.0.13,2.0.14)',\
-	openwebbeans-spi;version='[2.0.13,2.0.14)',\
-	openwebbeans-web;version='[2.0.13,2.0.14)',\
+	openwebbeans-impl;version='[2.0.23,2.0.24)',\
+	openwebbeans-spi;version='[2.0.23,2.0.24)',\
+	openwebbeans-web;version='[2.0.23,2.0.24)',\
 	org.apache.aries.cdi.extender;version='[1.1.4,1.1.5)',\
 	org.apache.aries.cdi.extension.jaxrs;version='[1.1.4,1.1.5)',\
 	org.apache.aries.cdi.extension.jndi;version='[1.1.4,1.1.5)',\
@@ -62,9 +62,9 @@
 	org.apache.geronimo.specs.geronimo-jcdi_2.0_spec;version='[1.1.0,1.1.1)',\
 	org.apache.httpcomponents.httpclient;version='[4.5.13,4.5.14)',\
 	org.apache.httpcomponents.httpcore;version='[4.4.14,4.4.15)',\
-	org.apache.xbean.asm7-shaded;version='[4.13.0,4.13.1)',\
-	org.apache.xbean.bundleutils;version='[4.18.0,4.18.1)',\
-	org.apache.xbean.finder-shaded;version='[4.13.0,4.13.1)',\
+	org.apache.xbean.asm9-shaded;version='[4.20.0,4.20.1)',\
+	org.apache.xbean.bundleutils;version='[4.20.0,4.20.1)',\
+	org.apache.xbean.finder-shaded;version='[4.18.0,4.18.1)',\
 	org.opentest4j;version='[1.2.0,1.2.1)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
 	org.osgi.service.jaxrs;version='[1.0.0,1.0.1)',\

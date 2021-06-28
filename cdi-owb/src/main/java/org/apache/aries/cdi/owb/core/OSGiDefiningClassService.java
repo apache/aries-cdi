@@ -50,7 +50,7 @@ public class OSGiDefiningClassService implements DefiningClassService {
 			if (classLoader != classloaders.bundleLoader) {
 				// todo: log a warning?
 			}
-			return UnsafeFacade.INSTANCE.defineAndLoadClass(classLoader, name, bytes);
+			return UnsafeFacade.INSTANCE.defineAndLoadClass(classLoader, name, bytes, proxied);
 		}
 		return (Class<T>) classloaders.loader.getOrRegister(name, bytes, proxied.getPackage(), proxied.getProtectionDomain());
 	}
