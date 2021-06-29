@@ -44,7 +44,7 @@
 
 		<!-- Versions -->
 		<bnd.version>5.3.0</bnd.version>
-		<byte.buddy.version>1.10.18</byte.buddy.version>
+		<byte.buddy.version>1.11.5</byte.buddy.version>
 		<jax.rs.whiteboard.version>2.0.0</jax.rs.whiteboard.version>
 		<jaxb.api.version>2.3.2</jaxb.api.version>
 		<jakarta.xml.ws-api>2.3.2</jakarta.xml.ws-api>
