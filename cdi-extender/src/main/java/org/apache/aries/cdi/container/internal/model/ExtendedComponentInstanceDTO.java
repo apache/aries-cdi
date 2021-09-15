@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.container.internal.model;
 
-import static org.apache.aries.cdi.container.internal.util.Filters.*;
+import static org.apache.aries.cdi.container.internal.util.Filters.asFilter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -274,11 +274,16 @@ public class ExtendedComponentInstanceDTO extends ComponentInstanceDTO {
 	}
 
 	public Map<String, Object> componentProperties(Map<String, Object> others) {
+		_log.debug(l -> l.debug("ComponentProperties: merging"));
+
 		Map<String, Object> props = new HashMap<>();
 		if (others != null) {
 			props.putAll(others);
+			_log.debug(l -> l.debug("ComponentProperties: others {}", props));
 		}
 		props.putAll(template.properties);
+		_log.debug(l -> l.debug("ComponentProperties: template {}", props));
+
 		List<String> servicePids = new ArrayList<>();
 
 		for (ConfigurationTemplateDTO t : template.configurations) {
@@ -295,6 +300,7 @@ public class ExtendedComponentInstanceDTO extends ComponentInstanceDTO {
 					);
 
 					props.putAll(copy);
+					_log.debug(l -> l.debug("ComponentProperties: config {}:{}:{} {}", t.pid, t.policy, t.maximumCardinality, props));
 				}
 			);
 		}
@@ -304,6 +310,7 @@ public class ExtendedComponentInstanceDTO extends ComponentInstanceDTO {
 		}
 		props.put("component.id", _componentId);
 		props.put("component.name", template.name);
+		_log.debug(l -> l.debug("ComponentProperties: final {}", props));
 
 		return props;
 	}

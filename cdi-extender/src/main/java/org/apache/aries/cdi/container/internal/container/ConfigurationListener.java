@@ -38,7 +38,7 @@ import org.osgi.service.cm.ConfigurationEvent;
 import org.osgi.service.log.Logger;
 import org.osgi.util.promise.Promise;
 
-public class ConfigurationListener extends Phase implements org.osgi.service.cm.ConfigurationListener {
+public class ConfigurationListener extends Phase implements org.osgi.service.cm.SynchronousConfigurationListener {
 
 	public static class Builder {
 
@@ -104,12 +104,16 @@ public class ConfigurationListener extends Phase implements org.osgi.service.cm.
 
 	@Override
 	public void configurationEvent(ConfigurationEvent event) {
+		_log.debug(l -> l.debug("ConfigurationEvent for {}:{}", event.getPid(), type(event)));
+
 		next.map(next -> (Component)next).ifPresent(
 			next -> next.configurationTemplates().stream().filter(
 				t -> Predicates.isMatchingConfiguration(event).test(t)
 			).findFirst().ifPresent(
 				t -> {
 					String eventString = Arrays.asList(event.getPid(), event.getFactoryPid(), type(event)).toString();
+
+					_log.debug(l -> l.debug("CCR Event {} matches {} because of {}", eventString, _component.template().name, _component.template().configurations));
 
 					Promise<Boolean> result = containerState.submit(
 						Op.of(Mode.OPEN, Type.CONFIGURATION_EVENT, eventString),

@@ -14,13 +14,14 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +32,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
@@ -72,12 +75,14 @@ import org.osgi.service.cdi.annotations.ComponentProperties;
 import org.osgi.service.cdi.annotations.ComponentScoped;
 import org.osgi.service.cdi.annotations.FactoryComponent;
 import org.osgi.service.cdi.annotations.PID;
+import org.osgi.service.cdi.annotations.PIDs;
 import org.osgi.service.cdi.annotations.Reference;
 import org.osgi.service.cdi.annotations.SingleComponent;
 import org.osgi.service.cdi.reference.BindBeanServiceObjects;
 import org.osgi.service.cdi.reference.BindService;
 import org.osgi.service.cdi.reference.BindServiceReference;
 import org.osgi.service.cdi.runtime.dto.template.ComponentTemplateDTO;
+import org.osgi.service.log.Logger;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -111,6 +116,7 @@ public class Discovery {
 
 	public Discovery(ContainerState containerState) {
 		_containerState = containerState;
+		_log = _containerState.ccrLogs().getLogger(getClass());
 		_beansModel = _containerState.beansModel();
 		_containerTemplate = _containerState.containerDTO().template.components.get(0);
 
@@ -308,8 +314,8 @@ public class Discovery {
 	}
 
 	void discoverActivations(OSGiBean osgiBean, Class<?> declaringClass, final Annotated component,
-							 AnnotatedMember<?> producer, Class<? extends Annotation> scope,
-							 List<String> serviceTypeNames) {
+							AnnotatedMember<?> producer, Class<? extends Annotation> scope,
+							List<String> serviceTypeNames) {
 		String className = declaringClass.getName();
 
 		if (!_containerTemplate.beans.contains(className)) {
@@ -371,7 +377,13 @@ public class Discovery {
 		componentTemplate.references = new CopyOnWriteArrayList<>();
 		componentTemplate.type = componentType;
 
-		annotated.getAnnotations(PID.class).stream().forEach(
+		List<PID> pids = annotated.getAnnotations(PIDs.class).stream().flatMap(ps -> Stream.of(ps.value())).collect(Collectors.toList());
+
+		if (pids.isEmpty()) {
+			pids = annotated.getAnnotations(PID.class).stream().collect(toList());
+		}
+
+		pids.forEach(
 			PID -> {
 				String pid = PID.value();
 
@@ -390,6 +402,11 @@ public class Discovery {
 				configurationTemplate.policy = PID.policy();
 
 				componentTemplate.configurations.add(configurationTemplate);
+
+				_log.debug(l -> l.debug(
+					"Added specified configuration {}:{}:{} to {}",
+					configurationTemplate.pid, configurationTemplate.policy,
+					configurationTemplate.maximumCardinality, configurationTemplate.declaringClass));
 			}
 		);
 
@@ -403,6 +420,11 @@ public class Discovery {
 				configurationTemplate.policy = ConfigurationPolicy.OPTIONAL;
 
 				componentTemplate.configurations.add(configurationTemplate);
+
+				_log.debug(l -> l.debug(
+					"Added default configuration {}:{}:{} to {}",
+					configurationTemplate.pid, configurationTemplate.policy,
+					configurationTemplate.maximumCardinality, configurationTemplate.declaringClass));
 			}
 		}
 		else {
@@ -418,6 +440,11 @@ public class Discovery {
 			configurationTemplate.policy = ConfigurationPolicy.REQUIRED;
 
 			componentTemplate.configurations.add(configurationTemplate);
+
+			_log.debug(l -> l.debug(
+				"Added factory configuration {}:{}:{} to {}",
+				configurationTemplate.pid, configurationTemplate.policy,
+				configurationTemplate.maximumCardinality, configurationTemplate.declaringClass));
 		}
 
 		componentTemplate.beans.add(declaringClass.getName());
@@ -504,6 +531,7 @@ public class Discovery {
 	private final Set<OSGiBean> _componentScoped = new HashSet<>();
 	private final ComponentTemplateDTO _containerTemplate;
 	private final ContainerState _containerState;
+	private final Logger _log;
 	private final boolean _trim;
 	private final List<Exclude> _excludes;
 
