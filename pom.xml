@@ -616,6 +616,7 @@
 						<exclude>**/eclipse-classes/**/*</exclude>
 						<exclude>.gitignore</exclude>
 						<exclude>.github/**/*</exclude>
+						<exclude>.mailmap</exclude>
 						<exclude>.vscode/settings.json</exclude>
 						<exclude>*.md</exclude>
 						<exclude>*.cfg</exclude>
