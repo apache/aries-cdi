@@ -42,6 +42,8 @@
 		<maven.site.deploy.skip>true</maven.site.deploy.skip>
 		<bnd.baseline.skip>false</bnd.baseline.skip>
 
+		<project.build.outputTimestamp>1</project.build.outputTimestamp>
+
 		<!-- Versions -->
 		<bnd.version>5.3.0</bnd.version>
 		<byte.buddy.version>1.11.15</byte.buddy.version>
