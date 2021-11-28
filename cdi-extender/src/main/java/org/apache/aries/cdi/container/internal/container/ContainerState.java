@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -111,7 +112,7 @@ public class ContainerState {
 
 		_cdiAttributes = unmodifiableMap(cdiAttributes);
 
-		Set<String> extensionRequirements = new HashSet<>();
+		Set<String> extensionRequirements = new LinkedHashSet<>();
 
 		collectExtensionRequirements(bundleWiring, extensionRequirements);
 
