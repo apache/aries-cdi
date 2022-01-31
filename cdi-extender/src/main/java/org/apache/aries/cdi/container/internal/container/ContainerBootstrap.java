@@ -74,10 +74,6 @@ public class ContainerBootstrap extends Phase {
 		_singleBuilder = singleBuilder;
 		_factoryBuilder = factoryBuilder;
 		_log = containerState.containerLogs().getLogger(getClass());
-
-		_serviceObjects = requireNonNull(
-			_containerTracker.getService(),
-			"A prototype scope org.apache.aries.cdi.spi.CDIContainerInitializer service must be available.");
 	}
 
 	@Override
@@ -94,7 +90,7 @@ public class ContainerBootstrap extends Phase {
 				} finally {
 					_containerInstance = null;
 					try {
-						_serviceObjects.ungetService(_initializer);
+						getServiceObjects().ungetService(_initializer);
 						_initializer = null;
 					}
 					catch (Throwable t) {
@@ -139,7 +135,7 @@ public class ContainerBootstrap extends Phase {
 				// always use a new class loader
 				BundleClassLoader loader = new BundleClassLoader(containerState.bundle(), containerState.extenderBundle());
 
-				_initializer = _serviceObjects.getService();
+				_initializer = getServiceObjects().getService();
 
 				processExtensions(loader, _initializer);
 
@@ -263,12 +259,31 @@ public class ContainerBootstrap extends Phase {
 		}
 	}
 
+	private ServiceObjects<CDIContainerInitializer> getServiceObjects() {
+		if (_serviceObjects == null) {
+			try (Syncro syncro = _lock.open()) {
+				if (_serviceObjects == null) {
+					int shortWaitLoop = 100;
+					while (_containerTracker.isEmpty() && (shortWaitLoop > 0)) {
+						shortWaitLoop--;
+					}
+
+					_serviceObjects = requireNonNull(
+						_containerTracker.getService(),
+						"A prototype scope org.apache.aries.cdi.spi.CDIContainerInitializer service must be available.");
+				}
+			}
+		}
+
+		return _serviceObjects;
+	}
+
 	private volatile AutoCloseable _containerInstance;
 	private final ServiceTracker<CDIContainerInitializer, ServiceObjects<CDIContainerInitializer>> _containerTracker;
 	private final ConfigurationListener.Builder _configurationBuilder;
 	private final FactoryComponent.Builder _factoryBuilder;
 	private CDIContainerInitializer _initializer;
-	private final ServiceObjects<CDIContainerInitializer> _serviceObjects;
+	private volatile ServiceObjects<CDIContainerInitializer> _serviceObjects;
 	private final SingleComponent.Builder _singleBuilder;
 	private final Syncro _lock = new Syncro(true);
 	private final Logger _log;
