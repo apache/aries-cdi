@@ -283,8 +283,6 @@ public class ContainerState {
 			ConfigurationAdmin cm = _caTracker.getService();
 
 			if (cm == null) {
-				_log.error(l -> l.error("CCR unexpected error fetching configuration admin for {}", pid));
-
 				return empty();
 			}
 
