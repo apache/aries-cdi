@@ -20,6 +20,7 @@ import static org.osgi.framework.namespace.PackageNamespace.PACKAGE_NAMESPACE;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,8 +31,10 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.se.SeContainer;
@@ -176,7 +179,23 @@ public class OWBCDIContainerInitializer extends CDIContainerInitializer {
 						if (added) {
 							return;
 						}
-						extensions.forEach((k, v) -> addExtension(k));
+						try {
+							Method method = ExtensionLoader.class.getDeclaredMethod("addExtensions", List.class);
+							method.invoke(this, extensions.keySet().stream().collect(Collectors.toList()));
+						}
+						catch (ReflectiveOperationException nsme1) {
+							try {
+								Method method = ExtensionLoader.class.getDeclaredMethod("addExtension", Extension.class);
+								for (Entry<Extension, Map<String, Object>> entry : extensions.entrySet()) {
+									method.invoke(this, entry.getKey());
+								}
+							}
+							catch (ReflectiveOperationException nsme2) {
+								throw new RuntimeException(
+									"Could not locate either addExtensions(List) or addExtension(Extension) on " +
+										ExtensionLoader.class.getName());
+							}
+						}
 						added = true;
 					}
 				};
