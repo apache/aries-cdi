@@ -53,5 +53,5 @@ _java.opens: "--add-opens", "java.base/java.lang=ALL-UNNAMED"
 	org.jboss.logging.jboss-logging;version='[3.4.2,3.4.3)',\
 	org.jboss.weld.osgi-bundle;version='[3.1.8,3.1.9)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
-	org.osgi.util.function;version='[1.1.0,1.1.1)',\
+	org.osgi.util.function;version='[1.2.0,1.2.1)',\
 	org.osgi.util.promise;version='[1.1.1,1.1.2)'
