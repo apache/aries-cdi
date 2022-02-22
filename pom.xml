@@ -51,7 +51,7 @@
 		<jakarta.xml.ws-api>2.3.2</jakarta.xml.ws-api>
 		<johnzon.version>1.2.13</johnzon.version>
 		<jsp.version>2.0</jsp.version>
-		<junit.jupiter.version>5.8.1</junit.jupiter.version>
+		<junit.jupiter.version>5.8.2</junit.jupiter.version>
 		<junit.platform.version>1.8.1</junit.platform.version>
 		<mp.config.version>1.3</mp.config.version>
 		<mp.jwt.auth.version>1.2.1</mp.jwt.auth.version>
