@@ -24,12 +24,12 @@
 	com.sun.xml.bind.jaxb-impl;version='[2.3.2,2.3.3)',\
 	javax.servlet.jsp-api;version='[2.3.3,2.3.4)',\
 	jcl.over.slf4j;version='[1.7.32,1.7.33)',\
-	junit-jupiter-api;version='[5.8.1,5.8.2)',\
-	junit-jupiter-engine;version='[5.8.1,5.8.2)',\
-	junit-jupiter-params;version='[5.8.1,5.8.2)',\
-	junit-platform-commons;version='[1.8.1,1.8.2)',\
-	junit-platform-engine;version='[1.8.1,1.8.2)',\
-	junit-platform-launcher;version='[1.8.1,1.8.2)',\
+	junit-jupiter-api;version='[5.8.2,5.8.3)',\
+	junit-jupiter-engine;version='[5.8.2,5.8.3)',\
+	junit-jupiter-params;version='[5.8.2,5.8.3)',\
+	junit-platform-commons;version='[1.8.2,1.8.3)',\
+	junit-platform-engine;version='[1.8.2,1.8.3)',\
+	junit-platform-launcher;version='[1.8.2,1.8.3)',\
 	openwebbeans-impl;version='[2.0.25,2.0.26)',\
 	openwebbeans-spi;version='[2.0.25,2.0.26)',\
 	openwebbeans-web;version='[2.0.25,2.0.26)',\
@@ -80,5 +80,5 @@
 	org.osgi.test.common;version='[1.0.1,1.0.2)',\
 	org.osgi.test.junit5;version='[1.0.1,1.0.2)',\
 	org.osgi.util.function;version='[1.2.0,1.2.1)',\
-	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
+	org.osgi.util.promise;version='[1.2.0,1.2.1)',\
 	stax2-api;version='[4.2.1,4.2.2)'
