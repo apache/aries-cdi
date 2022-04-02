@@ -53,7 +53,7 @@
 					<bnd><![CDATA[
 						-cdiannotations:
 						-conditionalpackage: \
-							aQute.lib.exceptions,\
+							aQute.bnd.exceptions,\
 							org.apache.felix.utils.extender
 					]]></bnd>
 				</configuration>
