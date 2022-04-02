@@ -43,4 +43,4 @@
 	org.apache.xbean.finder-shaded;version='[4.18.0,4.18.1)',\
 	org.osgi.service.cdi;version='[1.0.0,1.0.1)',\
 	org.osgi.util.function;version='[1.2.0,1.2.1)',\
-	org.osgi.util.promise;version='[1.1.1,1.1.2)'
+	org.osgi.util.promise;version='[1.2.0,1.2.1)'
