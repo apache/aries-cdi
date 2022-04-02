@@ -24,6 +24,8 @@
 	test.property.b=,\
 	org.apache.felix.http.host=localhost
 
+-runee: JavaSE-${java.specification.version}
+
 -resolve.effective: resolve, active
 
 -runpath: \
