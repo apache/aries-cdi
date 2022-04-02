@@ -23,8 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import javax.enterprise.inject.spi.Annotated;
-
 import org.apache.aries.cdi.container.internal.util.Reflection;
 
 public class AnnotatedImpl<X> implements CachingAnnotated {
