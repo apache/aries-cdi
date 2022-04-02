@@ -191,17 +191,6 @@ public class Annotates {
 				.collect(toList());
 	}
 
-	private static List<Annotation> inherit(Collection<Annotation> annotations) {
-		List<Annotation> list = new ArrayList<>();
-		for (Annotation a1 : annotations) {
-			for (Annotation a2 : collect(Arrays.asList(a1.annotationType().getAnnotations()))) {
-				if (list.contains(a2)) continue;
-				list.add(a2);
-			}
-		}
-		return list;
-	}
-
 	public static List<Class<?>> serviceClasses(Annotated annotated) {
 		List<Class<?>> serviceTypes = new ArrayList<>();
 
