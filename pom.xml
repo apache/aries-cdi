@@ -44,7 +44,7 @@
 		<project.build.outputTimestamp>1</project.build.outputTimestamp>
 
 		<!-- Versions -->
-		<bnd.version>5.3.0</bnd.version>
+		<bnd.version>6.2.0</bnd.version>
 		<byte.buddy.version>1.12.8</byte.buddy.version>
 		<jax.rs.whiteboard.version>2.0.0</jax.rs.whiteboard.version>
 		<jaxb.api.version>2.3.2</jaxb.api.version>

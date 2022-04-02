@@ -14,6 +14,7 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
+import static aQute.bnd.exceptions.Exceptions.duck;
 import static java.util.stream.Collectors.toList;
 
 import java.io.InputStream;
@@ -88,7 +89,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import aQute.lib.exceptions.Exceptions;
+import aQute.bnd.exceptions.Exceptions;
 
 public class Discovery {
 
@@ -109,7 +110,7 @@ public class Discovery {
 				trimExpression = xPath.compile("boolean(/beans/trim)");
 				excludeExpression = xPath.compile("/beans/scan/exclude");
 			} catch (Throwable t) {
-				throw Exceptions.duck(t);
+				throw duck(t);
 			}
 		}
 	}

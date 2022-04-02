@@ -14,7 +14,7 @@
 
 package org.apache.aries.cdi.container.internal.container;
 
-import static aQute.lib.exceptions.FunctionWithException.asFunction;
+import static aQute.bnd.exceptions.FunctionWithException.asFunction;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 import static org.osgi.service.cdi.CDIConstants.CDI_EXTENSION_PROPERTY;

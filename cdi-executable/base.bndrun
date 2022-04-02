@@ -21,6 +21,8 @@
 	org.osgi.service.http.port=8080,\
 	osgi.console=
 
+-runee: JavaSE-${java.specification.version}
+
 -resolve.effective: resolve, active
 
 -runpath: \
