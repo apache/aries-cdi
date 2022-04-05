@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.apache.aries.cdi</groupId>
 		<artifactId>org.apache.aries.cdi</artifactId>
-		<version>1.1.5</version>
+		<version>1.1.6-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>org.apache.aries.cdi.executable</artifactId>
@@ -43,7 +43,7 @@
 	<scm>
 		<connection>scm:git:https://gitbox.apache.org/repos/asf/aries-cdi.git</connection>
 		<developerConnection>scm:git:https://gitbox.apache.org/repos/asf/aries-cdi.git</developerConnection>
-		<tag>org.apache.aries.cdi-1.1.5</tag>
+		<tag>HEAD</tag>
 		<url>https://github.com/apache/aries-cdi</url>
 	</scm>
 

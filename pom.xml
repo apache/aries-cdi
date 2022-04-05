@@ -29,7 +29,7 @@
 	<groupId>org.apache.aries.cdi</groupId>
 	<artifactId>org.apache.aries.cdi</artifactId>
 	<name>Apache Aries CDI - OSGi CDI Integration Project</name>
-	<version>1.1.5</version>
+	<version>1.1.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -41,7 +41,7 @@
 		<maven.site.deploy.skip>true</maven.site.deploy.skip>
 		<bnd.baseline.skip>false</bnd.baseline.skip>
 
-		<project.build.outputTimestamp>1649125705</project.build.outputTimestamp>
+		<project.build.outputTimestamp>1649125817</project.build.outputTimestamp>
 
 		<!-- Versions -->
 		<bnd.version>6.2.0</bnd.version>
@@ -73,7 +73,7 @@
 	<scm>
 		<connection>scm:git:https://gitbox.apache.org/repos/asf/aries-cdi.git</connection>
 		<developerConnection>scm:git:https://gitbox.apache.org/repos/asf/aries-cdi.git</developerConnection>
-		<tag>org.apache.aries.cdi-1.1.5</tag>
+		<tag>HEAD</tag>
 		<url>https://github.com/apache/aries-cdi</url>
 	</scm>
 
