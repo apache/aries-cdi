@@ -105,7 +105,7 @@
 					<dependency>
 						<groupId>org.osgi</groupId>
 						<artifactId>osgi.annotation</artifactId>
-						<version>7.0.0</version>
+						<version>8.1.0</version>
 					</dependency>
 					<dependency>
 						<groupId>org.apache.aries.cdi</groupId>
