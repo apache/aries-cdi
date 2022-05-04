@@ -100,7 +100,7 @@
 		<dependency>
 			<groupId>org.apache.xbean</groupId>
 			<artifactId>xbean-bundleutils</artifactId>
-			<version>4.20</version>
+			<version>${xbean.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -111,7 +111,7 @@
 		<dependency>
 			<groupId>org.apache.xbean</groupId>
 			<artifactId>xbean-asm9-shaded</artifactId>
-			<version>4.20</version>
+			<version>${xbean.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
