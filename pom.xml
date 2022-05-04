@@ -60,7 +60,9 @@
 		<owb.version>2.0.26</owb.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<surefire.version>2.12</surefire.version>
-		<weld.version>3.1.8.Final</weld.version>
+		<weld.version>3.1.9.Final</weld.version>
+    <felix.converter.version>1.0.18</felix.converter.version>
+    <xbean.version>4.21</xbean.version>
 	</properties>
 
 	<licenses>
@@ -122,7 +124,7 @@
 			<dependency>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>org.apache.felix.converter</artifactId>
-				<version>1.0.18</version>
+				<version>${felix.converter.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.felix</groupId>
