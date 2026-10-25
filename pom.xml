@@ -623,6 +623,7 @@
 						<exclude>**/.classpath</exclude>
 						<exclude>**/.settings/**</exclude>
 						<exclude>**/eclipse-classes/**/*</exclude>
+						<exclude>.asf.yaml</exclude>
 						<exclude>.gitignore</exclude>
 						<exclude>.github/**/*</exclude>
 						<exclude>.mailmap</exclude>

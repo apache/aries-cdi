@@ -124,10 +124,12 @@ public class ContainerState {
 		_containerDTO.template = new ContainerTemplateDTO();
 		_containerDTO.template.components = new CopyOnWriteArrayList<>();
 		_containerDTO.template.extensions = new CopyOnWriteArrayList<>();
+		// OSGi CDI 152 Container Component: by default the container id is the
+		// Bundle-SymbolicName prefixed by 'osgi.cdi.'
 		_containerDTO.template.id = ofNullable(
 			(String)_cdiAttributes.get(CDI_CONTAINER_ID)
 		).orElse(
-			_bundle.getSymbolicName()
+			"osgi.cdi." + _bundle.getSymbolicName()
 		);
 
 		extensionRequirements.forEach(
@@ -157,13 +159,8 @@ public class ContainerState {
 
 		ExtendedConfigurationTemplateDTO configurationTemplate = new ExtendedConfigurationTemplateDTO();
 		configurationTemplate.maximumCardinality = ONE;
-		configurationTemplate.pid = ofNullable(
-			(String)_cdiAttributes.get(CDI_CONTAINER_ID)
-		).map(
-			s -> s.replaceAll("-", ".")
-		).orElse(
-			"osgi.cdi." + _bundle.getSymbolicName().replaceAll("-", ".")
-		);
+		// the container PID is the container id
+		configurationTemplate.pid = _containerDTO.template.id;
 		configurationTemplate.policy = OPTIONAL;
 
 		_containerComponentTemplateDTO.configurations.add(configurationTemplate);

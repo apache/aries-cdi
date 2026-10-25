@@ -66,7 +66,7 @@ public class CDIBundlePhaseTest extends BaseCDIBundleTest {
 		assertNotNull(containerDTO.template);
 		assertEquals(2, containerDTO.template.components.size());
 		assertEquals(0, containerDTO.template.extensions.size());
-		assertEquals("foo", containerDTO.template.id);
+		assertEquals("osgi.cdi.foo", containerDTO.template.id);
 
 		cdiBundle.destroy();
 	}
@@ -155,7 +155,7 @@ public class CDIBundlePhaseTest extends BaseCDIBundleTest {
 		assertEquals(2, containerDTO.template.extensions.size());
 		assertEquals("(&(foo=name)(service.bundleid=1))", containerDTO.template.extensions.get(0).serviceFilter);
 		assertEquals("(&(fum=bar)(service.bundleid=1))", containerDTO.template.extensions.get(1).serviceFilter);
-		assertEquals("foo", containerDTO.template.id);
+		assertEquals("osgi.cdi.foo", containerDTO.template.id);
 
 		cdiBundle.destroy();
 	}
